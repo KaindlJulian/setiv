@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "solver-event-schema",
+  "title": "Solver Event",
+  "description": "Validates a single CDCL solver event object from a Solver Event Protocol NDJSON stream. E.g. a single line of the log, to validate the whole log, repeat validation for each line, or wrap it in an array and use `solver_log_schema.json`",
+  "oneOf": [
+    { "$ref": "#/definitions/init" },
+    { "$ref": "#/definitions/decide" },
+    { "$ref": "#/definitions/propagate" },
+    { "$ref": "#/definitions/conflict" },
+    { "$ref": "#/definitions/learn" },
+    { "$ref": "#/definitions/backtrack" },
+    { "$ref": "#/definitions/restart" },
+    { "$ref": "#/definitions/delete_clause" },
+    { "$ref": "#/definitions/result" }
+  ],
+  "definitions": {
+    "literal": {
+      "type": "integer",
+      "not": { "const": 0 },
+      "description": "In DIMACS format, a signed non-zero integer."
+    },
+    "clause_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Permanent clause identifier."
+    },
+    "clause_id_or_none": {
+      "type": "integer",
+      "minimum": -1,
+      "description": "Clause identifier, or -1 when no permanent clause object exists (e.g. a learned unit clause)."
+    },
+
+    "init": {
+      "type": "object",
+      "required": [
+        "event",
+        "protocol_version",
+        "variables",
+        "clauses",
+        "variable_ids",
+        "clause_list"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "init" },
+        "protocol_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Version of the Solver Event Protocol."
+        },
+        "variables": { "type": "integer", "minimum": 0 },
+        "clauses": { "type": "integer", "minimum": 0 },
+        "variable_ids": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "clause_list": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "literals"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/definitions/clause_id" },
+              "literals": {
+                "type": "array",
+                "items": { "$ref": "#/definitions/literal" },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "decide": {
+      "type": "object",
+      "required": ["event", "literal", "level"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "decide" },
+        "literal": { "$ref": "#/definitions/literal" },
+        "level": { "type": "integer", "minimum": 1 },
+        "heuristic": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional free-form name of the decision heuristic that picked this literal. Display only."
+        }
+      }
+    },
+
+    "propagate": {
+      "type": "object",
+      "required": [
+        "event",
+        "literal",
+        "level",
+        "reason_clause_id",
+        "reason_literals"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "propagate" },
+        "literal": { "$ref": "#/definitions/literal" },
+        "level": { "type": "integer", "minimum": 0 },
+        "reason_clause_id": { "type": ["integer", "null"] },
+        "reason_literals": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/literal" }
+        }
+      },
+      "if": { "properties": { "reason_clause_id": { "type": "null" } } },
+      "then": { "properties": { "reason_literals": { "maxItems": 0 } } }
+    },
+
+    "conflict": {
+      "type": "object",
+      "required": ["event", "clause_id", "literals", "level", "trail"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "conflict" },
+        "clause_id": { "$ref": "#/definitions/clause_id" },
+        "literals": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/literal" },
+          "minItems": 1
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0 for a root-level conflict, which is terminal: no learn follows and the next event is result: unsat."
+        },
+        "trail": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/literal" },
+          "minItems": 1
+        }
+      }
+    },
+
+    "learn": {
+      "type": "object",
+      "description": "Reports a derived clause only. It does not imply a trail change: the unwind that follows is a separate backtrack event.",
+      "required": ["event", "learned_literals", "clause_id", "jump_level"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "learn" },
+        "learned_literals": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/literal" },
+          "minItems": 1
+        },
+        "glue": { "type": "integer", "minimum": 0 },
+        "clause_id": { "$ref": "#/definitions/clause_id_or_none" },
+        "jump_level": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "backtrack": {
+      "type": "object",
+      "description": "One trail unwind. Emitted for every unwind in the solver, whatever triggered it, and only when something is actually unwound.",
+      "required": ["event", "from_level", "to_level", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "backtrack" },
+        "from_level": { "type": "integer", "minimum": 1 },
+        "to_level": { "type": "integer", "minimum": 0 },
+        "kind": {
+          "enum": ["conflict", "restart", "other"],
+          "description": "Closed backtrack classification: 'conflict': the unwind resolves a conflict (e.g. backjump, chronological unwind before analysis, on-the-fly subsumption). 'restart': the unwind belonging to a restart. 'other': inprocessing, preprocessing, etc."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional free-form detail naming the solver phase that requested the unwind, for display and adapter debugging only."
+        }
+      }
+    },
+
+    "restart": {
+      "type": "object",
+      "description": "Marker only. The restart's unwind arrives as a backtrack with kind 'restart', and is absent entirely when trail reuse leaves the decision level unchanged.",
+      "required": ["event", "count"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "restart" },
+        "count": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "delete_clause": {
+      "type": "object",
+      "required": ["event", "clause_id", "literals"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "delete_clause" },
+        "clause_id": { "$ref": "#/definitions/clause_id" },
+        "literals": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/literal" },
+          "minItems": 1
+        }
+      }
+    },
+
+    "result": {
+      "type": "object",
+      "required": ["event", "result", "model"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "result" },
+        "result": { "enum": ["sat", "unsat", "unknown"] },
+        "model": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/literal" }
+        }
+      },
+      "if": { "properties": { "result": { "const": "sat" } } },
+      "then": { "properties": { "model": { "minItems": 1 } } },
+      "else": { "properties": { "model": { "maxItems": 0 } } }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+[submodule "solvers/satch"]
+	path = solvers/satch
+	url = https://github.com/arminbiere/satch.git
+[submodule "solvers/kissat"]
+	path = solvers/kissat
+	url = https://github.com/arminbiere/kissat.git
+[submodule "solvers/glucose"]
+	path = solvers/glucose
+	url = https://github.com/audemard/glucose.git
+[submodule "solvers/minisat"]
+	path = solvers/minisat
+	url = https://github.com/niklasso/minisat.git
+[submodule "solvers/cadical"]
+	path = solvers/cadical
+	url = https://github.com/KaindlJulian/cadical.git
+	branch = event_logger_hooks

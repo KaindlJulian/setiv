@@ -1,0 +1,185 @@
+c ---- [ banner ] ------------------------------------------------------------
+c
+c Satch SAT Solver
+c Copyright (c) 2021 Armin Biere JKU Linz
+c
+c Version 0.5.6rc-simplification b4d4081f8971931399b36c8fdd92bdf4aabac005
+c Compiled with 'gcc -W -Wall -O3 -DNDEBUG -DLOGGING -DNSIMPLIFICATION'
+c
+c ---- [ parsing ] -----------------------------------------------------------
+c
+c parsing 'full_2.cnf'
+c parsed 'p cnf 2 4' header
+c LOG 0 increasing capacity from 0 to 2
+c LOG 0 increase solver size from 0 to 1
+c LOG 0 imported external literal 1 as internal literal 0
+c LOG 0 increase solver size from 1 to 2
+c LOG 0 imported external literal 2 as internal literal 2
+c LOG 0 activated variable 0 literal 0(1)
+c LOG 0 activated variable 1 literal 2(2)
+c LOG 0 watching 0(1) blocking 2(2) in irredundant binary clause 0(1) 2(2)
+c LOG 0 watching 2(2) blocking 0(1) in irredundant binary clause 2(2) 0(1)
+c LOG 0 imported irredundant binary clause 0(1) 2(2)
+c LOG 0 imported external literal -1 as internal literal 1
+c LOG 0 imported external literal 2 as internal literal 2
+c LOG 0 watching 1(-1) blocking 2(2) in irredundant binary clause 1(-1) 2(2)
+c LOG 0 watching 2(2) blocking 1(-1) in irredundant binary clause 2(2) 1(-1)
+c LOG 0 imported irredundant binary clause 1(-1) 2(2)
+c LOG 0 imported external literal 1 as internal literal 0
+c LOG 0 imported external literal -2 as internal literal 3
+c LOG 0 watching 0(1) blocking 3(-2) in irredundant binary clause 0(1) 3(-2)
+c LOG 0 watching 3(-2) blocking 0(1) in irredundant binary clause 3(-2) 0(1)
+c LOG 0 imported irredundant binary clause 0(1) 3(-2)
+c LOG 0 imported external literal -1 as internal literal 1
+c LOG 0 imported external literal -2 as internal literal 3
+c LOG 0 watching 1(-1) blocking 3(-2) in irredundant binary clause 1(-1) 3(-2)
+c LOG 0 watching 3(-2) blocking 1(-1) in irredundant binary clause 3(-2) 1(-1)
+c LOG 0 imported irredundant binary clause 1(-1) 3(-2)
+c parsed 4 clauses in 0.00 seconds
+c found maximum variable index 2
+c closed 'full_2.cnf'
+c after reading 46 bytes (0 MB)
+c
+c ---- [ solving ] -----------------------------------------------------------
+c
+c
+c seconds switched rate trail variables
+c       MB reductions conflicts glue remaining
+c        level restarts redundant irredundant
+c
+c * 0.00 1 0 0 0 0 0 0 0 0% 0 4 2 100%
+c { 0.00 1 0 0 0 0 0 0 0 0% 0 4 2 100%
+c LOG 0 start focused mode
+c LOG 0 BCP
+c LOG 0 chrono flushing 0 root-level units on trail
+c LOG 0 BCP
+c LOG 0 chrono flushing 0 root-level units on trail
+c LOG 1 activating 2 variables on queue[0]
+c LOG 1 enqueue 0
+c LOG 1 enqueued variable 0 literal 0(1) stamped 1
+c LOG 1 enqueue 1
+c LOG 1 enqueued variable 1 literal 2(2) stamped 2
+c LOG 1 maximum stamped unassigned variable 1 literal 2(2) with stamp 2
+c LOG 1 decision variable 1 literal 2(2)
+c LOG 1 decision phase 1
+c LOG 1 decision literal 2(2)
+c LOG 1 assign 2(2) decision
+c LOG 1 pushing trail position 1 at height 0
+c LOG 1 BCP
+c LOG 1 propagating 2(2)@1=1
+c LOG 1 assign 0(1) reason irredundant binary clause 0(1) 3(-2)@1=-1
+c LOG 1 found assignment level 1
+c LOG 1 conflicting temporary binary clause 3(-2)@1=-1 1(-1)@1=-1
+c LOG 1 find conflict: lit 3(-2)@1=-1
+c LOG 1 find conflict: lit 1(-1)@1=-1
+c LOG 1 2 literals on actual conflict level 1, forced: 3(-2)@1=-1
+c LOG 1 no forcing literal
+c LOG 1 conflict is on current level
+c LOG 1 analyzing temporary binary clause 3(-2)@1=-1 1(-1)@1=-1
+c LOG 1 analyzed variable 1 literal 2(2)@1=1
+c LOG 1 analyzed variable 0 literal 0(1)@1=1
+c LOG 1 next lit to analyze is 0(1)@1=1
+c LOG 1 analyzing temporary binary clause 0(1)@1=1 3(-2)@1=-1
+c LOG 1 next lit to analyze is 2(2)@1=1
+c LOG 1 first unique implication point 2(2)@1=1 (1st UIP)
+c LOG 1 deduced size 1 temporary clause 3(-2)@1=-1
+c LOG 1 shrunken 0 literals
+c LOG 1 shrunken size 1 temporary clause 3(-2)@1=-1
+c LOG 1 asserting level: 0
+c LOG 1 normal backjumping
+c LOG 1 determined jump level 0 and glue 0
+c LOG 1 exponential 'conflict_level' moving average 1
+c LOG 1 exponential 'fast_glue' moving average 0
+c LOG 1 exponential 'slow_glue' moving average 0
+c LOG 1 moving variable 0 literal 0(1)@1=1 to front of decision queue
+c LOG 1 dequeue 0
+c LOG 1 enqueue 0
+c LOG 1 enqueued variable 0 literal 0(1)@1=1 stamped 3
+c LOG 1 moving variable 1 literal 2(2)@1=1 to front of decision queue
+c LOG 1 dequeue 1
+c LOG 1 enqueue 1
+c LOG 1 enqueued variable 1 literal 2(2)@1=1 stamped 4
+c LOG 1 backtracking to level 0
+c LOG 1 backtracking to position 0 corresponding
+c LOG 1 unassign 2(2)@1=1
+c LOG 1 popping literal 2(2)@1=1
+c LOG 1 unassign 0(1)@1=1
+c LOG 1 popping literal 0(1)@1=1
+c LOG 1 searched variable index 1
+c LOG 0 assign 3(-2) through unit clause 3(-2)
+c LOG 0 new fixed 3(-2)
+c LOG 0 BCP
+c LOG 0 propagating 3(-2)@0=1
+c LOG 0 assign 0(1) reason irredundant binary clause 0(1) 2(2)@0=-1
+c LOG 0 found assignment level 0
+c LOG 0 delayed unit
+c LOG 0 new fixed 0(1)
+c LOG 0 conflicting temporary binary clause 2(2)@0=-1 1(-1)@0=-1
+c LOG 0 learned empty clause
+c LOG 0 stop focused mode
+c } 0.00 1 1 0 0 0 1 2 0 100% 0 4 0 0%
+c 0 0.00 1 1 0 0 0 1 2 0 100% 0 4 0 0%
+c LOG 0 internal solving procedure returns '20'
+c
+c ---- [ result ] ------------------------------------------------------------
+c
+s UNSATISFIABLE
+c
+c ---- [ profiling ] ---------------------------------------------------------
+c
+c           0.00   72.13 %  solve
+c           0.00   62.91 %  focused
+c           0.00   27.87 %  parse
+c           0.00    9.76 %  decide
+c           0.00    1.52 %  minishrink
+c           0.00    0.00 %  reduce
+c           0.00    0.00 %  stable
+c           0.00    0.00 %  vivify
+c =============================================
+c           0.00  100.00 %  total
+c
+c ---- [ statistics ] --------------------------------------------------------
+c
+c added:                                   0                   clauses
+c bests:                                   0              0.00 interval
+c bumped:                                  2              1.00 literals
+c chronological backtracking:                 0              0.00 per learned
+c reused level:                            0              0.00 per jump
+c collected:                               0              0.00 MB
+c conflicts:                               2           1016.78 per second
+c decisions:                               1              0.50 per conflict
+c deduced:                                 1              0.50 literals
+c deleted:                                 0              0 %  added
+c fixed:                                   2            100 %  variables
+c learned:                                 0              0.00 literals
+c incremented:                             0              0 %  bumped
+c minimized:                               0              0 %  deduced
+c moved:                                   2            100 %  bumped
+c propagations:                            2           1016.78 per second
+c reasons:                                 0              0 %  bumped
+c reduced:                                 0              0.00 per reduction
+c reductions:                              0              0.00 interval
+c rephased:                                0              0.00 interval
+c rescored:                                0              0.00 interval
+c restamped:                               0              0.00 interval
+c restarts:                                0              0.00 interval
+c reused:                                  0              0 %  restarts
+c shrunken:                                0              0 %  deduced
+c switched:                                0              0.00 interval
+c targets:                                 0              0.00 interval
+c vivified:                                0              0 per round
+c      propagations:                       0              0 per round
+c      ticks:                              0              0 per propagation
+c      subsume:                            0              0 per round
+c      strengthen:                         0              0 per round
+c      reused:                             0           0.00 per vivification
+c ticks:                                   6              3.00 per propagation
+c
+c ---- [ resources ] ---------------------------------------------------------
+c
+c memory:                            2150400 bytes        2.05 MB
+c time:                                                   0.00 seconds
+c
+c ---- [ shutting down ] -----------------------------------------------------
+c
+c exit 20

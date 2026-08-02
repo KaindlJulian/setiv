@@ -1,0 +1,638 @@
+c LOG 0 set option 'set ("log", 1)' from '0'
+c LOG 0 API call 'set ("log", 1)' succeeded
+c LOG 0 API call 'set ("--log")' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'configure ("plain")' started
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'configure ("plain")' started
+c LOG 0 plain mode disables 'compact'
+c LOG 0 plain mode disables 'congruence'
+c LOG 0 plain mode disables 'decompose'
+c LOG 0 plain mode disables 'deduplicate'
+c LOG 0 plain mode disables 'eagersubsume'
+c LOG 0 plain mode disables 'elim'
+c LOG 0 plain mode disables 'factor'
+c LOG 0 plain mode disables 'factorunbump'
+c LOG 0 plain mode disables 'fastelim'
+c LOG 0 plain mode disables 'inprobing'
+c LOG 0 plain mode disables 'inprocessing'
+c LOG 0 plain mode disables 'preprocesslight'
+c LOG 0 plain mode disables 'probe'
+c LOG 0 plain mode disables 'subsume'
+c LOG 0 plain mode disables 'sweep'
+c LOG 0 plain mode disables 'ternary'
+c LOG 0 plain mode disables 'transred'
+c LOG 0 plain mode disables 'vivify'
+c LOG 0 forced plain mode disabled 18 preprocessing options
+c LOG 0 API call 'configure ("plain")' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'set ("--lucky=false")' started
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'set ("lucky", 0)' started
+c LOG 0 set option 'set ("lucky", 0)' from '1'
+c LOG 0 API call 'set ("lucky", 0)' succeeded
+c LOG 0 API call 'set ("--lucky=false")' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'set ("full_2.cnf")' started
+c LOG 0 API call 'set ("full_2.cnf")' failed
+c --- [ banner ] -------------------------------------------------------------
+c 
+c CaDiCaL SAT Solver
+c Copyright (c) 2016-2025
+c A. Biere, M. Fleury, N. Froleyks, K. Fazekas, F. Pollitt, T. Faller
+c JKU Linz, University of Freiburg, TU Wien
+c 
+c Version 3.0.0 7b99c07f0bcab5824a5a3ce62c7066554017f641
+c g++ (Ubuntu 11.4.0-1ubuntu1~22.04.2) 11.4.0 -Wall -Wextra -g -DLOGGING
+c Thu Jun 25 01:16:50 CEST 2026 Linux Desktop 5.15.153.1-microsoft-standard-WSL2 x86_64
+c will not generate nor write DRAT proof
+c 
+c --- [ parsing input ] ------------------------------------------------------
+c 
+c reading DIMACS file from 'full_2.cnf'
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'read_dimacs ("full_2.cnf")' started
+c opening file to read 'full_2.cnf'
+c found 'p cnf 2 4' header
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'resize (2)' started
+c LOG 0 API leaves state CONFIGURING
+c LOG 0 API enters state STEADY
+c LOG 0 initializing 2 internal variables from 1 to 2
+c LOG 0 enlarge internal size from 0 to new size 3
+c LOG 0 initializing VMTF queue from 1 to 2
+c LOG 0 queue unassigned now 1 bumped 1
+c LOG 0 queue unassigned now 2 bumped 2
+c LOG 0 initializing EVSIDS scores from 1 to 2
+c LOG 0 finished initializing 2 internal variables
+c LOG 0 enlarge external size from 0 to new size 3
+c LOG 0 initialized 2 external variables
+c LOG 0 mapping external 1 to internal 1
+c LOG 0 mapping external 2 to internal 2
+c LOG 0 API call 'resize (2)' succeeded
+c LOG 0 reserving 4 ids
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (1)' started
+c LOG 0 activate 1 previously unused
+c LOG 0 adding external 1 as internal 1
+c LOG 0 API enters state ADDING
+c LOG 0 API call 'add (1)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (2)' started
+c LOG 0 API enters state STEADY
+c LOG 0 activate 2 previously unused
+c LOG 0 adding external 2 as internal 2
+c LOG 0 API enters state ADDING
+c LOG 0 API call 'add (2)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (0)' started
+c LOG 0 API enters state STEADY
+c LOG 0 original clause 1 2
+c LOG 0 new pointer 0x557066c607e0 irredundant size 2 clause[5] 1 2
+c LOG 0 marking added irredundant size 2 clause[5] 1 2
+c LOG 0 marking 1 as factor literal candidate
+c LOG 0 marking 2 as factor literal candidate
+c LOG 0 watch 1 blit 2 in irredundant size 2 clause[1] 1 2
+c LOG 0 watch 2 blit 1 in irredundant size 2 clause[1] 1 2
+c LOG 0 API call 'add (0)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (-1)' started
+c LOG 0 adding external -1 as internal -1
+c LOG 0 API enters state ADDING
+c LOG 0 API call 'add (-1)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (2)' started
+c LOG 0 API enters state STEADY
+c LOG 0 adding external 2 as internal 2
+c LOG 0 API enters state ADDING
+c LOG 0 API call 'add (2)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (0)' started
+c LOG 0 API enters state STEADY
+c LOG 0 original clause -1 2
+c LOG 0 new pointer 0x557066c60850 irredundant size 2 clause[5] -1 2
+c LOG 0 marking added irredundant size 2 clause[5] -1 2
+c LOG 0 marking -1 as factor literal candidate
+c LOG 0 watch -1 blit 2 in irredundant size 2 clause[2] -1 2
+c LOG 0 watch 2 blit -1 in irredundant size 2 clause[2] -1 2
+c LOG 0 API call 'add (0)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (1)' started
+c LOG 0 adding external 1 as internal 1
+c LOG 0 API enters state ADDING
+c LOG 0 API call 'add (1)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (-2)' started
+c LOG 0 API enters state STEADY
+c LOG 0 adding external -2 as internal -2
+c LOG 0 API enters state ADDING
+c LOG 0 API call 'add (-2)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (0)' started
+c LOG 0 API enters state STEADY
+c LOG 0 original clause 1 -2
+c LOG 0 new pointer 0x557066c608d0 irredundant size 2 clause[5] 1 -2
+c LOG 0 marking added irredundant size 2 clause[5] 1 -2
+c LOG 0 marking -2 as factor literal candidate
+c LOG 0 watch 1 blit -2 in irredundant size 2 clause[3] 1 -2
+c LOG 0 watch -2 blit 1 in irredundant size 2 clause[3] 1 -2
+c LOG 0 API call 'add (0)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (-1)' started
+c LOG 0 adding external -1 as internal -1
+c LOG 0 API enters state ADDING
+c LOG 0 API call 'add (-1)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (-2)' started
+c LOG 0 API enters state STEADY
+c LOG 0 adding external -2 as internal -2
+c LOG 0 API enters state ADDING
+c LOG 0 API call 'add (-2)' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'add (0)' started
+c LOG 0 API enters state STEADY
+c LOG 0 original clause -1 -2
+c LOG 0 new pointer 0x557066c60960 irredundant size 2 clause[5] -1 -2
+c LOG 0 marking added irredundant size 2 clause[5] -1 -2
+c LOG 0 watch -1 blit -2 in irredundant size 2 clause[4] -1 -2
+c LOG 0 watch -2 blit -1 in irredundant size 2 clause[4] -1 -2
+c LOG 0 API call 'add (0)' succeeded
+c parsed 4 clauses in 0.00 seconds process time
+c LOG 0 API call 'read_dimacs ("full_2.cnf")' returns '<null>'
+c 
+c --- [ options ] ------------------------------------------------------------
+c 
+c   --compact=false                (different from default 'true')
+c   --congruence=false             (different from default 'true')
+c   --decompose=false              (different from default 'true')
+c   --deduplicate=false            (different from default 'true')
+c   --eagersubsume=false           (different from default 'true')
+c   --elim=false                   (different from default 'true')
+c   --factor=false                 (different from default 'true')
+c   --factorunbump=false           (different from default 'true')
+c   --fastelim=false               (different from default 'true')
+c   --inprobing=false              (different from default 'true')
+c   --inprocessing=false           (different from default 'true')
+c   --log=true                     (different from default 'false')
+c   --lucky=false                  (different from default 'true')
+c   --preprocesslight=false        (different from default 'true')
+c   --probe=false                  (different from default 'true')
+c   --subsume=false                (different from default 'true')
+c   --sweep=false                  (different from default 'true')
+c   --ternary=false                (different from default 'true')
+c   --transred=false               (different from default 'true')
+c   --vivify=false                 (different from default 'true')
+c 
+c --- [ solving ] ------------------------------------------------------------
+c 
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'solve ()' started
+c LOG 0 API enters state SOLVING
+c LOG 0 internal solving in full mode
+c LOG 0 starting propagate
+c LOG 0 no tainted literals and nothing to restore
+c time measured in process time since initialization
+c 
+c  seconds  reduction conflicts       size tier2     variables
+c         MB    restarts   redundant    glue  trail      remaining
+c          level     rate       size/glu tier1 irredundant
+c 
+c *  0.00  4  0 0   0  0    0    0 0.0 0 0 2 6  0%    4   2 100%
+c LOG 0 initializing preprocessing limits and increments
+c LOG 0 initial elim limit 2000 after 2000 conflicts
+c LOG 0 elimination bound 0
+c LOG 0 initial compact limit 2000 increment 2000
+c LOG 0 initial probe limit 131 after 131 conflicts
+c LOG 0 initial condition limit 10000 increment 10000
+c LOG 0 no preprocessing
+c LOG 0 initializing search limits and increments
+c LOG 0 initial reduce limit 300 after 300 conflicts
+c LOG 0 initial flush limit 100000 interval 100000
+c LOG 0 new rephase limit 1000 after 1000 conflicts
+c LOG 0 new restart limit 2 increment 2
+c LOG 0 starting in default non-stable phase
+c LOG 0 initializing averages
+c LOG 0 init averages.current.jump EMA target alpha 1e-05 window 100000
+c LOG 0 init averages.current.level EMA target alpha 1e-05 window 100000
+c LOG 0 init averages.current.size EMA target alpha 1e-05 window 100000
+c LOG 0 init averages.current.glue.fast EMA target alpha 0.030303 window 33
+c LOG 0 init averages.current.glue.slow EMA target alpha 1e-05 window 100000
+c LOG 0 init averages.current.decisions EMA target alpha 1e-05 window 100000
+c LOG 0 init averages.current.trail.fast EMA target alpha 0.01 window 100
+c LOG 0 init averages.current.trail.slow EMA target alpha 1e-05 window 100000
+c LOG 0 new ticks-based stabilize limit 1000 after 1000 conflicts
+c LOG 0 new restart reluctant doubling sequence period 1
+c LOG 0 no limit on conflicts
+c LOG 0 no limit on decisions
+c LOG 0 no limit on ticks
+c LOG 0 no local search
+c LOG 0 initial randomize decision limit 1000 after 1000 conflicts
+c )  0.00  4  0 0   0  0    0    0 0.0 0 0 2 6  0%    4   2 100%
+c {  0.00  4  0 0   0  0    0    0 0.0 0 0 2 6  0%    4   2 100%
+c LOG 0 starting propagate
+c LOG 0 next queue decision variable 2 bumped 2
+c LOG 0 trying forced phase, i.e., 0
+c LOG 1 search decide 2
+c LOG 1 search assign 2 @ 1 decision
+c LOG 1 starting propagate
+c LOG 1 propagating 2
+c LOG 1 checking irredundant size 2 clause[3] 1 -2@1+=-1
+c LOG 1 search assign 1 @ 1 irredundant size 2 clause[3] 1@1=1 -2@1+=-1
+c LOG 1 checking irredundant size 2 clause[4] -1@1=-1 -2@1+=-1
+c LOG 1 conflict irredundant size 2 clause[4] -1@1=-1 -2@1+=-1
+c LOG 1 update 1 of biased averages.current.trail.fast EMA 0 with 2 (delta 2) yields 0.02 (scaled delta 0.02)
+c LOG 1 update 1 of corrected averages.current.trail.fast EMA 0 with 2 (delta 2) yields 2 (exponent 0.99, divisor 0.01)
+c LOG 1 update 1 of biased averages.current.trail.slow EMA 0 with 2 (delta 2) yields 2e-05 (scaled delta 2e-05)
+c LOG 1 update 1 of corrected averages.current.trail.slow EMA 0 with 2 (delta 2) yields 2 (exponent 0.99999, divisor 1e-05)
+c LOG 1 update 1 of biased averages.current.decisions EMA 0 with 1 (delta 1) yields 1e-05 (scaled delta 1e-05)
+c LOG 1 update 1 of corrected averages.current.decisions EMA 0 with 1 (delta 1) yields 1 (exponent 0.99999, divisor 1e-05)
+c LOG 1 2 literals on actual conflict level 1
+c LOG 1 analyzing conflict irredundant size 2 clause[4] -1@1=-1 -2@1+=-1
+c LOG 1 bumping irredundant size 2 clause[4] -1@1=-1 -2@1+=-1
+c LOG 1 found new level 1 contributing to conflict
+c LOG 1 analyzed literal -1 assigned at level 1
+c LOG 1 analyzed literal -2 assigned at level 1
+c LOG 1 analyzing 1 reason irredundant size 2 clause[3] 1@1=1 -2@1+=-1
+c LOG 1 bumping irredundant size 2 clause[3] 1@1=1 -2@1+=-1
+c LOG 1 first UIP 2
+c LOG 1 1st UIP size 1 and glue 0 clause -2
+c LOG 1 update 1 of biased averages.current.glue.fast EMA 0 with 0 (delta 0) yields 0 (scaled delta 0)
+c LOG 1 update 1 of corrected averages.current.glue.fast EMA 0 with 0 (delta 0) yields 0 (exponent 0.969697, divisor 0.030303)
+c LOG 1 update 1 of biased averages.current.glue.slow EMA 0 with 0 (delta 0) yields 0 (scaled delta 0)
+c LOG 1 update 1 of corrected averages.current.glue.slow EMA 0 with 0 (delta 0) yields 0 (exponent 0.99999, divisor 1e-05)
+c LOG 1 update 1 of biased averages.current.size EMA 0 with 1 (delta 1) yields 1e-05 (scaled delta 1e-05)
+c LOG 1 update 1 of corrected averages.current.size EMA 0 with 1 (delta 1) yields 1 (exponent 0.99999, divisor 1e-05)
+c LOG 1 jump level 0
+c LOG 1 update 1 of biased averages.current.jump EMA 0 with 0 (delta 0) yields 0 (scaled delta 0)
+c LOG 1 update 1 of corrected averages.current.jump EMA 0 with 0 (delta 0) yields 0 (exponent 0.99999, divisor 1e-05)
+c LOG 1 jump level identical to chronological backtrack level 0
+c LOG 1 update 1 of biased averages.current.level EMA 0 with 0 (delta 0) yields 0 (scaled delta 0)
+c LOG 1 update 1 of corrected averages.current.level EMA 0 with 0 (delta 0) yields 0 (exponent 0.99999, divisor 1e-05)
+c LOG 1 backtracking to decision level 0 with decision 0 and trail 0
+c LOG 1 unassign 2 @ 1
+c LOG 1 unassign 1 @ 1
+c LOG 1 unassigned 2 literals 100%
+c LOG 1 reassigned 0 literals 0%
+c LOG 0 learned unit clause -2, stored at position 5
+c LOG 0 fixed 2
+c LOG 0 root-level unit assign -2 @ 0
+c LOG 0 clearing 2 analyzed literals
+c LOG 0 clearing 0 unit analyzed literals
+c LOG 0 clearing 1 analyzed levels
+c LOG 0 starting propagate
+c LOG 0 propagating -2
+c LOG 0 checking irredundant size 2 clause[1] 1 2@0+=-1
+c LOG 0 learned unit clause 1, stored at position 2
+c LOG 0 fixed 1
+c LOG 0 root-level unit assign 1 @ 0
+c LOG 0 checking irredundant size 2 clause[2] -1@0+=-1 2@0+=-1
+c LOG 0 conflict irredundant size 2 clause[2] -1@0+=-1 2@0+=-1
+c LOG 0 update 2 of biased averages.current.trail.fast EMA 0.02 with 2 (delta 1.98) yields 0.0398 (scaled delta 0.0198)
+c LOG 0 update 2 of corrected averages.current.trail.fast EMA 2 with 2 (delta 1.98) yields 2 (exponent 0.9801, divisor 0.0199)
+c LOG 0 update 2 of biased averages.current.trail.slow EMA 2e-05 with 2 (delta 1.99998) yields 3.99998e-05 (scaled delta 1.99998e-05)
+c LOG 0 update 2 of corrected averages.current.trail.slow EMA 2 with 2 (delta 1.99998) yields 2 (exponent 0.99998, divisor 1.99999e-05)
+c LOG 0 update 2 of biased averages.current.decisions EMA 1e-05 with 0 (delta -1e-05) yields 9.9999e-06 (scaled delta -1e-10)
+c LOG 0 update 2 of corrected averages.current.decisions EMA 1 with 0 (delta -1e-05) yields 0.499997 (exponent 0.99998, divisor 1.99999e-05)
+c LOG 0 2 literals on actual conflict level 0
+c LOG 0 learned empty clause
+c }  0.00  4  0 0   0  0    2    0 0.0 1 0 2 6 100%    4   0  0%
+c 0  0.00  4  0 0   0  0    2    0 0.0 1 0 2 6 100%    4   0  0%
+c LOG 0 reset limits
+c LOG 0 keeping unbounded terminate limit
+c LOG 0 keeping unbounded conflict limit
+c LOG 0 keeping unbounded decision limit
+c LOG 0 reset preprocessing limit to no preprocessing
+c LOG 0 reset local search limit to no local search
+c LOG 0 keeping unbounded ticks limit
+c LOG 0 API enters state UNSATISFIED
+c LOG 0 API call 'solve ()' returns '20'
+c 
+c --- [ result ] -------------------------------------------------------------
+c 
+s UNSATISFIABLE
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'stats ()' started
+c 
+c --- [ run-time profiling ] -------------------------------------------------
+c 
+c process time taken by individual solving procedures
+c (percentage relative to process time for solving)
+c 
+c         0.00   81.32% parse
+c         0.00   76.63% search
+c         0.00   74.73% unstable
+c         0.00    0.00% simplify
+c   =================================
+c         0.00   34.48% solve
+c 
+c last line shows process time for solving
+c (percentage relative to total process time)
+c 
+c --- [ statistics ] ---------------------------------------------------------
+c 
+c blocked:                       0         0.00 %  of irredundant clauses
+c   blockings:                   0         0.00    internal
+c   candidates:                  0         0.00    per blocking 
+c   blockres:                    0         0.00    per candidate
+c   pure:                        0         0.00 %  of all variables
+c   pureclauses:                 0         0.00    per pure literal
+c chronological:                 0         0.00 %  of conflicts
+c compacts:                      0         0.00    interval
+c conflicts:                     2      1358.70    per second
+c   backtracked:                 1        50.00 %  of conflicts
+c inc-decay:                     0         0.00 %   per search
+c backbone:                      0         0.00 %  of vars
+c    rounds:                     0         0.00    per phase
+c    phases:                     0         0.00    interval
+c    units:                      0         0.00    per phase
+c dedup-init-rnds:                0         0.00 %  of interval
+c dedup-init:                     0         0.00 %  of subsumed
+c conditioned:                   0         0.00 %  of irredundant clauses
+c   conditionings:               0         0.00    interval
+c   condcands:                   0         0.00    candidate clauses
+c   condassinit:                 0.0       0.00 %  initial assigned
+c   condcondinit:                0.0       0.00 %  initial condition
+c   condautinit:                 0.0       0.00 %  initial autarky
+c   condassrem:                  0.0       0.00 %  final assigned
+c   condcondrem:                 0.000     0.00 %  final conditional
+c   condautrem:                  0.000     0.00 %  final autarky
+c   condprops:                   0         0.00    per candidate
+c covered:                       0         0.00 %  of irredundant clauses
+c   coverings:                   0         0.00    interval
+c   asymmetric:                  0         0.00 %  of covered clauses
+c   blocked:                     0         0.00 %  of covered clauses
+c decisions:                     1       679.35    per second
+c   searched:                    0         0.00    per decision
+c rand. dec phase:               0         0.00    per interval
+c random decs:                   0         0.00    per phase
+c eliminated:                    0         0.00 %  of all variables
+c   fastelim:                    0         0.00 %  of eliminated
+c   elimphases:                  0         0.00    interval
+c   elimrounds:                  0         0.00    per phase
+c   elimtried:                   0         0.00 %  eliminated
+c   elimgates:                   0         0.00 %  gates per tried
+c   elimequivs:                  0         0.00 %  equivalence gates
+c   elimands:                    0         0.00 %  and gates
+c   elimites:                    0         0.00 %  if-then-else gates
+c   elimxors:                    0         0.00 %  xor gates
+c   elimdefs:                    0         0.00 %  definitions
+c   elimsubst:                   0         0.00 %  substituted
+c   elimsubstequi:               0         0.00 %  equivalence gates
+c   elimsubstands:               0         0.00 %  and gates
+c   elimsubstites:               0         0.00 %  if-then-else gates
+c   elimsubstxors:               0         0.00 %  xor gates
+c   elimsubstdefs:               0         0.00 %  definitions
+c   elimres:                     0         0.00    per eliminated
+c   elimrestried:                0         0.00 %  per resolution
+c   def checked:                 0         0.00    per phase
+c   def extracted:               0         0.00 %  per checked
+c   def units:                   0         0.00 %  per checked
+c ext.prop. calls:               0         0.00 %  of queries
+c   propagating:                 0         0.00 %  per eprop-call
+c   explained:                   0         0.00 %  per eprop-call
+c   falsified:                   0         0.00 %  per eprop-call
+c ext.clause calls:              0         0.00 %  of queries
+c   learned:                     0         0.00 %  per called
+c   conflicting:                 0         0.00 %  per learned
+c   propagating:                 0         0.00 %  per learned
+c ext.final check:               0         0.00 %  of queries
+c factored:                      0         0.00 %  of variables
+c   factor:                      0         0.00    conflict interval
+c   cls factored:                0         0.00    per factored
+c   lits factored:               0         0.00    per factored
+c   cls unfactored:              0         0.00    per factored
+c   lits unfactored:             0         0.00    per factored
+c fixed:                         2       100.00 %  of all variables
+c   failed:                      0         0.00 %  of all variables
+c   probefailed:                 0         0.00 %  per failed
+c   transredunits:               0         0.00 %  per failed
+c   inprobephases:               0         0.00    interval
+c   inprobesuccess:              0         0.00 %  phases
+c   probingrounds:               0         0.00    per phase
+c   probed:                      0         0.00    per failed
+c   hbrs:                        0         0.00    per probed
+c   hbrsizes:                    0         0.00    per hbr
+c   hbreds:                      0         0.00 %  per hbr
+c   hbrsubs:                     0         0.00 %  per hbr
+c   units:                       1         2.00    interval
+c   binaries:                    0         0.00    interval
+c flushed:                       0         0.00 %  per conflict
+c   hyper:                       0         0.00 %  per conflict
+c   flushings:                   0         0.00    interval
+c instantiated:                  0         0.00 %  of tried
+c   instrounds:                  0         0.00 %  of elimrounds
+c learned:                       1        50.00 %  per conflict
+c   bumped:                      2         2.00    per learned
+c   recomputed:                  0         0.00 %  per learned
+c   promoted1:                   0         0.00 %  per learned
+c   promoted2:                   0         0.00 %  per learned
+c   improvedglue:                0         0.00 %  per learned
+c lucky:                         0         0.00 %  of tried
+c   constantzero                 0         0.00 %  of tried
+c   constantone                  0         0.00 %  of tried
+c   backwardone                  0         0.00 %  of tried
+c   backwardzero                 0         0.00 %  of tried
+c   forwardone                   0         0.00 %  of tried
+c   forwardzero                  0         0.00 %  of tried
+c   positivehorn                 0         0.00 %  of tried
+c   negativehorn                 0         0.00 %  of tried
+c   extendbytes:                 0         0.00    bytes and MB
+c learned_lits:                  1       100.00 %  learned literals
+c minimized:                     0         0.00 %  learned literals
+c shrunken:                      0         0.00 %  learned literals
+c minishrunken:                  0         0.00 %  learned literals
+c otfs:                          0         0.00 %  of conflict
+c   subsumed                     0         0.00 %  of conflict
+c   strengthened                 0         0.00 %  of conflict
+c propagations:                  2         0.00 M  per second
+c   coverprops:                  0         0.00 %  of propagations
+c   probeprops:                  0         0.00 %  of propagations
+c   searchprops:                 2       100.00 %  of propagations
+c   transredprops:               0         0.00 %  of propagations
+c   vivifyprops:                 0         0.00 %  of propagations
+c reactivated:                   0         0.00 %  of all variables
+c reduced:                       0         0.00 %  per conflict
+c   reductions:                  0         0.00    interval
+c   sqrt scheme:                 0         0.00 %  reductions
+c   prct scheme:                 0         0.00 %  reductions
+c   collections:                 0         0.00    interval
+c rephased:                      0         0.00    interval
+c   rephasedbest:                0         0.00 %  rephased best
+c   rephasedflip:                0         0.00 %  rephased flipping
+c   rephasedinv:                 0         0.00 %  rephased inverted
+c   rephasedorig:                0         0.00 %  rephased original
+c   rephasedrand:                0         0.00 %  rephased random
+c   rephasedwalk:                0         0.00 %  rephased walk
+c rescored:                      0         0.00    interval
+c restarts:                      0         0.00    interval
+c   reused:                      0         0.00 %  per restart
+c   reusedlevels:                0         0.00 %  per restart levels
+c restored:                      0         0.00 %  per weakened
+c   restorations:                0         0.00 %  per extension
+c   literals:                    0         0.00    per restored clause
+c stabilizing:                   0         0.00 %  of conflicts
+c   restartstab:                 0         0.00 %  of all restarts
+c   reusedstab:                  0         0.00 %  per stable restarts
+c substituted:                   0         0.00 %  of all variables
+c   decompositions:              0         0.00    per phase
+c sweep equivs:                  0         0.00 %  of swept variables
+c   sweepings:                   0         0.00    vars per sweeping
+c   swept vars:                  0         0.00 %  of all variables
+c   sweep units:                 0         0.00 %  of all variables
+c   solved:                      0         0.00    per swept variable
+c   sat:                         0         0.00 %  solved
+c   unsat:                       0         0.00 %  solved
+c   backbone solved:             0         0.00 %  solved
+c     sat:                       0         0.00 %  backbone solved
+c     unsat:                     0         0.00 %  backbone solved
+c     unknown:                   0         0.00 %  backbone solved
+c     fixed:                     0         0.00   per swept variable
+c     flip:                      0         0.00   per swept variable
+c     flipped:                   0         0.00 %  of backbone flip
+c   equiv solved:                0         0.00 %  solved
+c     sat:                       0         0.00 %  equiv solved
+c     unsat:                     0         0.00 %  equiv solved
+c     unknown:                   0         0.00 %  equiv solved
+c     flip:                      0         0.00    per swept variable
+c     flipped:                   0         0.00 %  of equiv flip
+c   depth:                       0         0.00    per swept variable
+c   environment:                 0         0.00    per swept variable
+c   clauses:                     0         0.00    per swept variable
+c   completed:                   0         0.00    sweeps to complete
+c subsumed:                      0         0.00 %  of all clauses
+c   subsumephases:               0         0.00    interval
+c   subsumerounds:               0         0.00    per phase
+c   deduplicated:                0         0.00 %  per subsumed
+c   transreds:                   0         0.00    interval
+c   transitive:                  0         0.00 %  per subsumed
+c   subirr:                      0         0.00 %  of subsumed
+c   subred:                      0         0.00 %  of subsumed
+c   subtried:                    0         0.00    tried per subsumed
+c   subchecks:                   0         0.00    per tried
+c   subchecks2:                  0         0.00 %  per subcheck
+c   elimotfsub:                  0         0.00 %  of subsumed
+c   elimbwsub:                   0         0.00 %  of subsumed
+c   eagersub:                    0         0.00 %  of subsumed
+c   eagertried:                  0         0.00    tried per eagersub
+c strengthened:                  0         0.00 %  of all clauses
+c   elimotfstr:                  0         0.00 %  of strengthened
+c   elimbwstr:                   0         0.00 %  of strengthened
+c ternary:                       0         0.00 %  of resolved
+c   phases:                      0         0.00    interval
+c   htr3:                        0         0.00 %  ternary hyper ternres
+c   htr2:                        0         0.00 %  binary hyper ternres
+c ticks:                         6         3.00    propagation
+c  searchticks:                  6       100.00 %  totalticks
+c    stableticks:                0         0.00 %  searchticks
+c    unstableticks:              6       100.00 %  searchticks
+c  inprobeticks:                 0         0.00 %  totalticks
+c    backboneticks:              0         0.00 %  searchticks
+c    factorticks:                0         0.00 %  searchticks
+c    probeticks:                 0         0.00 %  searchticks
+c    sweepticks:                 0         0.00 %  searchticks
+c    ternaryticks:               0         0.00 %  searchticks
+c    vivifyticks:                0         0.00 %  searchticks
+c    walkticks:                  0         0.00 %  searchticks
+c    walkflipticks:              0         0.00 %  searchticks
+c    walkflipbrk:                0         0.00 %  searchticks
+c    walkflipWL:                 0         0.00 %  searchticks
+c    walkpickticks:              0         0.00 %  searchticks
+c    walkbreak:                  0         0.00 %  searchticks
+c tier recomputed:               0         0.00    interval
+c trail reuses:                  0         0.00 %  of incremental calls
+c   levels:                      0         0.00    per reuse
+c   literals:                    0         0.00    per reuse
+c   assumptions:                 0         0.00    per reuse
+c vivified:                      0         0.00 %  of all clauses
+c   vivifications:               0         0.00    interval
+c   vivifychecks:                0         0.00 %  per conflict
+c   vivified:                    0         0.00 %  per check
+c   vified-irred:                0         0.00 %  per vivified
+c   vified-tier1:                0         0.00 %  per vivified
+c   vified-tier2:                0         0.00 %  per vivified
+c   vified-tier3:                0         0.00 %  per vivified
+c   vivifysched:                 0         0.00 %  checks per scheduled
+c   vivifyunits:                 0         0.00 %  per vivify check
+c   vivifyinst:                  0         0.00 %  per vivify check
+c   vivifysubs:                  0         0.00 %  per subsumed
+c   vivifyflushed:               0         0.00 %  per subsumed
+c   vivifysubred:                0         0.00 %  per subs
+c   vivifysubirr:                0         0.00 %  per subs
+c   vivifystrs:                  0         0.00 %  per strengthened
+c   vivifystrirr:                0         0.00 %  per vivifystrs
+c   vivifystred1:                0         0.00 %  per vivifystrs
+c   vivifystred2:                0         0.00 %  per viviyfstrs
+c   vivifystred3:                0         0.00 %  per vivifystrs
+c   vivifydemote:                0         0.00 %  per vivifystrs
+c   vivifydecs:                  0         0.00    per checks
+c   vivifyreused:                0         0.00 %  per non-reused decision
+c walked:                        0         0.00    interval
+c   prop-warmup:                 0         0.00    per warmup
+c   dec-warmup:                  0         0.00    per warmup
+c   dummydec-w:                  0         0.00    per warmup
+c   conflicts:                   0         0.00    per warmup
+c   warmup:                      0         0.00    per walk
+c   flips:                       0         0.00    per walk
+c   broken:                      0         0.00    per flip
+c   improved:                    0         0.00    per walk
+c weakened:                      0         0.00    average size
+c   extensions:                  0         0.00    interval
+c   flipped:                     0         0.00    per weakened
+c congruence:                    0         0.00    interval
+c    units:                      0         0.00    per congruent
+c    cong-and:                   0         0.00    per found gates
+c    cong-ite:                   0         0.00    per found gates
+c    cong-xor:                   0         0.00    per found gates
+c    congruent:                  0         0.00    per round
+c    unaries:                    0         0.00    per round
+c    rewritten:                  0         0.00    per round
+c    rewri.-ands:                0         0.00    per rewritten
+c    rewri.-xors:                0         0.00%  per rewritten
+c    rewri.-ites:                0         0.00%  per rewritten
+c    subsumed:                   0         0.00%  per round
+c 
+c seconds are measured in process time for solving
+c 
+c --- [ glue usage ] ---------------------------------------------------------
+c 
+c LOG 0 rescheduling in 2 at 4 (conflicts at 2)
+c LOG 0 tier1 limit = 2
+c LOG 0 tier2 limit = 6
+c focused glue 2 used 0 clauses 0.000% accumulated 0.000% tier1
+c focused glue 3 used 0 clauses 0.000% accumulated 0.000%
+c focused glue 4 used 0 clauses 0.000% accumulated 0.000%
+c focused glue 5 used 0 clauses 0.000% accumulated 0.000%
+c focused glue 6 used 0 clauses 0.000% accumulated 0.000% tier2
+c 
+c stable glue 2 used 0 clauses 0.000% accumulated 0.000% tier1
+c stable glue 3 used 0 clauses 0.000% accumulated 0.000%
+c stable glue 4 used 0 clauses 0.000% accumulated 0.000%
+c stable glue 5 used 0 clauses 0.000% accumulated 0.000%
+c stable glue 6 used 0 clauses 0.000% accumulated 0.000% tier2
+c 
+c LOG 0 API call 'stats ()' succeeded
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'resources ()' started
+c 
+c --- [ resources ] ----------------------------------------------------------
+c 
+c total process time since initialization:         0.01    seconds
+c total real time since initialization:            0.09    seconds
+c maximum resident set size of process:            3.90    MB
+c LOG 0 API call 'resources ()' succeeded
+c 
+c --- [ shutting down ] ------------------------------------------------------
+c 
+c exit 20
+c ----------------------------------------------------------------------------
+c LOG 0 API call 'reset ()' started
+c LOG 0 API enters state DELETING
+c LOG 0 delete pointer 0x557066c607e0 irredundant size 2 clause[1] 1@0+=1 2@0+=-1
+c LOG 0 deallocate pointer 0x557066c607e0 irredundant size 2 clause[1] 1@0+=1 2@0+=-1
+c LOG 0 delete pointer 0x557066c60850 irredundant size 2 clause[2] -1@0+=-1 2@0+=-1
+c LOG 0 deallocate pointer 0x557066c60850 irredundant size 2 clause[2] -1@0+=-1 2@0+=-1
+c LOG 0 delete pointer 0x557066c608d0 irredundant size 2 clause[3] 1@0+=1 -2@0+=1
+c LOG 0 deallocate pointer 0x557066c608d0 irredundant size 2 clause[3] 1@0+=1 -2@0+=1
+c LOG 0 delete pointer 0x557066c60960 irredundant size 2 clause[4] -1@0+=-1 -2@0+=1
+c LOG 0 deallocate pointer 0x557066c60960 irredundant size 2 clause[4] -1@0+=-1 -2@0+=1
+c LOG 0 API call 'reset ()' succeeded

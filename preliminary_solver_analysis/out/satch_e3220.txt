@@ -1,0 +1,288 @@
+c ---- [ banner ] ------------------------------------------------------------
+c
+c Satch SAT Solver
+c Copyright (c) 2021 Armin Biere JKU Linz
+c
+c Version 0.5.6rc-simplification b4d4081f8971931399b36c8fdd92bdf4aabac005
+c Compiled with 'gcc -W -Wall -O3 -DNDEBUG -DLOGGING -DNSIMPLIFICATION'
+c
+c ---- [ parsing ] -----------------------------------------------------------
+c
+c parsing 'e3220.cnf'
+c parsed 'p cnf 12 11' header
+c LOG 0 increasing capacity from 0 to 12
+c LOG 0 increase solver size from 0 to 1
+c LOG 0 imported external literal -1 as internal literal 1
+c LOG 0 increase solver size from 1 to 2
+c LOG 0 imported external literal -2 as internal literal 3
+c LOG 0 activated variable 0 literal 0(1)
+c LOG 0 activated variable 1 literal 2(2)
+c LOG 0 watching 1(-1) blocking 3(-2) in irredundant binary clause 1(-1) 3(-2)
+c LOG 0 watching 3(-2) blocking 1(-1) in irredundant binary clause 3(-2) 1(-1)
+c LOG 0 imported irredundant binary clause 1(-1) 3(-2)
+c LOG 0 imported external literal -1 as internal literal 1
+c LOG 0 increase solver size from 2 to 3
+c LOG 0 imported external literal 3 as internal literal 4
+c LOG 0 activated variable 2 literal 4(3)
+c LOG 0 watching 1(-1) blocking 4(3) in irredundant binary clause 1(-1) 4(3)
+c LOG 0 watching 4(3) blocking 1(-1) in irredundant binary clause 4(3) 1(-1)
+c LOG 0 imported irredundant binary clause 1(-1) 4(3)
+c LOG 0 imported external literal -3 as internal literal 5
+c LOG 0 increase solver size from 3 to 4
+c LOG 0 imported external literal -4 as internal literal 7
+c LOG 0 activated variable 3 literal 6(4)
+c LOG 0 watching 5(-3) blocking 7(-4) in irredundant binary clause 5(-3) 7(-4)
+c LOG 0 watching 7(-4) blocking 5(-3) in irredundant binary clause 7(-4) 5(-3)
+c LOG 0 imported irredundant binary clause 5(-3) 7(-4)
+c LOG 0 imported external literal 2 as internal literal 2
+c LOG 0 imported external literal 4 as internal literal 6
+c LOG 0 increase solver size from 4 to 5
+c LOG 0 imported external literal 5 as internal literal 8
+c LOG 0 activated variable 4 literal 8(5)
+c LOG 0 imported irredundant size 3 clause[1] 2(2) 6(4) 8(5)
+c LOG 0 watching 2(2) blocking 6(4) in irredundant size 3 clause[1] 2(2) 6(4) 8(5)
+c LOG 0 watching 6(4) blocking 2(2) in irredundant size 3 clause[1] 2(2) 6(4) 8(5)
+c LOG 0 imported external literal -5 as internal literal 9
+c LOG 0 increase solver size from 5 to 6
+c LOG 0 imported external literal 6 as internal literal 10
+c LOG 0 increase solver size from 6 to 7
+c LOG 0 imported external literal -7 as internal literal 13
+c LOG 0 activated variable 5 literal 10(6)
+c LOG 0 activated variable 6 literal 12(7)
+c LOG 0 imported irredundant size 3 clause[2] 9(-5) 10(6) 13(-7)
+c LOG 0 watching 9(-5) blocking 10(6) in irredundant size 3 clause[2] 9(-5) 10(6) 13(-7)
+c LOG 0 watching 10(6) blocking 9(-5) in irredundant size 3 clause[2] 9(-5) 10(6) 13(-7)
+c LOG 0 imported external literal 2 as internal literal 2
+c LOG 0 imported external literal 7 as internal literal 12
+c LOG 0 increase solver size from 7 to 8
+c LOG 0 imported external literal 8 as internal literal 14
+c LOG 0 activated variable 7 literal 14(8)
+c LOG 0 imported irredundant size 3 clause[3] 2(2) 12(7) 14(8)
+c LOG 0 watching 2(2) blocking 12(7) in irredundant size 3 clause[3] 2(2) 12(7) 14(8)
+c LOG 0 watching 12(7) blocking 2(2) in irredundant size 3 clause[3] 2(2) 12(7) 14(8)
+c LOG 0 imported external literal -8 as internal literal 15
+c LOG 0 increase solver size from 8 to 9
+c LOG 0 imported external literal -9 as internal literal 17
+c LOG 0 activated variable 8 literal 16(9)
+c LOG 0 watching 15(-8) blocking 17(-9) in irredundant binary clause 15(-8) 17(-9)
+c LOG 0 watching 17(-9) blocking 15(-8) in irredundant binary clause 17(-9) 15(-8)
+c LOG 0 imported irredundant binary clause 15(-8) 17(-9)
+c LOG 0 imported external literal -8 as internal literal 15
+c LOG 0 increase solver size from 9 to 10
+c LOG 0 imported external literal 10 as internal literal 18
+c LOG 0 activated variable 9 literal 18(10)
+c LOG 0 watching 15(-8) blocking 18(10) in irredundant binary clause 15(-8) 18(10)
+c LOG 0 watching 18(10) blocking 15(-8) in irredundant binary clause 18(10) 15(-8)
+c LOG 0 imported irredundant binary clause 15(-8) 18(10)
+c LOG 0 imported external literal 9 as internal literal 16
+c LOG 0 imported external literal -10 as internal literal 19
+c LOG 0 increase solver size from 10 to 11
+c LOG 0 imported external literal 11 as internal literal 20
+c LOG 0 activated variable 10 literal 20(11)
+c LOG 0 imported irredundant size 3 clause[4] 16(9) 19(-10) 20(11)
+c LOG 0 watching 16(9) blocking 19(-10) in irredundant size 3 clause[4] 16(9) 19(-10) 20(11)
+c LOG 0 watching 19(-10) blocking 16(9) in irredundant size 3 clause[4] 16(9) 19(-10) 20(11)
+c LOG 0 imported external literal -10 as internal literal 19
+c LOG 0 increase solver size from 11 to 12
+c LOG 0 imported external literal -12 as internal literal 23
+c LOG 0 activated variable 11 literal 22(12)
+c LOG 0 watching 19(-10) blocking 23(-12) in irredundant binary clause 19(-10) 23(-12)
+c LOG 0 watching 23(-12) blocking 19(-10) in irredundant binary clause 23(-12) 19(-10)
+c LOG 0 imported irredundant binary clause 19(-10) 23(-12)
+c LOG 0 imported external literal -11 as internal literal 21
+c LOG 0 imported external literal 12 as internal literal 22
+c LOG 0 watching 21(-11) blocking 22(12) in irredundant binary clause 21(-11) 22(12)
+c LOG 0 watching 22(12) blocking 21(-11) in irredundant binary clause 22(12) 21(-11)
+c LOG 0 imported irredundant binary clause 21(-11) 22(12)
+c parsed 11 clauses in 0.00 seconds
+c found maximum variable index 12
+c closed 'e3220.cnf'
+c after reading 107 bytes (0 MB)
+c
+c ---- [ solving ] -----------------------------------------------------------
+c
+c
+c seconds switched rate trail variables
+c       MB reductions conflicts glue remaining
+c        level restarts redundant irredundant
+c
+c * 0.00 1 0 0 0 0 0 0 0 0% 0 11 12 100%
+c { 0.00 1 0 0 0 0 0 0 0 0% 0 11 12 100%
+c LOG 0 start focused mode
+c LOG 0 BCP
+c LOG 0 chrono flushing 0 root-level units on trail
+c LOG 0 BCP
+c LOG 0 chrono flushing 0 root-level units on trail
+c LOG 1 activating 12 variables on queue[0]
+c LOG 1 enqueue 0
+c LOG 1 enqueued variable 0 literal 0(1) stamped 1
+c LOG 1 enqueue 1
+c LOG 1 enqueued variable 1 literal 2(2) stamped 2
+c LOG 1 enqueue 2
+c LOG 1 enqueued variable 2 literal 4(3) stamped 3
+c LOG 1 enqueue 3
+c LOG 1 enqueued variable 3 literal 6(4) stamped 4
+c LOG 1 enqueue 4
+c LOG 1 enqueued variable 4 literal 8(5) stamped 5
+c LOG 1 enqueue 5
+c LOG 1 enqueued variable 5 literal 10(6) stamped 6
+c LOG 1 enqueue 6
+c LOG 1 enqueued variable 6 literal 12(7) stamped 7
+c LOG 1 enqueue 7
+c LOG 1 enqueued variable 7 literal 14(8) stamped 8
+c LOG 1 enqueue 8
+c LOG 1 enqueued variable 8 literal 16(9) stamped 9
+c LOG 1 enqueue 9
+c LOG 1 enqueued variable 9 literal 18(10) stamped 10
+c LOG 1 enqueue 10
+c LOG 1 enqueued variable 10 literal 20(11) stamped 11
+c LOG 1 enqueue 11
+c LOG 1 enqueued variable 11 literal 22(12) stamped 12
+c LOG 1 maximum stamped unassigned variable 11 literal 22(12) with stamp 12
+c LOG 1 decision variable 11 literal 22(12)
+c LOG 1 decision phase 1
+c LOG 1 decision literal 22(12)
+c LOG 1 assign 22(12) decision
+c LOG 1 pushing trail position 1 at height 0
+c LOG 1 BCP
+c LOG 1 propagating 22(12)@1=1
+c LOG 1 assign 19(-10) reason irredundant binary clause 19(-10) 23(-12)@1=-1
+c LOG 1 found assignment level 1
+c LOG 1 propagating 19(-10)@1=1
+c LOG 1 assign 15(-8) reason irredundant binary clause 15(-8) 18(10)@1=-1
+c LOG 1 found assignment level 1
+c LOG 1 propagating 15(-8)@1=1
+c LOG 2 maximum stamped unassigned variable 10 literal 20(11) with stamp 11
+c LOG 2 decision variable 10 literal 20(11)
+c LOG 2 decision phase 1
+c LOG 2 decision literal 20(11)
+c LOG 2 assign 20(11) decision
+c LOG 2 pushing trail position 4 at height 1
+c LOG 2 BCP
+c LOG 2 propagating 20(11)@2=1
+c LOG 3 maximum stamped unassigned variable 8 literal 16(9) with stamp 9
+c LOG 3 decision variable 8 literal 16(9)
+c LOG 3 decision phase 1
+c LOG 3 decision literal 16(9)
+c LOG 3 assign 16(9) decision
+c LOG 3 pushing trail position 5 at height 2
+c LOG 3 BCP
+c LOG 3 propagating 16(9)@3=1
+c LOG 4 maximum stamped unassigned variable 6 literal 12(7) with stamp 7
+c LOG 4 decision variable 6 literal 12(7)
+c LOG 4 decision phase 1
+c LOG 4 decision literal 12(7)
+c LOG 4 assign 12(7) decision
+c LOG 4 pushing trail position 6 at height 3
+c LOG 4 BCP
+c LOG 4 propagating 12(7)@4=1
+c LOG 5 maximum stamped unassigned variable 5 literal 10(6) with stamp 6
+c LOG 5 decision variable 5 literal 10(6)
+c LOG 5 decision phase 1
+c LOG 5 decision literal 10(6)
+c LOG 5 assign 10(6) decision
+c LOG 5 pushing trail position 7 at height 4
+c LOG 5 BCP
+c LOG 5 propagating 10(6)@5=1
+c LOG 6 maximum stamped unassigned variable 4 literal 8(5) with stamp 5
+c LOG 6 decision variable 4 literal 8(5)
+c LOG 6 decision phase 1
+c LOG 6 decision literal 8(5)
+c LOG 6 assign 8(5) decision
+c LOG 6 pushing trail position 8 at height 5
+c LOG 6 BCP
+c LOG 6 propagating 8(5)@6=1
+c LOG 7 maximum stamped unassigned variable 3 literal 6(4) with stamp 4
+c LOG 7 decision variable 3 literal 6(4)
+c LOG 7 decision phase 1
+c LOG 7 decision literal 6(4)
+c LOG 7 assign 6(4) decision
+c LOG 7 pushing trail position 9 at height 6
+c LOG 7 BCP
+c LOG 7 propagating 6(4)@7=1
+c LOG 7 assign 5(-3) reason irredundant binary clause 5(-3) 7(-4)@7=-1
+c LOG 7 found assignment level 7
+c LOG 7 propagating 5(-3)@7=1
+c LOG 7 assign 1(-1) reason irredundant binary clause 1(-1) 4(3)@7=-1
+c LOG 7 found assignment level 7
+c LOG 7 propagating 1(-1)@7=1
+c LOG 8 maximum stamped unassigned variable 1 literal 2(2) with stamp 2
+c LOG 8 decision variable 1 literal 2(2)
+c LOG 8 decision phase 1
+c LOG 8 decision literal 2(2)
+c LOG 8 assign 2(2) decision
+c LOG 8 pushing trail position 12 at height 7
+c LOG 8 BCP
+c LOG 8 propagating 2(2)@8=1
+c LOG 8 stop focused mode
+c } 0.00 1 0 0 0 0 0 0 0 0% 0 11 12 100%
+c 1 0.00 1 0 0 0 0 0 0 0 0% 0 11 12 100%
+c LOG 8 internal solving procedure returns '10'
+c
+c ---- [ result ] ------------------------------------------------------------
+c
+s SATISFIABLE
+v -1 2 -3 4 5 6 7 -8 9 -10 11 12 0
+c
+c ---- [ profiling ] ---------------------------------------------------------
+c
+c           0.00   55.71 %  solve
+c           0.00   50.98 %  focused
+c           0.00   44.29 %  parse
+c           0.00   33.82 %  decide
+c           0.00    0.00 %  minishrink
+c           0.00    0.00 %  reduce
+c           0.00    0.00 %  stable
+c           0.00    0.00 %  vivify
+c =============================================
+c           0.00  100.00 %  total
+c
+c ---- [ statistics ] --------------------------------------------------------
+c
+c added:                                   4                   clauses
+c bests:                                   0              0.00 interval
+c bumped:                                  0              0.00 literals
+c chronological backtracking:                 0              0.00 per learned
+c reused level:                            0              0.00 per jump
+c collected:                               0              0.00 MB
+c conflicts:                               0              0.00 per second
+c decisions:                               8              0.00 per conflict
+c deduced:                                 0              0.00 literals
+c deleted:                                 0              0 %  added
+c fixed:                                   0              0 %  variables
+c learned:                                 0              0.00 literals
+c incremented:                             0              0 %  bumped
+c minimized:                               0              0 %  deduced
+c moved:                                   0              0 %  bumped
+c propagations:                           12           4355.72 per second
+c reasons:                                 0              0 %  bumped
+c reduced:                                 0              0.00 per reduction
+c reductions:                              0              0.00 interval
+c rephased:                                0              0.00 interval
+c rescored:                                0              0.00 interval
+c restamped:                               0              0.00 interval
+c restarts:                                0              0.00 interval
+c reused:                                  0              0 %  restarts
+c shrunken:                                0              0 %  deduced
+c switched:                                0              0.00 interval
+c targets:                                 0              0.00 interval
+c vivified:                                0              0 per round
+c      propagations:                       0              0 per round
+c      ticks:                              0              0 per propagation
+c      subsume:                            0              0 per round
+c      strengthen:                         0              0 per round
+c      reused:                             0           0.00 per vivification
+c ticks:                                  24              2.00 per propagation
+c
+c ---- [ resources ] ---------------------------------------------------------
+c
+c memory:                            2138112 bytes        2.04 MB
+c time:                                                   0.00 seconds
+c
+c ---- [ shutting down ] -----------------------------------------------------
+c
+c LOG 8 delete irredundant size 3 clause[1] 2(2)@5=73 6(4) 8(5)@6=1
+c LOG 8 delete irredundant size 3 clause[2] 9(-5)@6=-1 10(6)@5=1 13(-7)@4=-1
+c LOG 8 delete irredundant size 3 clause[3] 2(2)@5=73 12(7)@4=1 14(8)@1=-1
+c LOG 8 delete irredundant size 3 clause[4] 16(9)@3=1 19(-10)@1=1 20(11)@2=1
+c exit 10
