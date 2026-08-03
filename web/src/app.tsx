@@ -1,15 +1,12 @@
-import { ConflictSelector } from "./components/ConflictSelector";
 import { DecisionTree } from "./components/DecisionTree";
 import { FileInput } from "./components/FileInput";
-import { ImplicationGraph } from "./components/ImplicationGraph";
+import { ImplicationPanel } from "./components/ImplicationPanel";
 import { LoadDiagnostics } from "./components/LoadDiagnostics";
 import { MonoTextArea } from "./components/MonoTextArea";
 import { Panel } from "./components/Panel";
 import { Sidebar } from "./components/Sidebar";
 import { StatsBar } from "./components/StatsBar";
 import { StepBar } from "./components/StepBar";
-import { clauseRef } from "./lib/format";
-import { isChronologicalBackjump } from "./model/run";
 import { useSolverStore } from "./state/context";
 
 declare const __GIT_COMMIT__: string;
@@ -20,7 +17,6 @@ export function App() {
     const store = useSolverStore();
 
     const run = store.run.value;
-    const conflict = store.selectedConflict.value;
 
     return (
         <div class="flex h-screen flex-col overflow-hidden font-sans text-gray-800">
@@ -67,62 +63,12 @@ export function App() {
                             </Panel>
                         )}
 
+                        {/* Keyed so the panel's full/cone choice is dropped
+                            whenever the selected conflict changes. */}
                         {run && (
-                            <Panel
-                                title={`Implication Graph${conflict ? ` conflict #${conflict.index}` : ""}`}
-                                actions={<ConflictSelector />}
-                            >
-                                {conflict ? (
-                                    <>
-                                        <div class="px-3 pt-2 text-xs text-gray-600">
-                                            Falsified clause{" "}
-                                            {clauseRef(conflict.clauseId)} @{" "}
-                                            {conflict.level}
-                                            {/* Either half can be absent: a conflict
-                                                resolved without a 1st-UIP clause has no
-                                                learn, and one that unwound nothing has
-                                                no backtrack. */}
-                                            {conflict.learnedLiterals && (
-                                                <>
-                                                    <span class="ml-2">
-                                                        learned:
-                                                    </span>
-                                                    <code class="ml-1 rounded bg-amber-100 px-1">
-                                                        {conflict.learnedLiterals.join(
-                                                            ", ",
-                                                        )}
-                                                    </code>
-                                                </>
-                                            )}
-                                            {conflict.backtrackLevel !=
-                                                null && (
-                                                <span class="ml-2">
-                                                    backtrack to @
-                                                    {conflict.backtrackLevel}
-                                                </span>
-                                            )}
-                                            {isChronologicalBackjump(
-                                                conflict,
-                                            ) && (
-                                                <span
-                                                    class="ml-2 rounded bg-sky-100 px-1 text-sky-800"
-                                                    title="The solver returned to a different level than the learned clause called for"
-                                                >
-                                                    chronological (clause jumps
-                                                    to @{conflict.jumpLevel})
-                                                </span>
-                                            )}
-                                        </div>
-                                        <ImplicationGraph />
-                                    </>
-                                ) : (
-                                    <p class="p-4 text-sm text-gray-400">
-                                        {run.conflicts.length === 0
-                                            ? "No conflicts in this log (e.g. a SAT instance solved without conflicts)."
-                                            : "No conflicts at this step"}
-                                    </p>
-                                )}
-                            </Panel>
+                            <ImplicationPanel
+                                key={store.selectedConflictIndex.value}
+                            />
                         )}
 
                         {run && (

@@ -2,7 +2,7 @@ import type { Point } from "@dagrejs/dagre";
 import * as d3 from "d3";
 import { useEffect, useRef } from "preact/hooks";
 import { clauseRef, clauseText, litLabel } from "../lib/format";
-import { useSolverStore } from "../state/context";
+import type { ImplicationGraph as Graph } from "../model/implicationGraph";
 import {
     layoutImplicationGraph,
     type PositionedNode,
@@ -23,9 +23,7 @@ const legend: LegendItem[] = [
     { shape: "diamond", label: "κ conflict", color: cssColors.conflict },
 ];
 
-export function ImplicationGraph() {
-    const store = useSolverStore();
-    const graph = store.currentGraph.value;
+export function ImplicationGraph({ graph }: { graph: Graph | null }) {
     const ref = useRef<SVGSVGElement>(null);
 
     useEffect(() => {
@@ -70,11 +68,11 @@ export function ImplicationGraph() {
             .attr("text-anchor", "middle")
             .attr("x", (d: RoutedEdge) => midOf(d).x)
             .attr("y", (d: RoutedEdge) => midOf(d).y)
-            // Not clauseRef(): an edge with no permanent clause behind it is
-            // left unlabelled rather than labelled "unit", which would read as
-            // a claim about the antecedent this edge comes from.
-            .text((d: RoutedEdge) =>
-                d.clauseId != null && d.clauseId >= 0 ? `c${d.clauseId}` : "",
+            .text(
+                (d: RoutedEdge) =>
+                    d.clauseId != null && d.clauseId >= 0
+                        ? `c${d.clauseId}`
+                        : "", // an edge with no permanent clause behind it is left unlabelled
             );
 
         const node = layer
@@ -147,49 +145,6 @@ export function ImplicationGraph() {
                 : `${litLabel(d.lit!)} @ level ${d.level} ${
                       d.isDecision ? "decision" : "propagated"
                   }${d.onLearnedClause ? "\n(on learned clause)" : ""}`,
-        );
-
-        // Manual drag, no simulation: move the node and re-route its incident
-        // edges as straight segments. Rewriting `points` (rather than only the
-        // path attribute) keeps the edge correct when its other endpoint is
-        // dragged afterwards.
-        const straightenIncident = (id: string) => {
-            const incident = (d: RoutedEdge) =>
-                d.source === id || d.target === id;
-
-            link.filter(incident).attr("d", (d: RoutedEdge) => {
-                d.points = [
-                    { x: d.sourceNode.x, y: d.sourceNode.y },
-                    { x: d.targetNode.x, y: d.targetNode.y },
-                ];
-                return lineGen(d.points);
-            });
-
-            linkLabel
-                .filter(incident)
-                .attr("x", (d: RoutedEdge) => midOf(d).x)
-                .attr("y", (d: RoutedEdge) => midOf(d).y);
-        };
-
-        node.call(
-            d3
-                .drag()
-                .on(
-                    "drag",
-                    function (
-                        this: SVGGElement,
-                        event: { x: number; y: number },
-                        d: PositionedNode,
-                    ) {
-                        d.x = event.x;
-                        d.y = event.y;
-                        d3.select(this).attr(
-                            "transform",
-                            `translate(${d.x},${d.y})`,
-                        );
-                        straightenIncident(d.id);
-                    },
-                ),
         );
     }, [graph]);
 

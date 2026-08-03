@@ -2,6 +2,7 @@ import type { EventOf, SolverEvent } from "./events";
 import type { ConflictRecord, SolverRun } from "./run";
 
 export const conflictNodeID = "conflict";
+export const coneNodeThreshold = 30;
 
 export interface ImplicationNode {
     id: string;
@@ -109,6 +110,50 @@ export function buildImplicationGraph(
     }
 
     return { conflict, nodes, edges };
+}
+
+/**
+ * Narrows a graph to the conflict cone: κ plus every node with a path to it,
+ * and the edges between them. The dropped nodes are trail literals that no
+ * chain of implications connects to the conflict, so they are exactly the ones
+ * conflict analysis never visits.
+ *
+ * Antecedent edges point forward (antecedent -> implied), so the ancestors are
+ * collected by indexing the edges by target and walking that index back from κ.
+ * The `conflict` record is shared with the input rather than copied.
+ */
+export function coneOf(graph: ImplicationGraph): ImplicationGraph {
+    const incoming = new Map<string, ImplicationEdge[]>();
+
+    for (const e of graph.edges) {
+        const list = incoming.get(e.target);
+
+        if (list) {
+            list.push(e);
+        } else {
+            incoming.set(e.target, [e]);
+        }
+    }
+
+    const reachable = new Set([conflictNodeID]);
+    const stack = [conflictNodeID];
+
+    while (stack.length > 0) {
+        for (const e of incoming.get(stack.pop()!) ?? []) {
+            if (!reachable.has(e.source)) {
+                reachable.add(e.source);
+                stack.push(e.source);
+            }
+        }
+    }
+
+    return {
+        conflict: graph.conflict,
+        nodes: graph.nodes.filter((n) => reachable.has(n.id)),
+        edges: graph.edges.filter(
+            (e) => reachable.has(e.target), // reachable.has(e.source), not needed assuming the graph is correct
+        ),
+    };
 }
 
 function assignmentEvent(

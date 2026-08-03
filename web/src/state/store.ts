@@ -4,6 +4,8 @@ import { isAliveAt } from "../model/clauseDatabase";
 import { SUPPORTED_PROTOCOL_VERSION, type SolverEvent } from "../model/events";
 import {
     buildImplicationGraph,
+    coneNodeThreshold,
+    coneOf,
     type ImplicationGraph,
 } from "../model/implicationGraph";
 import { parseEventLog, type ParseIssue } from "../model/parse";
@@ -36,7 +38,13 @@ export interface SolverStore {
     selectedConflictIndex: ReadonlySignal<number>;
     selectedConflict: ReadonlySignal<ConflictRecord | null>;
 
-    currentGraph: ReadonlySignal<ImplicationGraph | null>;
+    /** The selected conflict's whole trail. */
+    fullGraph: ReadonlySignal<ImplicationGraph | null>;
+    /** The same conflict narrowed to κ and its ancestors. */
+    coneGraph: ReadonlySignal<ImplicationGraph | null>;
+    /** Whether the full graph is large enough to be drawn as a cone first. */
+    coneDefault: ReadonlySignal<boolean>;
+
     currentEvent: ReadonlySignal<SolverEvent | null>;
 
     solverState: ReadonlySignal<SolverState | null>;
@@ -119,9 +127,10 @@ export function createSolverStore(): SolverStore {
      * Memoized per conflict index to survive scrubbing
      */
     let graphCache = new Map<number, ImplicationGraph | null>();
+    let coneCache = new Map<number, ImplicationGraph | null>();
     let graphCacheRun: SolverRun | null = null;
 
-    const currentGraph = computed(() => {
+    const fullGraph = computed(() => {
         const r = run.value;
 
         if (!r) {
@@ -130,6 +139,7 @@ export function createSolverStore(): SolverStore {
 
         if (graphCacheRun !== r) {
             graphCache = new Map();
+            coneCache = new Map();
             graphCacheRun = r;
         }
 
@@ -141,6 +151,27 @@ export function createSolverStore(): SolverStore {
 
         return graphCache.get(index) ?? null;
     });
+
+    const coneGraph = computed(() => {
+        const full = fullGraph.value;
+
+        if (!full) {
+            return null;
+        }
+
+        const index = selectedConflictIndex.value;
+
+        if (!coneCache.has(index)) {
+            coneCache.set(index, coneOf(full));
+        }
+
+        return coneCache.get(index) ?? null;
+    });
+
+    /** which graph to draw first */
+    const coneDefault = computed(
+        () => (fullGraph.value?.nodes.length ?? 0) > coneNodeThreshold,
+    );
 
     const currentEvent = computed(
         () => run.value?.events[stepIndex.value] ?? null,
@@ -296,7 +327,9 @@ export function createSolverStore(): SolverStore {
         conflicts,
         selectedConflictIndex,
         selectedConflict,
-        currentGraph,
+        fullGraph,
+        coneGraph,
+        coneDefault,
         currentEvent,
         solverState,
         clauseCounts,

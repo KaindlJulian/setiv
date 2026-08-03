@@ -86,12 +86,6 @@ export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
             });
         },
 
-        // `delete_clause` also carries the clause's literals, which can differ
-        // from the announced ones: CaDiCaL flushes root-level falsified
-        // literals in place during garbage collection. Deliberately ignored —
-        // the announced clause is logically equivalent under the root
-        // assignment and reads better, since the dead literal stays visible in
-        // its false colour instead of silently vanishing.
         remove(ev, eventIndex) {
             const index =
                 ev.clause_id >= 0 && ev.clause_id < byId.length
