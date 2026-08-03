@@ -46,7 +46,7 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
 
         const midOf = (e: RoutedEdge) => e.points[e.points.length >> 1];
 
-        const link = layer
+        layer
             .append("g")
             .attr("fill", "none")
             .attr("stroke", cssColors.implicationEdge)
@@ -58,7 +58,7 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             .attr("marker-end", "url(#arrow)")
             .attr("d", (d: RoutedEdge) => lineGen(d.points));
 
-        const linkLabel = layer
+        layer
             .append("g")
             .selectAll("text")
             .data(edges)
