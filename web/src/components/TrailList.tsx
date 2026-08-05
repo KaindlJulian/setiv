@@ -9,7 +9,6 @@ type Row =
     | { kind: "divider"; level: number; key: string }
     | { kind: "entry"; entry: TrailEntry; key: string };
 
-// this is a workaround for missing events in the protocol. todo: fix and delete this
 export function TrailList({ state }: { state: SolverState }) {
     const rows: Row[] = [];
     let previous: number | null = null;
