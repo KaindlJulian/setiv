@@ -2,6 +2,7 @@ import { isAliveAt, type ClauseRecord } from "../model/clauseDatabase";
 import { useSolverStore } from "../state/context";
 import { ClauseList } from "./ClauseList";
 import { CollapsibleSection } from "./CollapsibleSection";
+import { StatsBar } from "./StatsBar";
 import { TrailList } from "./TrailList";
 
 export function Sidebar() {
@@ -36,6 +37,8 @@ export function Sidebar() {
 
     return (
         <>
+            <StatsBar />
+
             <CollapsibleSection
                 title="Trail"
                 badge={`${state.trail.length} - @${state.decisionLevel}`}

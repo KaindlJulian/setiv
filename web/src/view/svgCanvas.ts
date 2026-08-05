@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { cssColors } from "./theme";
+import { colors } from "./theme";
 
 export type Selection = any;
 
@@ -38,7 +38,7 @@ export function createSvgCanvas(
             .attr("orient", "auto")
             .append("path")
             .attr("d", "M0,-5L10,0L0,5")
-            .attr("fill", cssColors.arrow);
+            .attr("class", colors.arrow);
     }
 
     const layer = svg.append("g");

@@ -8,7 +8,11 @@ const sample = [
     "cadical_prime529_events.jsonl",
 ];
 
-export function FileInput() {
+interface FileInputProps {
+    onSettled?: () => void;
+}
+
+export function FileInput({ onSettled }: FileInputProps) {
     const store = useSolverStore();
 
     const handleFile = async (file: File | undefined) => {
@@ -24,6 +28,8 @@ export function FileInput() {
                 file.name,
             );
         }
+
+        onSettled?.();
     };
 
     const loadSample = async (name: string) => {
@@ -37,38 +43,56 @@ export function FileInput() {
                     `Could not load sample ${name} (HTTP ${res.status}).`,
                     name,
                 );
-                return;
+            } else {
+                store.loadLog(await res.text(), name);
             }
-
-            store.loadLog(await res.text(), name);
         } catch (err) {
             store.setLoadError(`Could not load sample ${name}: ${err}`, name);
         }
+
+        onSettled?.();
     };
 
     return (
-        <div class="flex flex-col gap-2 rounded border border-gray-300 bg-gray-50 p-3">
-            <label class="text-sm font-medium">Load solver event log</label>
-            <input
-                type="file"
-                accept=".jsonl,.ndjson"
-                onChange={(e) =>
-                    handleFile((e.currentTarget as HTMLInputElement).files?.[0])
-                }
-                class="cursor-pointer border text-sm"
-            />
-            <div class="flex flex-wrap items-center gap-1 text-xs text-gray-500">
-                <span>Load sample:</span>
-                {sample.map((s) => (
-                    <button
-                        key={s}
-                        type="button"
-                        onClick={() => loadSample(s)}
-                        class="cursor-pointer rounded bg-gray-200 px-1 font-mono hover:bg-gray-300"
-                    >
-                        {s}
-                    </button>
-                ))}
+        <div class="flex flex-col gap-3">
+            <label class="flex flex-col gap-1.5">
+                <span class="text-red text-sm font-medium">CNF Formula</span>
+                <input
+                    type="file"
+                    accept=".jsonl,.ndjson"
+                    onChange={() => alert("todo")}
+                    class="file-input file-input-sm w-full"
+                    disabled
+                />
+            </label>
+            <label class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium">Solver event log</span>
+                <input
+                    type="file"
+                    accept=".jsonl,.ndjson"
+                    onChange={(e) =>
+                        handleFile(
+                            (e.currentTarget as HTMLInputElement).files?.[0],
+                        )
+                    }
+                    class="file-input file-input-sm w-full"
+                />
+            </label>
+
+            <div class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium">Example</span>
+                <div class="flex flex-wrap gap-1">
+                    {sample.map((s) => (
+                        <button
+                            key={s}
+                            type="button"
+                            onClick={() => loadSample(s)}
+                            class="btn btn-xs font-mono font-normal"
+                        >
+                            {s.replace("", "")}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );

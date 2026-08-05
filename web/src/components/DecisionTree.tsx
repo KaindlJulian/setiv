@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { useEffect, useRef } from "preact/hooks";
+import { cn } from "../lib/cn";
 import { treeNodeLabel } from "../lib/format";
 import { useSolverStore } from "../state/context";
 import {
@@ -8,22 +9,22 @@ import {
     type TreeLayoutNode,
 } from "../view/layout/treeLayout";
 import { createSvgCanvas } from "../view/svgCanvas";
-import { cssColors, treeChart } from "../view/theme";
+import { colors, treeChart } from "../view/theme";
 import { Legend, type LegendItem } from "./Legend";
 
 const legend: LegendItem[] = [
     {
         shape: "line",
         label: "decision (solid edge)",
-        color: cssColors.treeEdge,
+        stroke: colors.treeEdge,
     },
     {
         shape: "line",
         label: "propagation (dashed edge)",
-        color: cssColors.treeEdge,
+        stroke: colors.treeEdge,
         dashed: true,
     },
-    { shape: "diamond", label: "conflict", color: cssColors.conflict },
+    { shape: "diamond", label: "conflict", fill: colors.conflict },
 ];
 
 export function DecisionTree() {
@@ -33,11 +34,13 @@ export function DecisionTree() {
 
     useEffect(() => {
         const svgEl = ref.current;
+
         if (!svgEl || !tree) {
             return;
         }
 
         const { nodes, edges, width, height } = layoutDecisionTree(tree);
+
         const layer = createSvgCanvas(svgEl, width, height, {
             scaleExtent: treeChart.scaleExtent,
         });
@@ -48,14 +51,15 @@ export function DecisionTree() {
 
         layer
             .append("g")
-            .attr("fill", "none")
+            .attr("class", "fill-none")
             .selectAll("path")
             .data(edges)
             .join("path")
-            .attr("stroke", (d: TreeLayoutEdge) =>
-                d.target.node.isBacktracked
-                    ? cssColors.backtrackedEdge
-                    : cssColors.treeEdge,
+            .attr("class", (d: TreeLayoutEdge) =>
+                cn(
+                    colors.treeEdge,
+                    d.target.node.isBacktracked && "opacity-25",
+                ),
             )
             .attr("stroke-width", 1.5)
             .attr("stroke-dasharray", (d: TreeLayoutEdge) =>
@@ -76,7 +80,7 @@ export function DecisionTree() {
                 (d: TreeLayoutNode) => `translate(${d.x},${d.y})`,
             )
             .attr("opacity", (d: TreeLayoutNode) =>
-                d.node.isBacktracked ? 0.45 : 1,
+                d.node.isBacktracked ? 0.5 : 1,
             );
 
         g.each(function (this: SVGGElement, d: TreeLayoutNode) {
@@ -90,13 +94,11 @@ export function DecisionTree() {
                     .attr("width", 2 * r)
                     .attr("height", 2 * r)
                     .attr("transform", "rotate(45)")
-                    .attr("fill", cssColors.conflict);
+                    .attr("class", colors.conflict);
             } else {
                 sel.append("circle")
                     .attr("r", r)
-                    .attr("fill", cssColors.node)
-                    .attr("stroke", cssColors.nodeLabel)
-                    .attr("stroke-width", 1);
+                    .attr("class", cn(colors.node, "stroke-setiv-surface"));
             }
         });
 
@@ -104,17 +106,10 @@ export function DecisionTree() {
             .attr("x", -treeChart.nodeRadius)
             .attr("dy", 16)
             .attr("font-size", 11)
-            .attr("fill", (d: TreeLayoutNode) =>
-                d.node.isBacktracked
-                    ? cssColors.backtrackedLabel
-                    : cssColors.treeLabel,
+            .attr("class", (d: TreeLayoutNode) =>
+                cn(colors.treeLabel, d.node.isBacktracked && "opacity-50"),
             )
             .text((d: TreeLayoutNode) => treeNodeLabel(d.node));
-
-        g.append("title").text(
-            (d: TreeLayoutNode) =>
-                `${treeNodeLabel(d.node)}\nkind: ${d.node.kind}`,
-        );
     }, [tree]);
 
     if (!tree) {
@@ -122,12 +117,10 @@ export function DecisionTree() {
     }
 
     return (
-        <div class="w-full">
+        <div class="flex min-h-0 flex-1 flex-col">
             <svg
                 ref={ref}
-                width="100%"
-                height={treeChart.height}
-                class="bg-white"
+                class="setiv-canvas bg-setiv-surface min-h-0 w-full flex-1 cursor-grab active:cursor-grabbing"
             />
             <Legend items={legend} />
         </div>

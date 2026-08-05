@@ -1,1 +1,28 @@
-@import "tailwindcss" theme(static);
+@import "tailwindcss";
+
+@plugin "daisyui" {
+    themes:
+        light --default,
+        night --prefersdark;
+    logs: false;
+}
+
+@theme {
+    --color-setiv-ink: var(--color-base-content);
+    --color-setiv-surface: var(--color-base-100);
+    --color-setiv-node: var(--color-neutral-content);
+    --color-setiv-node-label: var(--color-neutral);
+    --color-setiv-decision: var(--color-primary);
+    --color-setiv-learned: var(--color-warning);
+    --color-setiv-learned-label: var(--color-warning-content);
+    --color-setiv-conflict: var(--color-error);
+    --color-setiv-conflict-label: var(--color-error-content);
+    --color-setiv-true: var(--color-success);
+    --color-setiv-false: var(--color-error);
+}
+
+.setiv-canvas {
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}

@@ -1,3 +1,10 @@
+import type { LucideIcon } from "lucide-preact";
+import {
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
+} from "lucide-preact";
 import { useEffect } from "preact/hooks";
 import { eventStepBarText } from "../lib/format";
 import { useSolverStore } from "../state/context";
@@ -22,10 +29,10 @@ export function StepBar() {
 
             switch (e.key) {
                 case "ArrowLeft":
-                    e.shiftKey ? store.stepToConflict(-1) : store.stepBy(-1);
+                    e.ctrlKey ? store.stepToConflict(-1) : store.stepBy(-1);
                     break;
                 case "ArrowRight":
-                    e.shiftKey ? store.stepToConflict(1) : store.stepBy(1);
+                    e.ctrlKey ? store.stepToConflict(1) : store.stepBy(1);
                     break;
                 default:
                     return;
@@ -47,21 +54,31 @@ export function StepBar() {
     const conflictIndex = store.selectedConflictIndex.value;
 
     return (
-        <div class="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-300 bg-white px-3 py-2">
-            <div class="flex items-center gap-1">
+        <div class="border-base-300 bg-base-100 flex shrink-0 flex-wrap items-center gap-3 border-b px-3 py-1.5">
+            <div class="join">
                 <Transport
-                    label="<"
-                    title="Previous event"
+                    Icon={ChevronsLeft}
+                    title="Previous conflict (Ctrl + right arrow)"
+                    onClick={() => store.stepToConflict(-1)}
+                />
+                <Transport
+                    Icon={ChevronLeft}
+                    title="Previous event (right arrow)"
                     onClick={() => store.stepBy(-1)}
                 />
                 <Transport
-                    label=">"
-                    title="Next event"
+                    Icon={ChevronRight}
+                    title="Next event (right arrow)"
                     onClick={() => store.stepBy(1)}
+                />
+                <Transport
+                    Icon={ChevronsRight}
+                    title="Next conflict (Ctrl + right arrow)"
+                    onClick={() => store.stepToConflict(1)}
                 />
             </div>
 
-            <div class="relative max-w-100 flex-1">
+            <div class="relative max-w-100 min-w-40 flex-1">
                 <Ticks max={max} />
                 <input
                     type="range"
@@ -72,19 +89,19 @@ export function StepBar() {
                         store.setStep(Number(e.currentTarget.value))
                     }
                     onChange={() => store.commitStep()}
-                    class="relative w-full cursor-pointer"
+                    class="range range-primary range-xs w-full"
                 />
             </div>
 
-            <div class="flex min-w-0 items-center gap-3 text-xs text-gray-600">
-                <span class="font-mono whitespace-nowrap">
+            <div class="flex min-w-0 flex-1 items-center gap-3 text-xs">
+                <span class="text-base-content/70 font-mono whitespace-nowrap">
                     {step} / {max}
                 </span>
-                <span class="truncate font-mono text-gray-500">
+                <span class="text-base-content/50 truncate font-mono">
                     {eventStepBarText(store.currentEvent.value)}
                 </span>
                 {conflictIndex >= 0 && (
-                    <span class="whitespace-nowrap text-red-600">
+                    <span class="badge badge-error badge-sm whitespace-nowrap">
                         conflict #{conflictIndex + 1}
                     </span>
                 )}
@@ -94,11 +111,11 @@ export function StepBar() {
 }
 
 function Transport({
-    label,
+    Icon,
     title,
     onClick,
 }: {
-    label: string;
+    Icon: LucideIcon;
     title: string;
     onClick: () => void;
 }) {
@@ -106,10 +123,11 @@ function Transport({
         <button
             type="button"
             title={title}
+            aria-label={title}
             onClick={onClick}
-            class="cursor-pointer rounded border border-gray-300 bg-white px-1.5 py-0.5 text-xs text-gray-700 hover:bg-gray-100"
+            class="btn join-item btn-square btn-xs"
         >
-            {label}
+            <Icon size={14} />
         </button>
     );
 }
@@ -128,7 +146,7 @@ function Ticks({ max }: { max: number }) {
                 c.eventIndex <= max ? (
                     <span
                         key={c.index}
-                        class="absolute top-0 h-1.5 w-px bg-red-400"
+                        class="bg-error/70 absolute top-0 h-1.5 w-px"
                         style={{ left: `${(c.eventIndex / max) * 100}%` }}
                     />
                 ) : null,

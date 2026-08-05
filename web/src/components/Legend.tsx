@@ -1,16 +1,18 @@
+import { cn } from "../lib/cn";
+
 export interface LegendItem {
     shape: "circle" | "diamond" | "line";
     label: string;
-    color?: string;
+    fill?: string;
     stroke?: string;
     dashed?: boolean;
 }
 
 export function Legend({ items }: { items: LegendItem[] }) {
     return (
-        <div class="my-1 flex flex-wrap gap-4 px-1 text-xs text-gray-600">
+        <div class="border-base-300 bg-base-200/60 text-base-content/70 flex flex-wrap items-center gap-x-4 gap-y-1 border-t px-3 py-1.5 text-xs">
             {items.map((item) => (
-                <span key={item.label} class="flex items-center gap-1">
+                <span key={item.label} class="flex items-center gap-1.5">
                     <Swatch item={item} />
                     {item.label}
                 </span>
@@ -22,14 +24,13 @@ export function Legend({ items }: { items: LegendItem[] }) {
 function Swatch({ item }: { item: LegendItem }) {
     if (item.shape === "line") {
         return (
-            <svg width="20" height="8" aria-hidden="true">
+            <svg width="20" height="10" aria-hidden="true" class="shrink-0">
                 <line
                     x1="0"
-                    y1="4"
+                    y1="5"
                     x2="20"
-                    y2="4"
-                    stroke={item.color}
-                    stroke-width="1.5"
+                    y2="5"
+                    class={cn("stroke-2", item.stroke)}
                     stroke-dasharray={item.dashed ? "4 3" : undefined}
                 />
             </svg>
@@ -37,17 +38,28 @@ function Swatch({ item }: { item: LegendItem }) {
     }
 
     return (
-        <span
+        <svg
+            width="14"
+            height="14"
+            viewBox="-8 -8 16 16"
             aria-hidden="true"
-            class={
-                item.shape === "circle"
-                    ? "inline-block h-3 w-3 rounded-full"
-                    : "inline-block h-2.5 w-2.5 rotate-45"
-            }
-            style={{
-                background: item.color,
-                border: item.stroke ? `2px solid ${item.stroke}` : undefined,
-            }}
-        />
+            class="shrink-0"
+        >
+            {item.shape === "diamond" ? (
+                <rect
+                    x="-5"
+                    y="-5"
+                    width="10"
+                    height="10"
+                    transform="rotate(45)"
+                    class={cn(item.fill, item.stroke)}
+                />
+            ) : (
+                <circle
+                    r="5.5"
+                    class={cn("stroke-2", item.fill, item.stroke)}
+                />
+            )}
+        </svg>
     );
 }

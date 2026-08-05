@@ -4,12 +4,12 @@ const scopes = [
     {
         cone: false,
         label: "Full",
-        title: "The whole trail, including decision levels this conflict never touched",
+        title: "The whole implication graph (including nodes not relevant for conflict analysis)",
     },
     {
         cone: true,
         label: "Cone",
-        title: "Only the ancestors of κ — the sub-DAG conflict analysis reads",
+        title: "Only the predecessors of the current conflict",
     },
 ];
 
@@ -20,17 +20,17 @@ interface Props {
 
 export function GraphScopeToggle({ cone, onChange }: Props) {
     return (
-        <div class="flex flex-wrap items-center gap-1">
+        <div class="join">
             {scopes.map((s) => (
                 <button
                     key={s.label}
+                    type="button"
                     onClick={() => onChange(s.cone)}
                     title={s.title}
+                    aria-pressed={s.cone === cone}
                     class={cn(
-                        "cursor-pointer rounded border px-2 py-1 text-xs",
-                        s.cone === cone
-                            ? "border-gray-700 bg-gray-700 text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100",
+                        "btn join-item btn-xs",
+                        s.cone === cone && "btn-active",
                     )}
                 >
                     {s.label}

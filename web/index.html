@@ -1,12 +1,27 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SAT Solver Visualizations</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<html lang="en" data-theme="light">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SAT Solver Visualizations</title>
+        <script>
+            (function () {
+                try {
+                    const stored = localStorage.getItem("setiv-theme");
+                    document.documentElement.dataset.theme =
+                        stored ||
+                        (window.matchMedia("(prefers-color-scheme: dark)")
+                            .matches
+                            ? "night"
+                            : "pastel");
+                } catch (e) {
+                    console.log("Failed to set theme from localStorage:", e);
+                }
+            })();
+        </script>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script type="module" src="/src/main.tsx"></script>
+    </body>
 </html>

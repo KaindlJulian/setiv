@@ -1,5 +1,7 @@
+import { ChevronRight } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
+import { cn } from "../lib/cn";
 
 interface CollapsibleSectionProps {
     title: string;
@@ -17,22 +19,34 @@ export function CollapsibleSection({
     const [open, setOpen] = useState(defaultOpen);
 
     return (
-        <section class="border-b border-gray-200">
+        <section
+            class={cn(
+                "border-base-300 collapse rounded-none border-b",
+                open ? "collapse-open" : "collapse-close",
+            )}
+        >
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
                 aria-expanded={open}
-                class="sticky top-0 z-10 flex w-full cursor-pointer items-center gap-1 bg-gray-100 px-2 py-1 text-left text-xs font-semibold tracking-wide text-gray-700 uppercase hover:bg-gray-200"
+                class="collapse-title text-base-content/80 hover:bg-base-300 flex cursor-pointer items-center gap-1.5 py-1.5 ps-1.5 pe-2 text-left text-xs font-semibold tracking-wide uppercase"
             >
+                <ChevronRight
+                    size={13}
+                    class={cn(
+                        "shrink-0 transition-transform duration-200",
+                        open && "rotate-90",
+                    )}
+                />
                 <span class="flex-1 truncate">{title}</span>
                 {badge != null && (
-                    <span class="font-mono text-[11px] font-normal text-gray-500">
+                    <span class="badge badge-ghost badge-xs font-mono font-normal">
                         {badge}
                     </span>
                 )}
             </button>
 
-            {open && <div>{children}</div>}
+            <div class="collapse-content px-0 pb-0">{children}</div>
         </section>
     );
 }

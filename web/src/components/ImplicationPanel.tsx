@@ -17,9 +17,10 @@ export function ImplicationPanel() {
 
     return (
         <Panel
+            fill
             title={`Implication Graph${conflict ? ` conflict #${conflict.index}` : ""}`}
             actions={
-                <div class="flex flex-wrap items-center gap-3">
+                <div class="flex flex-wrap items-center gap-2">
                     <GraphScopeToggle cone={cone} onChange={setOverride} />
                     <ConflictSelector />
                 </div>
@@ -27,25 +28,30 @@ export function ImplicationPanel() {
         >
             {conflict ? (
                 <>
-                    <div class="px-3 pt-2 text-xs text-gray-600">
-                        Falsified clause {clauseRef(conflict.clauseId)} @{" "}
-                        {conflict.level}
+                    <div class="border-base-300 text-base-content/70 flex shrink-0 flex-wrap items-center gap-1.5 border-b px-3 py-1.5 text-xs">
+                        <span>
+                            falsified{" "}
+                            <code class="font-mono">
+                                {clauseRef(conflict.clauseId)}
+                            </code>{" "}
+                            @{conflict.level}
+                        </span>
+
                         {conflict.learnedLiterals && (
-                            <>
-                                <span class="ml-2">learned:</span>
-                                <code class="ml-1 rounded bg-amber-100 px-1">
-                                    {conflict.learnedLiterals.join(", ")}
-                                </code>
-                            </>
+                            <span class="badge badge-warning badge-sm font-mono">
+                                learned: {conflict.learnedLiterals.join(", ")}
+                            </span>
                         )}
+
                         {conflict.backtrackLevel != null && (
-                            <span class="ml-2">
+                            <span class="badge badge-ghost badge-sm">
                                 backtrack to @{conflict.backtrackLevel}
                             </span>
                         )}
+
                         {isChronologicalBackjump(conflict) && (
                             <span
-                                class="ml-2 rounded bg-sky-100 px-1 text-sky-800"
+                                class="badge badge-info badge-sm cursor-help"
                                 title="The solver returned to a different level than the learned clause called for"
                             >
                                 chronological (clause jumps to @
@@ -53,10 +59,11 @@ export function ImplicationPanel() {
                             </span>
                         )}
                     </div>
+
                     <ImplicationGraph graph={graph} />
                 </>
             ) : (
-                <p class="p-4 text-sm text-gray-400">
+                <p class="text-base-content/40 flex min-h-0 flex-1 items-center justify-center p-6 text-center text-sm">
                     {store.conflicts.value.length === 0
                         ? "No conflicts in this log (e.g. a SAT instance solved without conflicts)."
                         : "No conflicts at this step"}

@@ -1,36 +1,30 @@
-const svgPalette = {
-    node: "color-slate-500",
-    decisionStroke: "color-zinc-800",
-    learned: "color-orange-500",
-    conflict: "color-red-600",
-    implicationEdge: "color-neutral-400",
-    edgeLabel: "color-neutral-500",
-    arrow: "color-neutral-500",
-    treeEdge: "color-slate-600",
-    backtrackedEdge: "color-slate-300",
-    backtrackedLabel: "color-slate-400",
-    nodeLabel: "color-white",
-    treeLabel: "color-slate-800",
-    levelBadge: "color-neutral-600",
-} as const;
-
-export const cssColors = {
-    ...(Object.fromEntries(
-        Object.entries(svgPalette).map(([k, v]) => [k, `var(--${v})`]),
-    ) as Record<keyof typeof svgPalette, string>),
-    transparent: "transparent",
-};
-
-export const resultClass = {
-    sat: "text-green-600",
-    unsat: "text-red-600",
-    unknown: "text-gray-600",
-} as const;
-
-export const literalClass = {
-    "1": "text-emerald-700",
-    "-1": "text-rose-600",
-    "0": "text-gray-400",
+/**
+ * Colour is expressed as Tailwind utility classes defined in index.css, and the
+ * charts apply them with .attr("class", ...)
+ */
+export const colors = {
+    node: "fill-setiv-node",
+    nodeLabel: "fill-setiv-node-label",
+    decisionStroke: "stroke-setiv-decision",
+    learned: "fill-setiv-learned",
+    learnedLabel: "fill-setiv-learned-label",
+    conflict: "fill-setiv-conflict",
+    conflictLabel: "fill-setiv-conflict-label",
+    implicationEdge: "stroke-setiv-ink",
+    edgeLabel: "fill-setiv-ink",
+    arrow: "fill-setiv-ink",
+    levelBadge: "fill-setiv-ink",
+    treeEdge: "stroke-setiv-ink",
+    treeLabel: "fill-setiv-ink",
+    backtrackedLabel: "fill-setiv-ink",
+    none: "fill-none",
+    noStroke: "stroke-none",
+    sat: "badge-success",
+    unsat: "badge-error",
+    unknown: "badge-ghost",
+    "1": "text-setiv-true",
+    "-1": "text-setiv-false",
+    "0": "text-base-content",
 } as const;
 
 export const implicationChart = {
@@ -44,10 +38,9 @@ export const implicationChart = {
 } as const;
 
 export const treeChart = {
-    height: 560,
     nodeRadius: 7,
     nodeSize: [46, 120], // [separation between siblings, separation between depths]
     margin: 30,
     labelPad: 140,
-    scaleExtent: [0.2, 3] as [number, number],
+    scaleExtent: [0.1, 5] as [number, number],
 } as const;

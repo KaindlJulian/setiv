@@ -1,6 +1,9 @@
-import { cn } from "../lib/cn";
+import { ChevronLeft, ChevronRight } from "lucide-preact";
 import { useSolverStore } from "../state/context";
 
+/**
+ * A dropdown
+ */
 export function ConflictSelector() {
     const store = useSolverStore();
     const conflicts = store.conflicts.value;
@@ -11,26 +14,48 @@ export function ConflictSelector() {
     }
 
     return (
-        <div class="flex flex-wrap items-center gap-1">
-            <span class="mr-1 text-xs text-gray-500">Conflicts:</span>
-            {conflicts.map((c, i) => (
-                <button
-                    key={c.index}
-                    onClick={() => store.selectConflict(i)}
-                    title={`clause ${c.clauseId} @ level ${c.level}`}
-                    class={cn(
-                        "cursor-pointer rounded border px-2 py-1 text-xs",
-                        i === selected
-                            ? "border-red-700 bg-red-600 text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100",
-                    )}
-                >
-                    #{c.index}
-                    <span class="ml-1 opacity-70">
-                        (c{c.clauseId} @ {c.level})
-                    </span>
-                </button>
-            ))}
+        <div class="join">
+            <button
+                type="button"
+                title="Previous conflict"
+                aria-label="Previous conflict"
+                disabled={selected <= 0}
+                onClick={() => store.selectConflict(selected - 1)}
+                class="btn join-item btn-square btn-xs"
+            >
+                <ChevronLeft size={13} />
+            </button>
+
+            <select
+                aria-label="Conflict"
+                value={selected}
+                onChange={(e) =>
+                    store.selectConflict(Number(e.currentTarget.value))
+                }
+                class="join-item select select-xs w-52 font-mono"
+            >
+                {selected < 0 && (
+                    <option value={-1} disabled>
+                        no conflict yet
+                    </option>
+                )}
+                {conflicts.map((c, i) => (
+                    <option key={c.index} value={i}>
+                        #{c.index} - c{c.clauseId} @{c.level}
+                    </option>
+                ))}
+            </select>
+
+            <button
+                type="button"
+                title="Next conflict"
+                aria-label="Next conflict"
+                disabled={selected >= conflicts.length - 1}
+                onClick={() => store.selectConflict(selected + 1)}
+                class="btn join-item btn-square btn-xs"
+            >
+                <ChevronRight size={13} />
+            </button>
         </div>
     );
 }

@@ -1,7 +1,7 @@
 import { useVirtualList } from "../hooks/useVirtualList";
 import type { ClauseRecord } from "../model/clauseDatabase";
 import { litValue, type SolverState } from "../model/trail";
-import { literalClass } from "../view/theme";
+import { colors } from "../view/theme";
 
 const rowHeight = 20;
 const viewportHeight = 260;
@@ -16,7 +16,7 @@ export function ClauseList({ records, state, empty }: ClauseListProps) {
     const window = useVirtualList(records.length, rowHeight, viewportHeight);
 
     if (records.length === 0) {
-        return <p class="px-2 py-2 text-xs text-gray-400">{empty}</p>;
+        return <p class="text-base-content/40 px-2 py-2 text-xs">{empty}</p>;
     }
 
     const rows = [];
@@ -27,16 +27,16 @@ export function ClauseList({ records, state, empty }: ClauseListProps) {
         rows.push(
             <div
                 key={record.key}
-                class="flex h-5 items-center gap-2 px-2 font-mono text-xs whitespace-nowrap hover:bg-gray-100"
+                class="hover:bg-base-300 flex h-5 items-center gap-2 px-2 font-mono text-xs whitespace-nowrap"
             >
-                <span class="w-14 shrink-0 truncate text-gray-400">
+                <span class="text-base-content/40 w-14 shrink-0 truncate">
                     {record.key}
                 </span>
                 {record.literals.map((lit, k) => (
                     <span
                         key={k}
                         class={
-                            literalClass[
+                            colors[
                                 String(litValue(lit, state)) as "1" | "-1" | "0"
                             ]
                         }

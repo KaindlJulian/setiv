@@ -30,7 +30,7 @@ export function TrailList({ state }: { state: SolverState }) {
 
     if (rows.length === 0) {
         return (
-            <p class="px-2 py-2 text-xs text-gray-400">
+            <p class="text-base-content/40 px-2 py-2 text-xs">
                 Nothing assigned at this step.
             </p>
         );
@@ -45,10 +45,10 @@ export function TrailList({ state }: { state: SolverState }) {
             rendered.push(
                 <div
                     key={row.key}
-                    class="flex h-5 items-center gap-2 px-2 text-[11px] text-gray-400"
+                    class="text-base-content/40 flex h-5 items-center gap-2 px-2 text-[11px]"
                 >
                     <span class="font-mono">@{row.level}</span>
-                    <span class="h-px flex-1 bg-gray-200" />
+                    <span class="bg-base-300 h-px flex-1" />
                 </div>,
             );
             continue;
@@ -59,14 +59,20 @@ export function TrailList({ state }: { state: SolverState }) {
         rendered.push(
             <div
                 key={row.key}
-                class="flex h-5 items-center gap-2 px-2 font-mono text-xs whitespace-nowrap hover:bg-gray-100"
+                class="hover:bg-base-300 flex h-5 items-center gap-2 px-2 font-mono text-xs whitespace-nowrap"
             >
-                <span class="w-12 shrink-0 text-right text-emerald-700">
+                <span class="text-setiv-true w-12 shrink-0 text-right">
                     {entry.lit}
                 </span>
-                <span class="w-8 shrink-0 text-gray-400">@{entry.level}</span>
+                <span class="text-base-content/40 w-8 shrink-0">
+                    @{entry.level}
+                </span>
                 <span
-                    class={entry.isDecision ? "text-zinc-800" : "text-gray-500"}
+                    class={
+                        entry.isDecision
+                            ? "text-setiv-decision font-semibold"
+                            : "text-base-content/50"
+                    }
                 >
                     {trailReason(entry)}
                 </span>

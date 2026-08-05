@@ -1,7 +1,8 @@
 import type { Point } from "@dagrejs/dagre";
 import * as d3 from "d3";
 import { useEffect, useRef } from "preact/hooks";
-import { clauseRef, clauseText, litLabel } from "../lib/format";
+import { cn } from "../lib/cn";
+import { litLabel } from "../lib/format";
 import type { ImplicationGraph as Graph } from "../model/implicationGraph";
 import {
     layoutImplicationGraph,
@@ -9,19 +10,34 @@ import {
     type RoutedEdge,
 } from "../view/layout/implicationLayout";
 import { createSvgCanvas } from "../view/svgCanvas";
-import { cssColors, implicationChart } from "../view/theme";
+import { colors, implicationChart } from "../view/theme";
 import { Legend, type LegendItem } from "./Legend";
 
 const legend: LegendItem[] = [
+    { shape: "circle", label: "propagated", fill: colors.node },
     {
         shape: "circle",
-        label: "decision (black border)",
-        color: cssColors.transparent,
-        stroke: cssColors.decisionStroke,
+        label: "decision (outlined)",
+        fill: "fill-none",
+        stroke: colors.decisionStroke,
     },
-    { shape: "circle", label: "on learned clause", color: cssColors.learned },
-    { shape: "diamond", label: "κ conflict", color: cssColors.conflict },
+    { shape: "circle", label: "on learned clause", fill: colors.learned },
+    { shape: "diamond", label: "κ conflict", fill: colors.conflict },
 ];
+
+const fillOf = (d: PositionedNode) =>
+    d.isConflict
+        ? colors.conflict
+        : d.onLearnedClause
+          ? colors.learned
+          : colors.node;
+
+const labelFillOf = (d: PositionedNode) =>
+    d.isConflict
+        ? colors.conflictLabel
+        : d.onLearnedClause
+          ? colors.learnedLabel
+          : colors.nodeLabel;
 
 export function ImplicationGraph({ graph }: { graph: Graph | null }) {
     const ref = useRef<SVGSVGElement>(null);
@@ -48,9 +64,10 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
 
         layer
             .append("g")
-            .attr("fill", "none")
-            .attr("stroke", cssColors.implicationEdge)
-            .attr("stroke-opacity", 0.7)
+            .attr(
+                "class",
+                cn("fill-none", "opacity-50", colors.implicationEdge),
+            )
             .selectAll("path")
             .data(edges)
             .join("path")
@@ -60,11 +77,11 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
 
         layer
             .append("g")
+            .attr("class", colors.edgeLabel)
             .selectAll("text")
             .data(edges)
             .join("text")
             .attr("font-size", 9)
-            .attr("fill", cssColors.edgeLabel)
             .attr("text-anchor", "middle")
             .attr("x", (d: RoutedEdge) => midOf(d).x)
             .attr("y", (d: RoutedEdge) => midOf(d).y)
@@ -72,7 +89,7 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
                 (d: RoutedEdge) =>
                     d.clauseId != null && d.clauseId >= 0
                         ? `c${d.clauseId}`
-                        : "", // an edge with no permanent clause behind it is left unlabelled
+                        : "", // an edge with no permanent clause behind it is unlabelled
             );
 
         const node = layer
@@ -83,15 +100,7 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             .attr(
                 "transform",
                 (d: PositionedNode) => `translate(${d.x},${d.y})`,
-            )
-            .style("cursor", "grab");
-
-        const fillOf = (d: PositionedNode) =>
-            d.isConflict
-                ? cssColors.conflict
-                : d.onLearnedClause
-                  ? cssColors.learned
-                  : cssColors.node;
+            );
 
         node.each(function (this: SVGGElement, d: PositionedNode) {
             const sel = d3.select(this);
@@ -104,18 +113,20 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
                     .attr("width", 2 * r)
                     .attr("height", 2 * r)
                     .attr("transform", "rotate(45)")
-                    .attr("fill", fillOf(d));
+                    .attr("class", fillOf(d));
             } else {
                 sel.append("circle")
                     .attr("r", r)
-                    .attr("fill", fillOf(d))
+                    .attr("stroke-width", 2)
                     .attr(
-                        "stroke",
-                        d.isDecision
-                            ? cssColors.decisionStroke
-                            : cssColors.transparent,
-                    )
-                    .attr("stroke-width", 1.5);
+                        "class",
+                        cn(
+                            fillOf(d),
+                            d.isDecision
+                                ? colors.decisionStroke
+                                : "stroke-none",
+                        ),
+                    );
             }
         });
 
@@ -124,8 +135,8 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             .attr("dy", 4)
             .attr("font-size", 11)
             .attr("font-weight", 600)
-            .attr("fill", cssColors.nodeLabel)
             .attr("pointer-events", "none")
+            .attr("class", labelFillOf)
             .text((d: PositionedNode) =>
                 d.isConflict ? "κ" : litLabel(d.lit!),
             );
@@ -135,17 +146,9 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             .attr("dx", 20)
             .attr("dy", 4)
             .attr("font-size", 9)
-            .attr("fill", cssColors.levelBadge)
             .attr("pointer-events", "none")
+            .attr("class", colors.levelBadge)
             .text((d: PositionedNode) => `@${d.level}`);
-
-        node.append("title").text((d: PositionedNode) =>
-            d.isConflict
-                ? `Conflict clause ${clauseRef(graph.conflict.clauseId)}: ${clauseText(graph.conflict.conflictLiterals)}`
-                : `${litLabel(d.lit!)} @ level ${d.level} ${
-                      d.isDecision ? "decision" : "propagated"
-                  }${d.onLearnedClause ? "\n(on learned clause)" : ""}`,
-        );
     }, [graph]);
 
     if (!graph) {
@@ -153,12 +156,10 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
     }
 
     return (
-        <div class="w-full">
+        <div class="flex min-h-0 flex-1 flex-col">
             <svg
                 ref={ref}
-                width="100%"
-                height={implicationChart.height}
-                class="bg-white"
+                class="setiv-canvas bg-setiv-surface min-h-0 w-full flex-1 cursor-grab active:cursor-grabbing"
             />
             <Legend items={legend} />
         </div>
