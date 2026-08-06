@@ -26,10 +26,7 @@ export function LoadDiagnostics() {
                 >
                     <TriangleAlert size={16} class="mt-0.5 shrink-0" />
                     <div class="min-w-0 text-sm">
-                        <p>
-                            Skipped {issues.length} unreadable line
-                            {issues.length === 1 ? "" : "s"}:
-                        </p>
+                        <p>Skipped {issues.length} unreadable lines</p>
                         <ul class="mt-1 list-inside list-disc font-mono text-xs opacity-80">
                             {issues.slice(0, 5).map((issue) => (
                                 <li key={issue.line}>

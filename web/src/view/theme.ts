@@ -3,6 +3,11 @@
  * charts apply them with .attr("class", ...)
  */
 export const colors = {
+    chartLine: "stroke-setiv-decision",
+    chartBand: "fill-setiv-decision",
+    chartRestart: "stroke-setiv-learned",
+    chartConflict: "fill-setiv-conflict",
+    chartCursor: "stroke-setiv-ink",
     node: "fill-setiv-node",
     nodeLabel: "fill-setiv-node-label",
     decisionStroke: "stroke-setiv-decision",
@@ -43,4 +48,17 @@ export const treeChart = {
     margin: 30,
     labelPad: 140,
     scaleExtent: [0.1, 5] as [number, number],
+} as const;
+
+export const levelChart = {
+    margin: { top: 12, right: 16, bottom: 40, left: 56 },
+    minHeight: 220,
+    strokeWidth: 2,
+    /** Opacity of the min/max envelope drawn when the series is decimated. */
+    bandOpacity: 0.45,
+    markerRadius: 4,
+    /** Zoom is on x only, and never out past the whole run. */
+    scaleExtent: [1, 5000] as [number, number],
+    /** Above this many restarts in view the rules turn into noise. */
+    maxRestartMarks: 120,
 } as const;

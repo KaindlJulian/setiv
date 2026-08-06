@@ -10,6 +10,7 @@ import {
 } from "../model/implicationGraph";
 import { parseEventLog, type ParseIssue } from "../model/parse";
 import { buildRun, type ConflictRecord, type SolverRun } from "../model/run";
+import { buildTimeline, type Timeline } from "../model/timeline";
 import { replayTo, type SolverState } from "../model/trail";
 
 export interface ClauseCounts {
@@ -46,6 +47,9 @@ export interface SolverStore {
     coneDefault: ReadonlySignal<boolean>;
 
     currentEvent: ReadonlySignal<SolverEvent | null>;
+
+    /** Decision level per event index; only built once a consumer asks. */
+    timeline: ReadonlySignal<Timeline | null>;
 
     solverState: ReadonlySignal<SolverState | null>;
     clauseCounts: ReadonlySignal<ClauseCounts>;
@@ -176,6 +180,11 @@ export function createSolverStore(): SolverStore {
     const currentEvent = computed(
         () => run.value?.events[stepIndex.value] ?? null,
     );
+
+    const timeline = computed(() => {
+        const r = run.value;
+        return r ? buildTimeline(r) : null;
+    });
 
     const solverState = computed(() => {
         const r = run.value;
@@ -331,6 +340,7 @@ export function createSolverStore(): SolverStore {
         coneGraph,
         coneDefault,
         currentEvent,
+        timeline,
         solverState,
         clauseCounts,
         maxStep,

@@ -6,6 +6,9 @@ const sample = [
     "cadical_e3220_events.jsonl",
     "cadical_full_2_events.jsonl",
     "cadical_prime529_events.jsonl",
+    "cadical_php_10_10_events.jsonl",
+    "cadical_bf0432-007_events.jsonl",
+    "cadical_ssa2670-141_events.jsonl",
 ];
 
 interface FileInputProps {
@@ -89,7 +92,7 @@ export function FileInput({ onSettled }: FileInputProps) {
                             onClick={() => loadSample(s)}
                             class="btn btn-xs font-mono font-normal"
                         >
-                            {s.replace("", "")}
+                            {s.replace("cadical_", "")}
                         </button>
                     ))}
                 </div>

@@ -1,0 +1,33 @@
+import { EmptyState } from "../components/EmptyState";
+import { LoadDiagnostics } from "../components/LoadDiagnostics";
+import { Sidebar } from "../components/Sidebar";
+import { StepBar } from "../components/StepBar";
+import { Workspace } from "../components/Workspace";
+import { useSolverStore } from "../state/context";
+
+export function SolverPage() {
+    const store = useSolverStore();
+
+    const run = store.run.value;
+
+    return (
+        <>
+            <StepBar />
+
+            <div class="flex min-h-0 flex-1">
+                {run && (
+                    <aside class="border-base-300 bg-base-200 flex w-80 shrink-0 flex-col border-r">
+                        <div class="min-h-0 flex-1 overflow-y-auto">
+                            <Sidebar />
+                        </div>
+                    </aside>
+                )}
+
+                <main class="flex min-h-0 min-w-0 flex-1 flex-col">
+                    <LoadDiagnostics />
+                    {run ? <Workspace /> : <EmptyState />}
+                </main>
+            </div>
+        </>
+    );
+}
