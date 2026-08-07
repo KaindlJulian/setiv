@@ -1,3 +1,4 @@
+import { useState } from "preact/hooks";
 import { isAliveAt, type ClauseRecord } from "../model/clauseDatabase";
 import { useSolverStore } from "../state/context";
 import { ClauseList } from "./ClauseList";
@@ -5,10 +6,19 @@ import { CollapsibleSection } from "./CollapsibleSection";
 import { StatsBar } from "./StatsBar";
 import { TrailList } from "./TrailList";
 
+type SectionId = "trail" | "original" | "learned" | "deleted";
+
 export function Sidebar() {
     const store = useSolverStore();
+    const [open, setOpen] = useState<SectionId | null>("trail");
     const run = store.run.value;
     const state = store.solverState.value;
+
+    /** One section at a time, so the open one can claim the leftover height. */
+    const section = (id: SectionId) => ({
+        open: open === id,
+        onToggle: () => setOpen(open === id ? null : id),
+    });
 
     if (!run || !state) {
         return;
@@ -42,7 +52,7 @@ export function Sidebar() {
             <CollapsibleSection
                 title="Trail"
                 badge={`${state.trail.length} - @${state.decisionLevel}`}
-                defaultOpen
+                {...section("trail")}
             >
                 <TrailList state={state} />
             </CollapsibleSection>
@@ -50,6 +60,7 @@ export function Sidebar() {
             <CollapsibleSection
                 title="Original clauses"
                 badge={counts.original}
+                {...section("original")}
             >
                 <ClauseList
                     records={original}
@@ -61,7 +72,7 @@ export function Sidebar() {
             <CollapsibleSection
                 title="Learned"
                 badge={counts.learned}
-                defaultOpen
+                {...section("learned")}
             >
                 <ClauseList
                     records={learned}
@@ -70,7 +81,11 @@ export function Sidebar() {
                 />
             </CollapsibleSection>
 
-            <CollapsibleSection title="Deleted" badge={counts.deleted}>
+            <CollapsibleSection
+                title="Deleted"
+                badge={counts.deleted}
+                {...section("deleted")}
+            >
                 <ClauseList
                     records={deleted}
                     state={state}

@@ -23,7 +23,7 @@ export function StatsBar() {
     ];
 
     return (
-        <div class="border-base-300 bg-base-100 flex flex-col gap-2 border-b px-2.5 py-2">
+        <div class="border-base-300 bg-base-100 flex shrink-0 flex-col gap-2 border-b px-2.5 py-2">
             <div class="flex items-center gap-1.5">
                 <span
                     class="min-w-0 flex-1 truncate font-mono text-xs"

@@ -1,9 +1,8 @@
-import { useVirtualList } from "../hooks/useVirtualList";
+import { useRowVirtualizer } from "../hooks/useRowVirtualizer";
 import { trailReason } from "../lib/format";
 import type { SolverState, TrailEntry } from "../model/trail";
 
 const rowHeight = 20;
-const viewportHeight = 300;
 
 type Row =
     | { kind: "divider"; level: number; key: string }
@@ -26,7 +25,7 @@ export function TrailList({ state }: { state: SolverState }) {
         rows.push({ kind: "entry", entry, key: `e${i}` });
     });
 
-    const window = useVirtualList(rows.length, rowHeight, viewportHeight);
+    const window = useRowVirtualizer(rows.length, rowHeight);
 
     if (rows.length === 0) {
         return (
@@ -38,8 +37,8 @@ export function TrailList({ state }: { state: SolverState }) {
 
     const rendered = [];
 
-    for (let i = window.start; i < window.end; i++) {
-        const row = rows[i];
+    for (const item of window.items) {
+        const row = rows[item.index];
 
         if (row.kind === "divider") {
             rendered.push(
@@ -81,13 +80,7 @@ export function TrailList({ state }: { state: SolverState }) {
     }
 
     return (
-        <div
-            onScroll={window.onScroll}
-            style={{
-                height: Math.min(viewportHeight, rows.length * rowHeight),
-            }}
-            class="overflow-x-auto overflow-y-auto"
-        >
+        <div ref={window.ref} class="h-full overflow-x-auto overflow-y-auto">
             <div style={{ height: window.topPad }} />
             {rendered}
             <div style={{ height: window.bottomPad }} />

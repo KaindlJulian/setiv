@@ -1,10 +1,9 @@
-import { useVirtualList } from "../hooks/useVirtualList";
+import { useRowVirtualizer } from "../hooks/useRowVirtualizer";
 import type { ClauseRecord } from "../model/clauseDatabase";
 import { litValue, type SolverState } from "../model/trail";
 import { colors } from "../view/theme";
 
 const rowHeight = 20;
-const viewportHeight = 260;
 
 interface ClauseListProps {
     records: ClauseRecord[];
@@ -13,7 +12,7 @@ interface ClauseListProps {
 }
 
 export function ClauseList({ records, state, empty }: ClauseListProps) {
-    const window = useVirtualList(records.length, rowHeight, viewportHeight);
+    const window = useRowVirtualizer(records.length, rowHeight);
 
     if (records.length === 0) {
         return <p class="text-base-content/40 px-2 py-2 text-xs">{empty}</p>;
@@ -21,8 +20,8 @@ export function ClauseList({ records, state, empty }: ClauseListProps) {
 
     const rows = [];
 
-    for (let i = window.start; i < window.end; i++) {
-        const record = records[i];
+    for (const item of window.items) {
+        const record = records[item.index];
 
         rows.push(
             <div
@@ -49,13 +48,7 @@ export function ClauseList({ records, state, empty }: ClauseListProps) {
     }
 
     return (
-        <div
-            onScroll={window.onScroll}
-            style={{
-                height: Math.min(viewportHeight, records.length * rowHeight),
-            }}
-            class="overflow-x-auto overflow-y-auto"
-        >
+        <div ref={window.ref} class="h-full overflow-x-auto overflow-y-auto">
             <div style={{ height: window.topPad }} />
             {rows}
             <div style={{ height: window.bottomPad }} />
