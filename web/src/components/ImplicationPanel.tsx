@@ -1,6 +1,5 @@
 import { useState } from "preact/hooks";
 import { clauseRef } from "../lib/format";
-import { isChronologicalBackjump } from "../model/run";
 import { useSolverStore } from "../state/context";
 import { ConflictSelector } from "./ConflictSelector";
 import { GraphScopeToggle } from "./GraphScopeToggle";
@@ -48,16 +47,6 @@ export function ImplicationPanel() {
                                 backtrack to @{conflict.backtrackLevel}
                             </span>
                         )}
-
-                        {isChronologicalBackjump(conflict) && (
-                            <span
-                                class="badge badge-info badge-sm cursor-help"
-                                title="The solver returned to a different level than the learned clause called for"
-                            >
-                                chronological (clause jumps to @
-                                {conflict.jumpLevel})
-                            </span>
-                        )}
                     </div>
 
                     <ImplicationGraph graph={graph} />
@@ -65,8 +54,8 @@ export function ImplicationPanel() {
             ) : (
                 <p class="text-base-content/40 flex min-h-0 flex-1 items-center justify-center p-6 text-center text-sm">
                     {store.conflicts.value.length === 0
-                        ? "No conflicts in this log (e.g. a SAT instance solved without conflicts)."
-                        : "No conflicts at this step"}
+                        ? "No conflicts in this log."
+                        : "No conflicts at this step."}
                 </p>
             )}
         </Panel>

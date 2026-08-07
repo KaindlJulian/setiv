@@ -79,7 +79,6 @@ export function parseEventLog(text: string): ParseResult {
 
         events.push(value);
 
-        // ends the run
         if (value.event === "result") {
             break;
         }

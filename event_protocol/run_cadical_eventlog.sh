@@ -26,9 +26,7 @@ if [ -z "$CADICAL" ]; then
 fi
 
 # Keep the search as close to pure CDCL as cadical allows.
-# 
-# Deliberately left enabled: 'minimize' (standard recursive learned-clause
-# minimization) and 'reduce' (clause DB reduction, needed for the clause DB view).
+# shrink=0 disables shrinking of the conflict clause for non-binary cases
 CDCL_FLAGS=(
     --plain
     --lucky=false
@@ -42,7 +40,7 @@ CDCL_FLAGS=(
 )
 
 BASENAME=$(basename "$INPUT_FILE" .cnf)
-OUTPUT_FILE="$OUT_DIR/cadical_${BASENAME}_events.jsonl"
+OUTPUT_FILE="$OUT_DIR/cadical_shrink_${BASENAME}_events.jsonl"
 
 CMD=("$CADICAL" "${CDCL_FLAGS[@]}" -j "$OUTPUT_FILE" "$INPUT_FILE")
 

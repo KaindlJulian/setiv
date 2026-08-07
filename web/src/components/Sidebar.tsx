@@ -21,7 +21,7 @@ export function Sidebar() {
     const learned: ClauseRecord[] = [];
     const deleted: ClauseRecord[] = [];
 
-    for (const record of run.clauses.clauses) {
+    for (const record of run.clauseDb.clauses) {
         if (record.addedAt > step) {
             continue;
         }

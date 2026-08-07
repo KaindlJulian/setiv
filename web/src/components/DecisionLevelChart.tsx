@@ -184,11 +184,11 @@ export function DecisionLevelChart() {
 
             const visibleRestarts: number[] = [];
 
-            for (const step of restartSteps) {
+            restartSteps.forEach((step) => {
                 if (step >= from && step <= to) {
                     visibleRestarts.push(step);
                 }
-            }
+            });
 
             marks
                 .selectAll("line")

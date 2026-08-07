@@ -54,11 +54,9 @@ export const levelChart = {
     margin: { top: 12, right: 16, bottom: 40, left: 56 },
     minHeight: 220,
     strokeWidth: 2,
-    /** Opacity of the min/max envelope drawn when the series is decimated. */
+    /** Opacity of the min/max envelope */
     bandOpacity: 0.45,
     markerRadius: 4,
-    /** Zoom is on x only, and never out past the whole run. */
     scaleExtent: [1, 5000] as [number, number],
-    /** Above this many restarts in view the rules turn into noise. */
-    maxRestartMarks: 120,
+    maxRestartMarks: 100,
 } as const;

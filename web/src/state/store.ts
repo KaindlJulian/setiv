@@ -64,21 +64,6 @@ export interface SolverStore {
     stepToConflict(direction: 1 | -1): void;
 }
 
-const noCounts: ClauseCounts = { original: 0, learned: 0, deleted: 0 };
-
-function versionError(version: number | null): string | null {
-    if (version === SUPPORTED_PROTOCOL_VERSION) {
-        return null;
-    }
-
-    const found =
-        version === null
-            ? "carries no `protocol_version` on its `init` event, so it predates version 2"
-            : `is protocol version ${version}`;
-
-    return `This log ${found}. This build reads version ${SUPPORTED_PROTOCOL_VERSION}; regenerate the log with the current solver.`;
-}
-
 export function createSolverStore(): SolverStore {
     const fileName = signal("");
     const rawText = signal("");
@@ -196,7 +181,7 @@ export function createSolverStore(): SolverStore {
         const r = run.value;
 
         if (!r) {
-            return noCounts;
+            return { original: 0, learned: 0, deleted: 0 };
         }
 
         const step = stepIndex.value;
@@ -204,7 +189,7 @@ export function createSolverStore(): SolverStore {
         let learned = 0;
         let deleted = 0;
 
-        for (const record of r.clauses.clauses) {
+        for (const record of r.clauseDb.clauses) {
             if (record.addedAt > step) {
                 continue;
             }
@@ -231,10 +216,11 @@ export function createSolverStore(): SolverStore {
     const loadLog = (text: string, name: string) => {
         const { events, issues, protocolVersion } = parseEventLog(text);
 
-        const rejection =
-            events.length === 0
-                ? "No solver events found. Is this an NDJSON event log?"
-                : versionError(protocolVersion);
+        let rejection = "";
+
+        if (protocolVersion !== SUPPORTED_PROTOCOL_VERSION) {
+            rejection += `Unsupported protocol version "${protocolVersion}". (supported version '${SUPPORTED_PROTOCOL_VERSION}')`;
+        }
 
         if (rejection) {
             batch(() => {

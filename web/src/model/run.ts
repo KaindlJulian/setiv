@@ -52,17 +52,17 @@ export interface SolverRun {
     result: EventOf<"result"> | null;
     conflicts: ConflictRecord[];
     tree: DecisionTree;
-    clauses: ClauseDatabase;
+    clauseDb: ClauseDatabase;
     stats: RunStats;
 }
 
-// One pass over the event stream, producing everything derivable from it in linear time.
+// One pass over the event stream, producing everything derivable from it
 export function buildRun(events: SolverEvent[]): SolverRun {
     const litToEventIndex = new Map<number, number>();
 
     const conflicts: ConflictRecord[] = [];
-    const tree = createDecisionTreeBuilder();
-    const clauses = createClauseDatabaseBuilder();
+    const treeBuilder = createDecisionTreeBuilder();
+    const clauseDbBuilder = createClauseDatabaseBuilder();
 
     let init: EventOf<"init"> | null = null;
     let result: EventOf<"result"> | null = null;
@@ -73,11 +73,9 @@ export function buildRun(events: SolverEvent[]): SolverRun {
     let deleted = 0;
 
     /**
-     * The conflict a following `learn`/`backtrack` belongs to, until the next
-     * `conflict` supersedes it. Pairing is forward-only and by proximity: a
-     * `kind: "conflict"` unwind is not guaranteed to sit after its conflict
-     * event (a chronological one is taken before the conflict is reported), so
-     * an unpaired conflict simply keeps its nulls.
+     * The conflict a following learn/backtrack belongs to, until the next
+     * `conflict` supersedes it. Pairing is forward-only.
+     * Might cause trouble with different solvers / chronological backtracking / phases
      */
     let pending: ConflictRecord | null = null;
 
@@ -85,22 +83,22 @@ export function buildRun(events: SolverEvent[]): SolverRun {
         const ev = events[i];
 
         switch (ev.event) {
-            case "init":
+            case "init": {
                 init = ev;
-                clauses.init(ev);
+                clauseDbBuilder.init(ev);
                 break;
-
-            case "decide":
+            }
+            case "decide": {
                 litToEventIndex.set(ev.literal, i);
-                tree.decide(ev);
+                treeBuilder.decide(ev);
                 decisions++;
                 break;
-
-            case "propagate":
+            }
+            case "propagate": {
                 litToEventIndex.set(ev.literal, i);
-                tree.propagate(ev);
+                treeBuilder.propagate(ev);
                 break;
-
+            }
             case "conflict": {
                 pending = snapshotConflict(
                     conflicts.length + 1,
@@ -109,11 +107,10 @@ export function buildRun(events: SolverEvent[]): SolverRun {
                     litToEventIndex,
                 );
                 conflicts.push(pending);
-                tree.conflict(ev);
+                treeBuilder.conflict(ev);
                 break;
             }
-
-            case "learn":
+            case "learn": {
                 if (pending && pending.learnedLiterals === null) {
                     pending.learnedLiterals = ev.learned_literals;
                     pending.learnedClauseId = ev.clause_id;
@@ -121,10 +118,10 @@ export function buildRun(events: SolverEvent[]): SolverRun {
                 }
 
                 learned++;
-                clauses.learn(ev, i);
+                clauseDbBuilder.learn(ev, i);
                 break;
-
-            case "backtrack":
+            }
+            case "backtrack": {
                 if (
                     ev.kind === "conflict" &&
                     pending &&
@@ -134,26 +131,26 @@ export function buildRun(events: SolverEvent[]): SolverRun {
                 }
 
                 backtracks++;
-
-                // Every unwind moves the trail the same way, whatever caused it.
-                tree.backtrackTo(ev.to_level);
+                treeBuilder.backtrackTo(ev.to_level);
                 break;
-
-            case "restart":
+            }
+            case "restart": {
                 restarts++;
                 break;
-
-            case "delete_clause":
+            }
+            case "delete_clause": {
                 deleted++;
-                clauses.remove(ev, i);
+                clauseDbBuilder.remove(ev, i);
                 break;
-
-            case "result":
+            }
+            case "result": {
                 result = ev;
                 break;
-
-            default:
+            }
+            default: {
+                console.error("invalid state");
                 break;
+            }
         }
     }
 
@@ -162,8 +159,8 @@ export function buildRun(events: SolverEvent[]): SolverRun {
         init,
         result,
         conflicts,
-        tree: tree.finish(),
-        clauses: clauses.finish(),
+        tree: treeBuilder.finish(),
+        clauseDb: clauseDbBuilder.finish(),
         stats: {
             variables: init?.variables ?? 0,
             clauses: init?.clauses ?? 0,
@@ -208,7 +205,7 @@ function snapshotConflict(
 
 /**
  * Whether the solver returned to a different level than the learned clause
- * called for. Only visible because v2 attributes the two to separate events.
+ * called for.
  */
 export function isChronologicalBackjump(conflict: ConflictRecord): boolean {
     return (

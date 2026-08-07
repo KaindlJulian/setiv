@@ -28,9 +28,7 @@
 }
 
 /*
- * d3-axis emits unclassed <path class="domain">, <line> and <text>, so the
- * axes are styled here rather than by resolving colours in JS. Keeping colour
- * in CSS is what lets every chart follow the theme toggle for free.
+    Chart easier to theme here
  */
 .setiv-axis .domain,
 .setiv-axis .tick line {

@@ -2,11 +2,11 @@ import { useSolverStore } from "../state/context";
 
 const sample = [
     "cadical_php_4_3_events.jsonl",
+    "cadical_shrink_php_4_3_events.jsonl",
     "cadical_php_3_2_events.jsonl",
     "cadical_e3220_events.jsonl",
     "cadical_full_2_events.jsonl",
     "cadical_prime529_events.jsonl",
-    "cadical_php_10_10_events.jsonl",
     "cadical_bf0432-007_events.jsonl",
     "cadical_ssa2670-141_events.jsonl",
 ];

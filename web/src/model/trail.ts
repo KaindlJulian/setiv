@@ -42,6 +42,7 @@ export function litValue(lit: number, state: SolverState): Value {
  * A pure forward fold: three events touch the trail and nothing else does.
  */
 export function replayTo(run: SolverRun, step: number): SolverState {
+    console.log(`replayTo: step=${step} events=${run.events.length}`);
     const size = variableCount(run) + 1;
     const value = new Int8Array(size);
     const level = new Int32Array(size).fill(-1);
@@ -49,7 +50,7 @@ export function replayTo(run: SolverRun, step: number): SolverState {
     let decisionLevel = 0;
 
     /**
-     * Keep every entry at or below `keep`, in its existing order.
+     * Keep every entry at or below keep, in its existing order.
      */
     const unwindTo = (keep: number) => {
         const kept: TrailEntry[] = [];

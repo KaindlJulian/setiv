@@ -18,7 +18,7 @@ export interface ClauseRecord {
 
 export interface ClauseDatabase {
     clauses: ClauseRecord[];
-    /** `clause_id` -> index into `clauses`; -1 where absent. Ids are dense. */
+    /** elastic index of clause_id -> index into clauses. -1 where absent. Ids are dense. */
     byId: Int32Array;
     originalCount: number;
     learnedCount: number;
@@ -34,7 +34,6 @@ export interface ClauseDatabaseBuilder {
 export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
     const clauses: ClauseRecord[] = [];
 
-    // elastic index of clause_id -> index into clauses
     let byId = new Int32Array(0);
     let originalCount = 0;
     let learnedCount = 0;
@@ -44,6 +43,7 @@ export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
             return; // learned units share id -1
         }
 
+        // grow index
         if (id >= byId.length) {
             const grown = new Int32Array(Math.max(id + 1, byId.length * 2));
             grown.fill(-1);
@@ -56,7 +56,7 @@ export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
 
     return {
         init(ev) {
-            for (const c of ev.clause_list) {
+            ev.clause_list.forEach((c) => {
                 register(c.id, clauses.length);
                 clauses.push({
                     id: c.id,
@@ -68,7 +68,7 @@ export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
                     glue: null,
                 });
                 originalCount++;
-            }
+            });
         },
 
         learn(ev, eventIndex) {
@@ -77,7 +77,7 @@ export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
             clauses.push({
                 id: ev.clause_id,
                 key:
-                    ev.clause_id >= 0 ? `c${ev.clause_id}` : `L${learnedCount}`,
+                    ev.clause_id >= 0 ? `c${ev.clause_id}` : `u${learnedCount}`,
                 literals: ev.learned_literals,
                 origin: "learned",
                 addedAt: eventIndex,
