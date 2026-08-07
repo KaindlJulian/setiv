@@ -2,12 +2,12 @@ import { DecisionLevelChart } from "../components/DecisionLevelChart";
 import { EmptyState } from "../components/EmptyState";
 import { LoadDiagnostics } from "../components/LoadDiagnostics";
 import { Panel } from "../components/Panel";
-import { useSolverStore } from "../state/context";
+import { useSource } from "../state/context";
 
 export function ChartPage() {
-    const store = useSolverStore();
+    const source = useSource();
 
-    const run = store.run.value;
+    const run = source.run.value;
 
     return (
         <main class="flex min-h-0 min-w-0 flex-1 flex-col">

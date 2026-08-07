@@ -45,7 +45,7 @@
       "properties": {
         "event": { "const": "init" },
         "protocol_version": {
-          "type": "integer",
+          "type": "string",
           "minimum": 1,
           "description": "Version of the Solver Event Protocol."
         },

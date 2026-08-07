@@ -1,10 +1,10 @@
 import { cn } from "../lib/cn";
-import { useSolverStore } from "../state/context";
+import { useSource } from "../state/context";
 import { colors } from "../view/theme";
 
 export function StatsBar() {
-    const store = useSolverStore();
-    const run = store.run.value;
+    const source = useSource();
+    const run = source.run.value;
 
     if (!run) {
         return null;
@@ -27,9 +27,9 @@ export function StatsBar() {
             <div class="flex items-center gap-1.5">
                 <span
                     class="min-w-0 flex-1 truncate font-mono text-xs"
-                    title={store.fileName.value}
+                    title={source.fileName.value}
                 >
-                    {store.fileName.value}
+                    {source.fileName.value}
                 </span>
                 {result && (
                     <span

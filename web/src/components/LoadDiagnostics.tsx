@@ -1,10 +1,10 @@
 import { CircleAlert, TriangleAlert } from "lucide-preact";
-import { useSolverStore } from "../state/context";
+import { useSource } from "../state/context";
 
 export function LoadDiagnostics() {
-    const store = useSolverStore();
-    const error = store.loadError.value;
-    const issues = store.parseIssues.value;
+    const source = useSource();
+    const error = source.loadError.value;
+    const issues = source.parseIssues.value;
 
     if (!error && issues.length === 0) {
         return null;

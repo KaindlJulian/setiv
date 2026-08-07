@@ -1,5 +1,9 @@
 import { createContext, type ComponentChildren } from "preact";
 import { useContext, useMemo } from "preact/hooks";
+import { type CursorStore } from "./cursorStore";
+import { type GraphStore } from "./graphStore";
+import { type RunProjections } from "./projections";
+import { type SourceStore } from "./sourceStore";
 import { createSolverStore, type SolverStore } from "./store";
 
 const SolverStoreContext = createContext<SolverStore | null>(null);
@@ -21,4 +25,20 @@ export function useSolverStore(): SolverStore {
     }
 
     return store;
+}
+
+export function useSource(): SourceStore {
+    return useSolverStore().source;
+}
+
+export function useCursor(): CursorStore {
+    return useSolverStore().cursor;
+}
+
+export function useProjections(): RunProjections {
+    return useSolverStore().projections;
+}
+
+export function useGraphs(): GraphStore {
+    return useSolverStore().graphs;
 }

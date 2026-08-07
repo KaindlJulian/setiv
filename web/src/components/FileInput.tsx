@@ -1,4 +1,4 @@
-import { useSolverStore } from "../state/context";
+import { useSource } from "../state/context";
 
 const sample = [
     "cadical_php_4_3_events.jsonl",
@@ -16,7 +16,7 @@ interface FileInputProps {
 }
 
 export function FileInput({ onSettled }: FileInputProps) {
-    const store = useSolverStore();
+    const source = useSource();
 
     const handleFile = async (file: File | undefined) => {
         if (!file) {
@@ -24,9 +24,9 @@ export function FileInput({ onSettled }: FileInputProps) {
         }
 
         try {
-            store.loadLog(await file.text(), file.name);
+            source.loadLog(await file.text(), file.name);
         } catch (err) {
-            store.setLoadError(
+            source.setLoadError(
                 `Could not read ${file.name}: ${err}`,
                 file.name,
             );
@@ -42,15 +42,15 @@ export function FileInput({ onSettled }: FileInputProps) {
             const res = await fetch(url);
 
             if (!res.ok) {
-                store.setLoadError(
+                source.setLoadError(
                     `Could not load sample ${name} (HTTP ${res.status}).`,
                     name,
                 );
             } else {
-                store.loadLog(await res.text(), name);
+                source.loadLog(await res.text(), name);
             }
         } catch (err) {
-            store.setLoadError(`Could not load sample ${name}: ${err}`, name);
+            source.setLoadError(`Could not load sample ${name}: ${err}`, name);
         }
 
         onSettled?.();

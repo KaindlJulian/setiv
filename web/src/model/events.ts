@@ -1,4 +1,4 @@
-export const SUPPORTED_PROTOCOL_VERSION = 2;
+export const SUPPORTED_PROTOCOL_VERSION = "2";
 
 export interface ClauseListEntry {
     id: number;
@@ -7,7 +7,7 @@ export interface ClauseListEntry {
 
 export interface InitEvent {
     event: "init";
-    protocol_version: number;
+    protocol_version: String;
     variables: number;
     clauses: number;
     variable_ids: number[];

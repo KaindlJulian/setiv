@@ -10,7 +10,7 @@ export interface ParseIssue {
 export interface ParseResult {
     events: SolverEvent[];
     issues: ParseIssue[];
-    protocolVersion: number | null;
+    protocolVersion: String | null;
 }
 
 const maxIssues = 50;
@@ -18,7 +18,7 @@ const maxIssues = 50;
 export function parseEventLog(text: string): ParseResult {
     const issues: ParseIssue[] = [];
     const events: SolverEvent[] = [];
-    let protocolVersion: number | null = null;
+    let protocolVersion: String | null = null;
 
     const addIssue = (line: number, reason: string, text: string) => {
         if (issues.length >= maxIssues) {

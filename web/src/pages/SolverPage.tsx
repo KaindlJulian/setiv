@@ -3,12 +3,12 @@ import { LoadDiagnostics } from "../components/LoadDiagnostics";
 import { Sidebar } from "../components/Sidebar";
 import { StepBar } from "../components/StepBar";
 import { Workspace } from "../components/Workspace";
-import { useSolverStore } from "../state/context";
+import { useSource } from "../state/context";
 
 export function SolverPage() {
-    const store = useSolverStore();
+    const source = useSource();
 
-    const run = store.run.value;
+    const run = source.run.value;
 
     return (
         <>

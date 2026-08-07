@@ -1,13 +1,13 @@
 import { ChevronLeft, ChevronRight } from "lucide-preact";
-import { useSolverStore } from "../state/context";
+import { useCursor } from "../state/context";
 
 /**
  * A dropdown
  */
 export function ConflictSelector() {
-    const store = useSolverStore();
-    const conflicts = store.conflicts.value;
-    const selected = store.selectedConflictIndex.value;
+    const cursor = useCursor();
+    const conflicts = cursor.conflicts.value;
+    const selected = cursor.selectedConflictIndex.value;
 
     if (conflicts.length === 0) {
         return null;
@@ -20,7 +20,7 @@ export function ConflictSelector() {
                 title="Previous conflict"
                 aria-label="Previous conflict"
                 disabled={selected <= 0}
-                onClick={() => store.selectConflict(selected - 1)}
+                onClick={() => cursor.selectConflict(selected - 1)}
                 class="btn join-item btn-square btn-xs"
             >
                 <ChevronLeft size={13} />
@@ -30,7 +30,7 @@ export function ConflictSelector() {
                 aria-label="Conflict"
                 value={selected}
                 onChange={(e) =>
-                    store.selectConflict(Number(e.currentTarget.value))
+                    cursor.selectConflict(Number(e.currentTarget.value))
                 }
                 class="join-item select select-xs w-52 font-mono"
             >
@@ -51,7 +51,7 @@ export function ConflictSelector() {
                 title="Next conflict"
                 aria-label="Next conflict"
                 disabled={selected >= conflicts.length - 1}
-                onClick={() => store.selectConflict(selected + 1)}
+                onClick={() => cursor.selectConflict(selected + 1)}
                 class="btn join-item btn-square btn-xs"
             >
                 <ChevronRight size={13} />

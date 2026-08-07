@@ -1,18 +1,19 @@
 import { useState } from "preact/hooks";
 import { clauseRef } from "../lib/format";
-import { useSolverStore } from "../state/context";
+import { useCursor, useGraphs } from "../state/context";
 import { ConflictSelector } from "./ConflictSelector";
 import { GraphScopeToggle } from "./GraphScopeToggle";
 import { ImplicationGraph } from "./ImplicationGraph";
 import { Panel } from "./Panel";
 
 export function ImplicationPanel() {
-    const store = useSolverStore();
+    const cursor = useCursor();
+    const graphs = useGraphs();
     const [override, setOverride] = useState<boolean | null>(null);
 
-    const conflict = store.selectedConflict.value;
-    const cone = override ?? store.coneDefault.value;
-    const graph = cone ? store.coneGraph.value : store.fullGraph.value;
+    const conflict = cursor.selectedConflict.value;
+    const cone = override ?? graphs.coneDefault.value;
+    const graph = cone ? graphs.coneGraph.value : graphs.fullGraph.value;
 
     return (
         <Panel
@@ -53,7 +54,7 @@ export function ImplicationPanel() {
                 </>
             ) : (
                 <p class="text-base-content/40 flex min-h-0 flex-1 items-center justify-center p-6 text-center text-sm">
-                    {store.conflicts.value.length === 0
+                    {cursor.conflicts.value.length === 0
                         ? "No conflicts in this log."
                         : "No conflicts at this step."}
                 </p>

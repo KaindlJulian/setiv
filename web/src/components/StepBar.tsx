@@ -7,11 +7,11 @@ import {
 } from "lucide-preact";
 import { useEffect } from "preact/hooks";
 import { eventStepBarText } from "../lib/format";
-import { useSolverStore } from "../state/context";
+import { useCursor, useSource } from "../state/context";
 
 export function StepBar() {
-    const store = useSolverStore();
-    const run = store.run.value;
+    const cursor = useCursor();
+    const run = useSource().run.value;
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
@@ -29,10 +29,10 @@ export function StepBar() {
 
             switch (e.key) {
                 case "ArrowLeft":
-                    e.ctrlKey ? store.stepToConflict(-1) : store.stepBy(-1);
+                    e.ctrlKey ? cursor.stepToConflict(-1) : cursor.stepBy(-1);
                     break;
                 case "ArrowRight":
-                    e.ctrlKey ? store.stepToConflict(1) : store.stepBy(1);
+                    e.ctrlKey ? cursor.stepToConflict(1) : cursor.stepBy(1);
                     break;
                 default:
                     return;
@@ -43,15 +43,15 @@ export function StepBar() {
 
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [store]);
+    }, [cursor]);
 
     if (!run || run.events.length === 0) {
         return null;
     }
 
-    const step = store.stepIndex.value;
-    const max = store.maxStep.value;
-    const conflictIndex = store.selectedConflictIndex.value;
+    const step = cursor.stepIndex.value;
+    const max = cursor.maxStep.value;
+    const conflictIndex = cursor.selectedConflictIndex.value;
 
     return (
         <div class="border-base-300 bg-base-100 flex shrink-0 flex-wrap items-center gap-3 border-b px-3 py-1.5">
@@ -59,22 +59,22 @@ export function StepBar() {
                 <Transport
                     Icon={ChevronsLeft}
                     title="Previous conflict (Ctrl + right arrow)"
-                    onClick={() => store.stepToConflict(-1)}
+                    onClick={() => cursor.stepToConflict(-1)}
                 />
                 <Transport
                     Icon={ChevronLeft}
                     title="Previous event (right arrow)"
-                    onClick={() => store.stepBy(-1)}
+                    onClick={() => cursor.stepBy(-1)}
                 />
                 <Transport
                     Icon={ChevronRight}
                     title="Next event (right arrow)"
-                    onClick={() => store.stepBy(1)}
+                    onClick={() => cursor.stepBy(1)}
                 />
                 <Transport
                     Icon={ChevronsRight}
                     title="Next conflict (Ctrl + right arrow)"
-                    onClick={() => store.stepToConflict(1)}
+                    onClick={() => cursor.stepToConflict(1)}
                 />
             </div>
 
@@ -86,9 +86,9 @@ export function StepBar() {
                     max={max}
                     value={step}
                     onInput={(e) =>
-                        store.setStep(Number(e.currentTarget.value))
+                        cursor.setStep(Number(e.currentTarget.value))
                     }
-                    onChange={() => store.commitStep()}
+                    onChange={() => cursor.commitStep()}
                     class="range range-primary range-xs w-full"
                 />
             </div>
@@ -98,7 +98,7 @@ export function StepBar() {
                     {step} / {max}
                 </span>
                 <span class="text-base-content/50 truncate font-mono">
-                    {eventStepBarText(store.currentEvent.value)}
+                    {eventStepBarText(cursor.currentEvent.value)}
                 </span>
                 {conflictIndex >= 0 && (
                     <span class="badge badge-error badge-sm whitespace-nowrap">
@@ -133,8 +133,7 @@ function Transport({
 }
 
 function Ticks({ max }: { max: number }) {
-    const store = useSolverStore();
-    const run = store.run.value;
+    const run = useSource().run.value;
 
     if (!run || max <= 0) {
         return null;

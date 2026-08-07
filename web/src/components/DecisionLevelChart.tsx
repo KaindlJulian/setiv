@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { useElementSize } from "../hooks/useElementSize";
 import { cn } from "../lib/cn";
 import { eventStepBarText } from "../lib/format";
-import { useSolverStore } from "../state/context";
+import { useProjections, useSource } from "../state/context";
 import { decimateLevels, type LevelColumn } from "../view/layout/chartLayout";
 import { colors, levelChart } from "../view/theme";
 
@@ -26,9 +26,8 @@ interface Hover {
  * dives on decisions and drops on backjumps and restarts.
  */
 export function DecisionLevelChart() {
-    const store = useSolverStore();
-    const timeline = store.timeline.value;
-    const run = store.run.value;
+    const timeline = useProjections().timeline.value;
+    const run = useSource().run.value;
 
     const [box, size] = useElementSize<HTMLDivElement>();
     const svgRef = useRef<SVGSVGElement>(null);

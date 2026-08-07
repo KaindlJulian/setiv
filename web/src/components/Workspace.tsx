@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { cn } from "../lib/cn";
-import { useSolverStore } from "../state/context";
+import { useCursor, useProjections, useSource } from "../state/context";
 import { DecisionTree } from "./DecisionTree";
 import { ImplicationPanel } from "./ImplicationPanel";
 import { MonoTextArea } from "./MonoTextArea";
@@ -17,10 +17,12 @@ const tabs = [
 ] as const;
 
 export function Workspace() {
-    const store = useSolverStore();
+    const source = useSource();
+    const cursor = useCursor();
+    const projections = useProjections();
     const [tab, setTab] = useState<TabId>("graph");
 
-    const run = store.run.value;
+    const run = source.run.value;
 
     if (!run) {
         return null;
@@ -43,7 +45,7 @@ export function Workspace() {
                 ))}
             </div>
             <TabPanel active={tab === "graph"}>
-                <ImplicationPanel key={store.selectedConflictIndex.value} />
+                <ImplicationPanel key={cursor.selectedConflictIndex.value} />
             </TabPanel>
 
             <TabPanel active={tab === "tree"}>
@@ -57,13 +59,13 @@ export function Workspace() {
 
             <TabPanel active={tab === "formula"}>
                 <Panel fill title="Formula">
-                    <MonoTextArea fill value={store.formulaText.value} />
+                    <MonoTextArea fill value={projections.formulaText.value} />
                 </Panel>
             </TabPanel>
 
             <TabPanel active={tab === "log"}>
                 <Panel fill title="Event Log">
-                    <MonoTextArea fill value={store.rawText.value} />
+                    <MonoTextArea fill value={source.rawText.value} />
                 </Panel>
             </TabPanel>
         </div>

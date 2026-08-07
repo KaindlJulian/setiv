@@ -113,14 +113,7 @@ export function buildImplicationGraph(
 }
 
 /**
- * Narrows a graph to the conflict cone: κ plus every node with a path to it,
- * and the edges between them. The dropped nodes are trail literals that no
- * chain of implications connects to the conflict, so they are exactly the ones
- * conflict analysis never visits.
- *
- * Antecedent edges point forward (antecedent -> implied), so the ancestors are
- * collected by indexing the edges by target and walking that index back from κ.
- * The `conflict` record is shared with the input rather than copied.
+ * Narrows a graph to the conflict cone.
  */
 export function coneOf(graph: ImplicationGraph): ImplicationGraph {
     const incoming = new Map<string, ImplicationEdge[]>();

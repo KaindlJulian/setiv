@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 import { isAliveAt, type ClauseRecord } from "../model/clauseDatabase";
-import { useSolverStore } from "../state/context";
+import { useCursor, useProjections, useSource } from "../state/context";
 import { ClauseList } from "./ClauseList";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { StatsBar } from "./StatsBar";
@@ -9,10 +9,11 @@ import { TrailList } from "./TrailList";
 type SectionId = "trail" | "original" | "learned" | "deleted";
 
 export function Sidebar() {
-    const store = useSolverStore();
+    const projections = useProjections();
+    const cursor = useCursor();
     const [open, setOpen] = useState<SectionId | null>("trail");
-    const run = store.run.value;
-    const state = store.solverState.value;
+    const run = useSource().run.value;
+    const state = projections.solverState.value;
 
     /** One section at a time, so the open one can claim the leftover height. */
     const section = (id: SectionId) => ({
@@ -24,8 +25,8 @@ export function Sidebar() {
         return;
     }
 
-    const counts = store.clauseCounts.value;
-    const step = store.stepIndex.value;
+    const counts = projections.clauseCounts.value;
+    const step = cursor.stepIndex.value;
 
     const original: ClauseRecord[] = [];
     const learned: ClauseRecord[] = [];

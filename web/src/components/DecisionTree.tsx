@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { useEffect, useRef } from "preact/hooks";
 import { cn } from "../lib/cn";
 import { treeNodeLabel } from "../lib/format";
-import { useSolverStore } from "../state/context";
+import { useSource } from "../state/context";
 import {
     layoutDecisionTree,
     type TreeLayoutEdge,
@@ -28,8 +28,8 @@ const legend: LegendItem[] = [
 ];
 
 export function DecisionTree() {
-    const store = useSolverStore();
-    const tree = store.run.value?.tree ?? null;
+    const source = useSource();
+    const tree = source.run.value?.tree ?? null;
     const ref = useRef<SVGSVGElement>(null);
 
     useEffect(() => {

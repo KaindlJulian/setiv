@@ -2,36 +2,15 @@ import { ClauseDatabase, createClauseDatabaseBuilder } from "./clauseDatabase";
 import { createDecisionTreeBuilder, type DecisionTree } from "./decisionTree";
 import type { EventOf, SolverEvent } from "./events";
 
-export interface ConflictRecord {
-    index: number;
-    /** Position of the `conflict` event in `SolverRun.events` */
-    eventIndex: number;
-    clauseId: number;
-    level: number;
-    /** Literals of the falsified clause */
-    conflictLiterals: number[];
-    /** Assignment trail at conflict time */
-    trail: number[];
-    /**
-     * Parallel to `trail`: index of the `decide`/`propagate` event that
-     * assigned that literal, or -1 if it was never seen
-     */
-    reasonEventIndex: Int32Array;
-    /**
-     * From the following `learn`, when there is one. Null at decision level 0,
-     * and also whenever the solver resolved the conflict without deriving a
-     * 1st-UIP clause (on-the-fly subsumption, a forced driving assignment).
-     */
-    learnedLiterals: number[] | null;
-    learnedClauseId: number | null;
-    /** Second-highest level in the learned clause; a property of the clause. */
-    jumpLevel: number | null;
-    /**
-     * `to_level` of the following `kind: "conflict"` backtrack; a property of
-     * the trail transition. Null when the conflict unwound nothing.
-     * `jumpLevel !== backtrackLevel` means the backjump was chronological.
-     */
-    backtrackLevel: number | null;
+/** The core "source of truth". This holds everything we derived from the logs. */
+export interface SolverRun {
+    events: readonly SolverEvent[];
+    init: EventOf<"init"> | null;
+    result: EventOf<"result"> | null;
+    conflicts: ConflictRecord[];
+    tree: DecisionTree;
+    clauseDb: ClauseDatabase;
+    stats: RunStats;
 }
 
 export interface RunStats {
@@ -46,14 +25,28 @@ export interface RunStats {
     deleted: number;
 }
 
-export interface SolverRun {
-    events: readonly SolverEvent[];
-    init: EventOf<"init"> | null;
-    result: EventOf<"result"> | null;
-    conflicts: ConflictRecord[];
-    tree: DecisionTree;
-    clauseDb: ClauseDatabase;
-    stats: RunStats;
+export interface ConflictRecord {
+    index: number; // index in run.conflicts
+    eventIndex: number; // index in run.events
+    clauseId: number;
+    level: number;
+    conflictLiterals: number[]; // todo: maybe replace with clause id lookup, what about units?
+    trail: number[];
+    /**
+     * Parallel to `trail`: index of the `decide`/`propagate` event that
+     * assigned that literal, or -1 if it was never seen
+     */
+    reasonEventIndex: Int32Array;
+
+    learnedLiterals: number[] | null;
+    learnedClauseId: number | null;
+
+    /** Second-highest level in the learned clause */
+    jumpLevel: number | null;
+    /**
+     * `to_level` of the following `kind: "conflict"` backtrack
+     */
+    backtrackLevel: number | null;
 }
 
 // One pass over the event stream, producing everything derivable from it
@@ -74,7 +67,7 @@ export function buildRun(events: SolverEvent[]): SolverRun {
 
     /**
      * The conflict a following learn/backtrack belongs to, until the next
-     * `conflict` supersedes it. Pairing is forward-only.
+     * conflict supersedes it. Pairing is forward-only.
      * Might cause trouble with different solvers / chronological backtracking / phases
      */
     let pending: ConflictRecord | null = null;
