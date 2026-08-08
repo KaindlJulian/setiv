@@ -1,3 +1,4 @@
+import { clauseById, type ClauseDatabase } from "./clauseDatabase";
 import type { EventOf, SolverEvent } from "./events";
 import type { ConflictRecord, SolverRun } from "./run";
 
@@ -89,7 +90,7 @@ export function buildImplicationGraph(
             continue;
         }
 
-        for (const other of reason.reason_literals) {
+        for (const other of reasonLiterals(run.clauseDb, reason)) {
             const antecedent = -other;
             if (other !== lit && assigned.has(antecedent)) {
                 addEdge(
@@ -147,6 +148,17 @@ export function coneOf(graph: ImplicationGraph): ImplicationGraph {
             (e) => reachable.has(e.target), // reachable.has(e.source), not needed assuming the graph is correct
         ),
     };
+}
+
+function reasonLiterals(
+    clauseDb: ClauseDatabase,
+    ev: EventOf<"propagate">,
+): readonly number[] {
+    return (
+        clauseById(clauseDb, ev.reason_clause_id)?.literals ??
+        ev.reason_literals ??
+        []
+    );
 }
 
 function assignmentEvent(

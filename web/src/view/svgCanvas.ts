@@ -43,14 +43,14 @@ export function createSvgCanvas(
 
     const layer = svg.append("g");
 
-    svg.call(
-        d3
-            .zoom()
-            .scaleExtent(scaleExtent)
-            .on("zoom", (event: { transform: unknown }) =>
-                layer.attr("transform", event.transform),
-            ),
-    );
+    const zoom = d3
+        .zoom()
+        .scaleExtent(scaleExtent)
+        .on("zoom", (event: { transform: unknown }) =>
+            layer.attr("transform", event.transform),
+        );
+
+    svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
 
     return layer;
 }

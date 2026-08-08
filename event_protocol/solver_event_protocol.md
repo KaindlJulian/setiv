@@ -93,7 +93,7 @@ Fired for each BCP-implied assignment. Not fired for decisions or external propa
 | `literal`          | int           | The propagated literal                                       |
 | `level`            | int           | **Assignment level** of the literal — see below              |
 | `reason_clause_id` | int64 or null | ID of the antecedent clause; `null` for root-level units     |
-| `reason_literals`  | int[]         | Literals of the antecedent clause; `[]` for root-level units |
+| `reason_literals`  | int[]         | *Optional.* Literals of the antecedent clause; `[]` for root-level units |
 
 `level` is the level at which the literal is *implied* — the highest level
 among the other literals of its antecedent clause — **not** the decision level
@@ -134,8 +134,9 @@ replay of those events and exists mainly as a cross-check.
 
 `trail` gives the node set only, not the implication graph's edges. To
 reconstruct the graph (and replay the 1st-UIP cut), a consumer must also
-cache `reason_clause_id`/`reason_literals` from each `propagate` event,
-keyed by literal, as the stream is consumed — `decide` events mark their
+cache `reason_clause_id` from each `propagate` event, keyed by literal, as
+the stream is consumed, and resolve each id to its literals against the
+clause database — `decide` events mark their
 literal as a node with no incoming edges. The `conflict` event's own
 `clause_id`/`literals` form the synthetic top node; its incoming edges are
 the negated literals of the falsified clause. Walking backward from that
@@ -305,7 +306,7 @@ ones they cannot get wrong.
 **Semantic** — a consumer's reconstruction is wrong if these are wrong. Get
 these right first:
 
-`decide.literal/level`, `propagate.literal/level/reason_clause_id/reason_literals`,
+`decide.literal/level`, `propagate.literal/level/reason_clause_id`,
 `backtrack.from_level/to_level/kind`, `conflict.clause_id/literals/level/trail`,
 `learn.learned_literals/clause_id`, `delete_clause.clause_id`, `result.result/model`,
 and all of `init`.
@@ -320,6 +321,7 @@ a solver-specific heuristic value:
 | `learn.jump_level` | Derivable: the second-highest level among `learned_literals`. Useful only to compare against the following `backtrack.to_level`. |
 | `backtrack.reason` | Solver-internal phase name; see the `backtrack` section.                 |
 | `restart.count`  | Derivable by counting `restart` events.                                     |
+| `propagate.reason_literals` | Derivable: the literals of the clause named by `reason_clause_id`, which the consumer already tracks. |
 | `decide.heuristic` | Names the decision heuristic (`vsids`, `vmtf`, `random`, ...). Entirely solver-specific. |
 
 A minimal adapter can omit or stub every informational field and still produce a

@@ -5,6 +5,7 @@ import { type GraphStore } from "./graphStore";
 import { type RunProjections } from "./projections";
 import { type SourceStore } from "./sourceStore";
 import { createSolverStore, type SolverStore } from "./store";
+import { type TreeStore } from "./treeStore";
 
 const SolverStoreContext = createContext<SolverStore | null>(null);
 
@@ -41,4 +42,8 @@ export function useProjections(): RunProjections {
 
 export function useGraphs(): GraphStore {
     return useSolverStore().graphs;
+}
+
+export function useTrees(): TreeStore {
+    return useSolverStore().trees;
 }

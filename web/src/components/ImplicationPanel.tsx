@@ -2,9 +2,22 @@ import { useState } from "preact/hooks";
 import { clauseRef } from "../lib/format";
 import { useCursor, useGraphs } from "../state/context";
 import { ConflictSelector } from "./ConflictSelector";
-import { GraphScopeToggle } from "./GraphScopeToggle";
 import { ImplicationGraph } from "./ImplicationGraph";
 import { Panel } from "./Panel";
+import { ScopeToggle, type ScopeOption } from "./ScopeToggle";
+
+const scopes: ScopeOption<boolean>[] = [
+    {
+        value: false,
+        label: "Full",
+        title: "The whole implication graph (including nodes not relevant for conflict analysis)",
+    },
+    {
+        value: true,
+        label: "Cone",
+        title: "Only the predecessors of the current conflict",
+    },
+];
 
 export function ImplicationPanel() {
     const cursor = useCursor();
@@ -21,7 +34,11 @@ export function ImplicationPanel() {
             title={`Implication Graph${conflict ? ` conflict #${conflict.index}` : ""}`}
             actions={
                 <div class="flex flex-wrap items-center gap-2">
-                    <GraphScopeToggle cone={cone} onChange={setOverride} />
+                    <ScopeToggle
+                        scopes={scopes}
+                        value={cone}
+                        onChange={setOverride}
+                    />
                     <ConflictSelector />
                 </div>
             }

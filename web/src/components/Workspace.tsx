@@ -2,7 +2,7 @@ import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { cn } from "../lib/cn";
 import { useCursor, useProjections, useSource } from "../state/context";
-import { DecisionTree } from "./DecisionTree";
+import { DecisionTreePanel } from "./DecisionTreePanel";
 import { ImplicationPanel } from "./ImplicationPanel";
 import { MonoTextArea } from "./MonoTextArea";
 import { Panel } from "./Panel";
@@ -49,12 +49,7 @@ export function Workspace() {
             </TabPanel>
 
             <TabPanel active={tab === "tree"}>
-                <Panel
-                    fill
-                    title={`Decision Tree (${run.tree.decisionCount} decisions)`}
-                >
-                    <DecisionTree />
-                </Panel>
+                <DecisionTreePanel />
             </TabPanel>
 
             <TabPanel active={tab === "formula"}>

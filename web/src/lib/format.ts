@@ -70,14 +70,16 @@ export function eventStepBarText(ev: SolverEvent | null): string {
 }
 
 export function treeNodeLabel(n: TreeNode): string {
+    const implied = n.impliedCount ? ` +${n.impliedCount}` : "";
+
     switch (n.kind) {
         case "root":
-            return "@0";
+            return `@0${implied}`;
         case "conflict":
             return `conflict (${clauseRef(n.reasonClauseId)})`;
         case "propagation":
             return `${litLabel(n.lit!)} @${n.level} (${clauseRef(n.reasonClauseId)})`;
         case "decision":
-            return `${litLabel(n.lit!)} @${n.level}`;
+            return `${litLabel(n.lit!)} @${n.level}${implied}`;
     }
 }

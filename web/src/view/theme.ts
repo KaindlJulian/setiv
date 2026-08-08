@@ -47,7 +47,9 @@ export const treeChart = {
     nodeSize: [46, 120], // [separation between siblings, separation between depths]
     margin: 30,
     labelPad: 140,
-    scaleExtent: [0.1, 5] as [number, number],
+    scaleExtent: [0.1, 500] as [number, number],
+    /** how many nodes a single synchronous d3 pass is allowed to draw */
+    maxNodes: 1200,
 } as const;
 
 export const levelChart = {

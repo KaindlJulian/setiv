@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { useEffect, useRef } from "preact/hooks";
 import { cn } from "../lib/cn";
 import { treeNodeLabel } from "../lib/format";
-import { useSource } from "../state/context";
+import type { DecisionTree as Tree } from "../model/decisionTree";
 import {
     layoutDecisionTree,
     type TreeLayoutEdge,
@@ -12,24 +12,51 @@ import { createSvgCanvas } from "../view/svgCanvas";
 import { colors, treeChart } from "../view/theme";
 import { Legend, type LegendItem } from "./Legend";
 
-const legend: LegendItem[] = [
-    {
-        shape: "line",
-        label: "decision (solid edge)",
-        stroke: colors.treeEdge,
-    },
+const decisionEdge: LegendItem = {
+    shape: "line",
+    label: "decision (solid edge)",
+    stroke: colors.treeEdge,
+};
+
+const conflictNode: LegendItem = {
+    shape: "diamond",
+    label: "conflict",
+    fill: colors.conflict,
+};
+
+const fullLegend: LegendItem[] = [
+    decisionEdge,
     {
         shape: "line",
         label: "propagation (dashed edge)",
         stroke: colors.treeEdge,
         dashed: true,
     },
-    { shape: "diamond", label: "conflict", fill: colors.conflict },
+    conflictNode,
 ];
 
-export function DecisionTree() {
-    const source = useSource();
-    const tree = source.run.value?.tree ?? null;
+const decisionsLegend: LegendItem[] = [
+    decisionEdge,
+    {
+        shape: "line",
+        label: "conflict (dashed edge)",
+        stroke: colors.treeEdge,
+        dashed: true,
+    },
+    conflictNode,
+    {
+        shape: "circle",
+        label: "+N = propagations collapsed",
+        fill: colors.node,
+    },
+];
+
+interface Props {
+    tree: Tree | null;
+    decisionsOnly: boolean;
+}
+
+export function DecisionTree({ tree, decisionsOnly }: Props) {
     const ref = useRef<SVGSVGElement>(null);
 
     useEffect(() => {
@@ -122,7 +149,7 @@ export function DecisionTree() {
                 ref={ref}
                 class="setiv-canvas bg-setiv-surface min-h-0 w-full flex-1 cursor-grab active:cursor-grabbing"
             />
-            <Legend items={legend} />
+            <Legend items={decisionsOnly ? decisionsLegend : fullLegend} />
         </div>
     );
 }

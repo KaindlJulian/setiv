@@ -26,7 +26,8 @@ export interface PropagateEvent {
     literal: number;
     level: number;
     reason_clause_id: number | null;
-    reason_literals: number[];
+    /** Optional: consumers resolve the antecedent through `reason_clause_id`. */
+    reason_literals?: number[];
 }
 
 export interface ConflictEvent {
