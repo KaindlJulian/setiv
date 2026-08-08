@@ -96,8 +96,7 @@
         "event",
         "literal",
         "level",
-        "reason_clause_id",
-        "reason_literals"
+        "reason_clause_id"
       ],
       "additionalProperties": false,
       "properties": {
