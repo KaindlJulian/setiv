@@ -16,10 +16,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT_DIR="$SCRIPT_DIR/out"
 mkdir -p "$OUT_DIR"
 
-# Prefer an explicit $CADICAL, then the in-tree build, then $PATH.
+# Check for explicit $CADICAL, then the in-tree build, then $PATH.
 if [ -z "$CADICAL" ]; then
-    if [ -x "$SCRIPT_DIR/../solvers/cadical/build/cadical" ]; then
-        CADICAL="$SCRIPT_DIR/../solvers/cadical/build/cadical"
+    if [ -x "$SCRIPT_DIR/../solvers/cadical/build-opt/cadical" ]; then
+        CADICAL="$SCRIPT_DIR/../solvers/cadical/build-opt/cadical"
     else
         CADICAL="cadical"
     fi

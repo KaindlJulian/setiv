@@ -14,3 +14,7 @@ mkdir -p build-opt
 cd build-opt
 ../configure
 make -j"$(nproc)"
+cd ..
+
+# set $CADICAL
+CADICAL="$(pwd)/build-opt/cadical"
