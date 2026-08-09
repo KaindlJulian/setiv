@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { cn } from "../lib/cn";
-import { useCursor, useProjections, useSource } from "../state/context";
+import { useProjections, useSource } from "../state/context";
 import { DecisionTreePanel } from "./DecisionTreePanel";
 import { ImplicationPanel } from "./ImplicationPanel";
 import { MonoTextArea } from "./MonoTextArea";
@@ -18,7 +18,6 @@ const tabs = [
 
 export function Workspace() {
     const source = useSource();
-    const cursor = useCursor();
     const projections = useProjections();
     const [tab, setTab] = useState<TabId>("graph");
 
@@ -45,7 +44,7 @@ export function Workspace() {
                 ))}
             </div>
             <TabPanel active={tab === "graph"}>
-                <ImplicationPanel key={cursor.selectedConflictIndex.value} />
+                <ImplicationPanel />
             </TabPanel>
 
             <TabPanel active={tab === "tree"}>

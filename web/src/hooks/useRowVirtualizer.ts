@@ -2,11 +2,14 @@ import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import type { RefObject } from "preact";
 import { useRef } from "preact/hooks";
 
+export type RowAlignment = "start" | "center" | "end" | "auto";
+
 export interface RowWindow {
     ref: RefObject<HTMLDivElement>;
     items: VirtualItem[];
     topPad: number;
     bottomPad: number;
+    scrollToIndex: (index: number, align?: RowAlignment) => void;
 }
 
 export function useRowVirtualizer(
@@ -31,5 +34,7 @@ export function useRowVirtualizer(
         topPad: items[0]?.start ?? 0,
         bottomPad:
             virtualizer.getTotalSize() - (items[items.length - 1]?.end ?? 0),
+        scrollToIndex: (index, align = "auto") =>
+            virtualizer.scrollToIndex(index, { align }),
     };
 }

@@ -22,10 +22,16 @@ const scopes: ScopeOption<boolean>[] = [
 export function ImplicationPanel() {
     const cursor = useCursor();
     const graphs = useGraphs();
-    const [override, setOverride] = useState<boolean | null>(null);
 
+    const [override, setOverride] = useState<{
+        at: number;
+        cone: boolean;
+    } | null>(null);
+
+    const index = cursor.selectedConflictIndex.value;
     const conflict = cursor.selectedConflict.value;
-    const cone = override ?? graphs.coneDefault.value;
+    const cone =
+        override?.at === index ? override.cone : graphs.coneDefault.value;
     const graph = cone ? graphs.coneGraph.value : graphs.fullGraph.value;
 
     return (
@@ -37,7 +43,9 @@ export function ImplicationPanel() {
                     <ScopeToggle
                         scopes={scopes}
                         value={cone}
-                        onChange={setOverride}
+                        onChange={(value) =>
+                            setOverride({ at: index, cone: value })
+                        }
                     />
                     <ConflictSelector />
                 </div>

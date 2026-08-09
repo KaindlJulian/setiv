@@ -1,3 +1,31 @@
+export function tickPath(
+    conflicts: readonly { eventIndex: number }[],
+    max: number,
+    columns: number,
+    height: number,
+): string {
+    if (max <= 0 || conflicts.length === 0) {
+        return "";
+    }
+
+    let out = "";
+    let previous = -1;
+
+    for (const c of conflicts) {
+        const ratio = Math.min(Math.max(c.eventIndex / max, 0), 1);
+        const column = Math.round(ratio * columns);
+
+        if (column === previous) {
+            continue;
+        }
+
+        out += `M${column} 0V${height}`;
+        previous = column;
+    }
+
+    return out;
+}
+
 export interface LevelColumn {
     i: number;
     min: number;

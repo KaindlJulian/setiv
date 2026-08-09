@@ -5,9 +5,10 @@ import {
     ChevronsLeft,
     ChevronsRight,
 } from "lucide-preact";
-import { useEffect } from "preact/hooks";
+import { useEffect, useMemo } from "preact/hooks";
 import { eventStepBarText } from "../lib/format";
 import { useCursor, useSource } from "../state/context";
+import { tickPath } from "../view/layout/chartLayout";
 
 export function StepBar() {
     const cursor = useCursor();
@@ -15,18 +16,6 @@ export function StepBar() {
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
-            const active = document.activeElement;
-
-            // The event log is a focusable textarea holding the whole file;
-            // arrows there have to move the caret, not the cursor.
-            if (
-                active instanceof HTMLTextAreaElement ||
-                active instanceof HTMLInputElement ||
-                active instanceof HTMLSelectElement
-            ) {
-                return;
-            }
-
             switch (e.key) {
                 case "ArrowLeft":
                     e.ctrlKey ? cursor.stepToConflict(-1) : cursor.stepBy(-1);
@@ -79,7 +68,7 @@ export function StepBar() {
             </div>
 
             <div class="relative max-w-100 min-w-40 flex-1">
-                <Ticks max={max} />
+                {run.conflicts.length < 200 && <Ticks max={max} />}
                 <input
                     type="range"
                     min={0}
@@ -133,23 +122,33 @@ function Transport({
 }
 
 function Ticks({ max }: { max: number }) {
+    const tickColumns = 600;
+    const tickHeight = 6;
     const run = useSource().run.value;
 
-    if (!run || max <= 0) {
+    const d = useMemo(
+        () =>
+            run ? tickPath(run.conflicts, max, tickColumns, tickHeight) : "",
+        [run, max],
+    );
+
+    if (!d) {
         return null;
     }
 
     return (
-        <div class="pointer-events-none absolute inset-x-0 top-0 h-1.5">
-            {run.conflicts.map((c) =>
-                c.eventIndex <= max ? (
-                    <span
-                        key={c.index}
-                        class="bg-error/70 absolute top-0 h-1.5 w-px"
-                        style={{ left: `${(c.eventIndex / max) * 100}%` }}
-                    />
-                ) : null,
-            )}
-        </div>
+        <svg
+            aria-hidden="true"
+            viewBox={`0 0 ${tickColumns} ${tickHeight}`}
+            preserveAspectRatio="none"
+            class="pointer-events-none absolute inset-x-0 top-0 h-1.5 w-full"
+        >
+            <path
+                d={d}
+                class="stroke-error/70 fill-none"
+                stroke-width="1"
+                vector-effect="non-scaling-stroke"
+            />
+        </svg>
     );
 }
