@@ -1,15 +1,11 @@
 import { computed, type ReadonlySignal } from "@preact/signals";
 import { formulaText as renderFormula } from "../lib/format";
-import { isAliveAt } from "../model/clauseDatabase";
+import { clauseCountsAt, type ClauseCounts } from "../model/clauseDatabase";
 import { type SolverRun } from "../model/run";
 import { buildTimeline, type Timeline } from "../model/timeline";
-import { replayTo, type SolverState } from "../model/trail";
+import { createReplay, type Replay, type SolverState } from "../model/trail";
 
-export interface ClauseCounts {
-    original: number;
-    learned: number;
-    deleted: number;
-}
+export type { ClauseCounts };
 
 /**
  * Read-only views of the run at the cursor. Each is a pure `(run, step) => X`
@@ -33,12 +29,26 @@ export function createProjections(
         return r ? buildTimeline(r) : null;
     });
 
+    // One replay cursor per run, so stepping forward never refolds from zero.
+    let replayFor: SolverRun | null = null;
+    let replay: Replay | null = null;
+
     const solverState = computed(() => {
         const r = run.value;
-        return r ? replayTo(r, stepIndex.value) : null;
+
+        if (!r) {
+            return null;
+        }
+
+        if (replayFor !== r || !replay) {
+            replay = createReplay(r);
+            replayFor = r;
+        }
+
+        return replay.stateAt(stepIndex.value);
     });
 
-    // runs on every tick of a drag
+    // Runs on every tick of a drag, so it must not scan the clause DB.
     const clauseCounts = computed<ClauseCounts>(() => {
         const r = run.value;
 
@@ -46,28 +56,7 @@ export function createProjections(
             return { original: 0, learned: 0, deleted: 0 };
         }
 
-        const step = stepIndex.value;
-        let original = 0;
-        let learned = 0;
-        let deleted = 0;
-
-        for (const record of r.clauseDb.clauses) {
-            if (record.addedAt > step) {
-                continue;
-            }
-
-            if (isAliveAt(record, step)) {
-                if (record.origin === "original") {
-                    original++;
-                } else {
-                    learned++;
-                }
-            } else {
-                deleted++;
-            }
-        }
-
-        return { original, learned, deleted };
+        return clauseCountsAt(r.clauseDb, stepIndex.value);
     });
 
     return { formulaText, timeline, solverState, clauseCounts };

@@ -20,7 +20,7 @@ export function createSolverStore(): SolverStore {
     const cursor = createCursorStore(source.run);
     const projections = createProjections(source.run, cursor.stepIndex);
     const graphs = createGraphStore(source.run, cursor.selectedConflictIndex);
-    const trees = createTreeStore(source.run);
+    const trees = createTreeStore(source.run, cursor.committedStep);
 
     return { source, cursor, projections, graphs, trees };
 }

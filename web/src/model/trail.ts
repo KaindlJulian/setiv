@@ -1,3 +1,4 @@
+import type { SolverEvent } from "./events";
 import type { SolverRun } from "./run";
 
 /** Truth value of a variable or literal: unassigned, true, false. */
@@ -22,6 +23,13 @@ export interface SolverState {
 }
 
 /**
+ * A cursor over the event stream that remembers where it is
+ */
+export interface Replay {
+    stateAt(step: number): SolverState;
+}
+
+/**
  * Truth value of a literal under the current assignment.
  */
 export function litValue(lit: number, state: SolverState): Value {
@@ -36,17 +44,41 @@ export function litValue(lit: number, state: SolverState): Value {
     return (lit < 0 ? -value : value) as Value;
 }
 
+interface Checkpoint {
+    value: Int8Array;
+    level: Int32Array;
+    trail: TrailEntry[];
+    decisionLevel: number;
+}
+
 /**
- * The assignment after replaying the stream up to and including `step`.
- *
- * A pure forward fold: three events touch the trail and nothing else does.
+ * Spacing between checkpoints
  */
-export function replayTo(run: SolverRun, step: number): SolverState {
+function defaultCheckpointInterval(eventCount: number): number {
+    return Math.max(1024 * 8, Math.ceil(eventCount / 1024));
+}
+
+export function createReplay(
+    run: SolverRun,
+    checkpointInterval?: number,
+): Replay {
+    const events = run.events;
     const size = variableCount(run) + 1;
+    const interval =
+        checkpointInterval ?? defaultCheckpointInterval(events.length);
+
     const value = new Int8Array(size);
     const level = new Int32Array(size).fill(-1);
     let trail: TrailEntry[] = [];
     let decisionLevel = 0;
+
+    /** Index of the last applied event; -1 when nothing has been applied. */
+    let cursor = -1;
+
+    /**
+     * `checkpoints[n]` = the state at step `(n + 1) * interval - 1`
+     */
+    const checkpoints: Checkpoint[] = [];
 
     /**
      * Keep every entry at or below keep, in its existing order.
@@ -85,11 +117,7 @@ export function replayTo(run: SolverRun, step: number): SolverState {
         trail.push({ lit, level: lv, reasonClauseId, isDecision });
     };
 
-    const last = Math.min(step, run.events.length - 1);
-
-    for (let i = 0; i <= last; i++) {
-        const ev = run.events[i];
-
+    const apply = (ev: SolverEvent) => {
         switch (ev.event) {
             case "decide":
                 assign(ev.literal, ev.level, null, true);
@@ -105,9 +133,81 @@ export function replayTo(run: SolverRun, step: number): SolverState {
             default:
                 break;
         }
-    }
+    };
 
-    return { step: last, value, level, trail, decisionLevel };
+    const reset = () => {
+        value.fill(0);
+        level.fill(-1);
+        trail = [];
+        decisionLevel = 0;
+        cursor = -1;
+    };
+
+    /** Rewind to the newest checkpoint at or before `step`. */
+    const rewindTo = (step: number) => {
+        const wanted = Math.floor((step + 1) / interval) - 1;
+        const j = Math.min(wanted, checkpoints.length - 1);
+
+        if (j < 0) {
+            reset();
+            return;
+        }
+
+        const checkpoint = checkpoints[j];
+
+        value.set(checkpoint.value);
+        level.set(checkpoint.level);
+        trail = checkpoint.trail.slice();
+        decisionLevel = checkpoint.decisionLevel;
+        cursor = (j + 1) * interval - 1;
+    };
+
+    /**
+     * Called with the cursor at `i - 1`, just before `i` is applied. Records a
+     * checkpoint when that is a boundary we have not passed before.
+     */
+    const checkpointBefore = (i: number) => {
+        if (i === 0 || i % interval !== 0) {
+            return;
+        }
+
+        if (i / interval - 1 !== checkpoints.length) {
+            return; // already recorded on an earlier pass
+        }
+
+        checkpoints.push({
+            value: value.slice(),
+            level: level.slice(),
+            trail: trail.slice(),
+            decisionLevel,
+        });
+    };
+
+    return {
+        stateAt(step) {
+            const last = Math.min(step, events.length - 1);
+
+            if (last < cursor) {
+                rewindTo(last);
+            }
+
+            for (let i = cursor + 1; i <= last; i++) {
+                checkpointBefore(i);
+                apply(events[i]);
+            }
+
+            cursor = last;
+
+            // A snapshot, not the live state: the next call mutates these.
+            return {
+                step: last,
+                value: value.slice(),
+                level: level.slice(),
+                trail: trail.slice(),
+                decisionLevel,
+            };
+        },
+    };
 }
 
 function variableCount(run: SolverRun): number {

@@ -60,27 +60,9 @@ export function createCursorStore(
     });
 
     // Derived rather than stored, so the step is the only cursor in the app.
-    const selectedConflictIndex = computed(() => {
-        const list = conflicts.value;
-        const step = committedStep.value;
-
-        let lo = 0;
-        let hi = list.length - 1;
-        let found = -1;
-
-        while (lo <= hi) {
-            const mid = (lo + hi) >> 1;
-
-            if (list[mid].eventIndex <= step) {
-                found = mid;
-                lo = mid + 1;
-            } else {
-                hi = mid - 1;
-            }
-        }
-
-        return found;
-    });
+    const selectedConflictIndex = computed(() =>
+        lastConflictAtOrBefore(conflicts.value, committedStep.value),
+    );
 
     const selectedConflict = computed(
         () => conflicts.value[selectedConflictIndex.value] ?? null,
@@ -133,10 +115,12 @@ export function createCursorStore(
         }
 
         const step = stepIndex.value;
+        // Forward: the one just past the last conflict at or before the step.
+        // Backward: the last conflict strictly before the step.
         const next =
             direction === 1
-                ? list.find((c) => c.eventIndex > step)
-                : [...list].reverse().find((c) => c.eventIndex < step);
+                ? list[lastConflictAtOrBefore(list, step) + 1]
+                : list[lastConflictAtOrBefore(list, step - 1)];
 
         if (next) {
             jumpTo(next.eventIndex);
@@ -157,4 +141,29 @@ export function createCursorStore(
         stepBy,
         stepToConflict,
     };
+}
+
+/**
+ * binary search the index of the last conflict at or before `step`, or -1 if there is none
+ */
+function lastConflictAtOrBefore(
+    list: readonly ConflictRecord[],
+    step: number,
+): number {
+    let lo = 0;
+    let hi = list.length - 1;
+    let found = -1;
+
+    while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+
+        if (list[mid].eventIndex <= step) {
+            found = mid;
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    return found;
 }

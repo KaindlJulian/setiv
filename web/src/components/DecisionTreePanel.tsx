@@ -1,60 +1,64 @@
-import { useMemo, useState } from "preact/hooks";
-import { truncateTree } from "../model/decisionTree";
-import { useTrees } from "../state/context";
-import { treeChart } from "../view/theme";
+import { compactCount } from "../lib/format";
+import { type TreeScope } from "../model/decisionTree";
+import { useSource, useTrees } from "../state/context";
 import { DecisionTree } from "./DecisionTree";
 import { Panel } from "./Panel";
 import { ScopeToggle, type ScopeOption } from "./ScopeToggle";
 
-const scopes: ScopeOption<boolean>[] = [
+const scopes: ScopeOption<TreeScope>[] = [
     {
-        value: false,
-        label: "Full",
-        title: "Every decision, propagation and conflict",
+        value: "active",
+        label: "Active",
+        title: "The trail at the current step, with backtracked branches collapsed",
     },
     {
-        value: true,
+        value: "decisions",
         label: "Decisions",
-        title: "Propagation chains collapsed into the decision that caused them",
+        title: "The whole search, propagation chains collapsed into the decision that caused them",
+    },
+    {
+        value: "full",
+        label: "Full",
+        title: "The complete decision tree",
     },
 ];
 
 export function DecisionTreePanel() {
     const trees = useTrees();
-    const [override, setOverride] = useState<boolean | null>(null);
+    const run = useSource().run.value;
 
-    const full = trees.fullTree.value;
-    const decisions = override ?? trees.decisionsDefault.value;
-    const selected = decisions ? trees.decisionsTree.value : full;
-
-    const shown = useMemo(
-        () => (selected ? truncateTree(selected, treeChart.maxNodes) : null),
-        [selected],
-    );
-
-    const truncated = selected != null && shown !== selected;
+    const tree = trees.tree.value;
+    const hidden = tree?.hiddenNodeCount ?? 0;
 
     return (
         <Panel
             fill
-            title={`Decision Tree (${full?.decisionCount} decisions)`}
+            title={`Decision Tree (${run?.stats.decisions ?? 0} decisions)`}
             actions={
                 <div class="flex flex-wrap items-center gap-2">
-                    {truncated && (
+                    {hidden > 0 && (
                         <span class="badge badge-warning badge-sm">
-                            showing {shown!.nodeCount} of {selected!.nodeCount}{" "}
-                            nodes
+                            {compactCount(hidden)} nodes collapsed
                         </span>
+                    )}
+                    {trees.hasExpansions.value && (
+                        <button
+                            type="button"
+                            class="btn btn-xs"
+                            onClick={trees.collapseAll}
+                        >
+                            Collapse all
+                        </button>
                     )}
                     <ScopeToggle
                         scopes={scopes}
-                        value={decisions}
-                        onChange={setOverride}
+                        value={trees.scope.value}
+                        onChange={trees.setScope}
                     />
                 </div>
             }
         >
-            <DecisionTree tree={shown} decisionsOnly={decisions} />
+            <DecisionTree tree={tree} onExpand={trees.toggleExpanded} />
         </Panel>
     );
 }

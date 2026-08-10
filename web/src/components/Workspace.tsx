@@ -20,12 +20,29 @@ export function Workspace() {
     const source = useSource();
     const projections = useProjections();
     const [tab, setTab] = useState<TabId>("graph");
+    /**
+     * Panels mount on first visit and stay mounted after. Staying mounted is what
+     * keeps a tab switch cheap — `layoutDecisionTree` has no memo cache, unlike
+     * `layoutImplicationGraph`'s `WeakMap`. Not mounting until first visit is what
+     * keeps the decision tree's skeleton unbuilt for a session that never opens it.
+     */
+    const [visited, setVisited] = useState<ReadonlySet<TabId>>(
+        () => new Set<TabId>(["graph"]),
+    );
 
     const run = source.run.value;
 
     if (!run) {
         return null;
     }
+
+    const show = (id: TabId) => {
+        setTab(id);
+
+        if (!visited.has(id)) {
+            setVisited(new Set(visited).add(id));
+        }
+    };
 
     return (
         <div class="flex min-h-0 flex-1 flex-col gap-3 p-3">
@@ -36,28 +53,28 @@ export function Workspace() {
                         type="button"
                         role="tab"
                         aria-selected={tab === id}
-                        onClick={() => setTab(id)}
+                        onClick={() => show(id)}
                         class={cn("tab", tab === id && "tab-active")}
                     >
                         {label}
                     </button>
                 ))}
             </div>
-            <TabPanel active={tab === "graph"}>
+            <TabPanel id="graph" tab={tab} visited={visited}>
                 <ImplicationPanel />
             </TabPanel>
 
-            <TabPanel active={tab === "tree"}>
+            <TabPanel id="tree" tab={tab} visited={visited}>
                 <DecisionTreePanel />
             </TabPanel>
 
-            <TabPanel active={tab === "formula"}>
+            <TabPanel id="formula" tab={tab} visited={visited}>
                 <Panel fill title="Formula">
                     <MonoTextArea fill value={projections.formulaText.value} />
                 </Panel>
             </TabPanel>
 
-            <TabPanel active={tab === "log"}>
+            <TabPanel id="log" tab={tab} visited={visited}>
                 <Panel fill title="Event Log">
                     <MonoTextArea fill value={source.rawText.value} />
                 </Panel>
@@ -67,14 +84,27 @@ export function Workspace() {
 }
 
 function TabPanel({
-    active,
+    id,
+    tab,
+    visited,
     children,
 }: {
-    active: boolean;
+    id: TabId;
+    tab: TabId;
+    visited: ReadonlySet<TabId>;
     children: ComponentChildren;
 }) {
+    if (!visited.has(id)) {
+        return null;
+    }
+
     return (
-        <div class={cn("min-h-0 flex-1 flex-col", active ? "flex" : "hidden")}>
+        <div
+            class={cn(
+                "min-h-0 flex-1 flex-col",
+                tab === id ? "flex" : "hidden",
+            )}
+        >
             {children}
         </div>
     );

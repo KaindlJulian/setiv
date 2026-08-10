@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { useEffect, useRef } from "preact/hooks";
 import { cn } from "../lib/cn";
 import { treeNodeLabel } from "../lib/format";
-import type { DecisionTree as Tree } from "../model/decisionTree";
+import type { DecisionTree as Tree, TreeScope } from "../model/decisionTree";
 import {
     layoutDecisionTree,
     type TreeLayoutEdge,
@@ -14,50 +14,38 @@ import { Legend, type LegendItem } from "./Legend";
 
 const decisionEdge: LegendItem = {
     shape: "line",
-    label: "decision (solid edge)",
+    label: "decision",
     stroke: colors.treeEdge,
 };
 
-const conflictNode: LegendItem = {
-    shape: "diamond",
-    label: "conflict",
-    fill: colors.conflict,
+const propagationEdge: LegendItem = {
+    shape: "line",
+    dashed: true,
+    label: "propagation",
+    stroke: colors.treeEdge,
 };
 
-const fullLegend: LegendItem[] = [
-    decisionEdge,
-    {
-        shape: "line",
-        label: "propagation (dashed edge)",
-        stroke: colors.treeEdge,
-        dashed: true,
-    },
-    conflictNode,
-];
+const impliedNode: LegendItem = {
+    shape: "circle",
+    label: "+N = decision with BCP collapsed",
+    fill: colors.node,
+};
 
-const decisionsLegend: LegendItem[] = [
-    decisionEdge,
-    {
-        shape: "line",
-        label: "conflict (dashed edge)",
-        stroke: colors.treeEdge,
-        dashed: true,
-    },
-    conflictNode,
-    {
-        shape: "circle",
-        label: "+N = propagations collapsed",
-        fill: colors.node,
-    },
-];
+function legendFor(scope: TreeScope): LegendItem[] {
+    return scope === "full"
+        ? [decisionEdge, propagationEdge]
+        : [decisionEdge, propagationEdge, impliedNode];
+}
 
 interface Props {
     tree: Tree | null;
-    decisionsOnly: boolean;
+    onExpand(key: string): void;
 }
 
-export function DecisionTree({ tree, decisionsOnly }: Props) {
+export function DecisionTree({ tree, onExpand }: Props) {
     const ref = useRef<SVGSVGElement>(null);
+    const expand = useRef(onExpand);
+    expand.current = onExpand;
 
     useEffect(() => {
         const svgEl = ref.current;
@@ -74,7 +62,8 @@ export function DecisionTree({ tree, decisionsOnly }: Props) {
 
         const isImplied = (d: TreeLayoutEdge) =>
             d.target.node.kind === "propagation" ||
-            d.target.node.kind === "conflict";
+            d.target.node.kind === "conflict" ||
+            d.target.node.kind === "collapsed";
 
         layer
             .append("g")
@@ -108,7 +97,17 @@ export function DecisionTree({ tree, decisionsOnly }: Props) {
             )
             .attr("opacity", (d: TreeLayoutNode) =>
                 d.node.isBacktracked ? 0.5 : 1,
-            );
+            )
+            .attr("class", (d: TreeLayoutNode) =>
+                d.node.kind === "collapsed" ? "cursor-pointer" : null,
+            )
+            .on("click", (event: Event, d: TreeLayoutNode) => {
+                if (d.node.kind !== "collapsed") {
+                    return;
+                }
+                event.stopPropagation();
+                expand.current(d.node.key);
+            });
 
         g.each(function (this: SVGGElement, d: TreeLayoutNode) {
             const sel = d3.select(this);
@@ -122,11 +121,27 @@ export function DecisionTree({ tree, decisionsOnly }: Props) {
                     .attr("height", 2 * r)
                     .attr("transform", "rotate(45)")
                     .attr("class", colors.conflict);
-            } else {
-                sel.append("circle")
-                    .attr("r", r)
-                    .attr("class", cn(colors.node, "stroke-setiv-surface"));
+                return;
             }
+
+            if (d.node.kind === "collapsed") {
+                sel.append("circle")
+                    .attr("r", r + 1)
+                    .attr("stroke-width", 1.5)
+                    .attr("stroke-dasharray", "3 2")
+                    .attr("class", cn(colors.none, colors.treeEdge));
+                sel.append("text")
+                    .attr("text-anchor", "middle")
+                    .attr("dy", 4)
+                    .attr("font-size", 12)
+                    .attr("class", colors.treeLabel)
+                    .text("+");
+                return;
+            }
+
+            sel.append("circle")
+                .attr("r", r)
+                .attr("class", cn(colors.node, "stroke-setiv-surface"));
         });
 
         g.append("text")
@@ -149,7 +164,7 @@ export function DecisionTree({ tree, decisionsOnly }: Props) {
                 ref={ref}
                 class="setiv-canvas bg-setiv-surface min-h-0 w-full flex-1 cursor-grab active:cursor-grabbing"
             />
-            <Legend items={decisionsOnly ? decisionsLegend : fullLegend} />
+            <Legend items={legendFor(tree.scope)} />
         </div>
     );
 }

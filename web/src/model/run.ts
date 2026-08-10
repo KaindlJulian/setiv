@@ -1,14 +1,18 @@
 import { ClauseDatabase, createClauseDatabaseBuilder } from "./clauseDatabase";
-import { createDecisionTreeBuilder, type DecisionTree } from "./decisionTree";
 import type { EventOf, SolverEvent } from "./events";
 
-/** The core "source of truth". This holds everything we derived from the logs. */
+/**
+ * The core "source of truth". This holds everything we derived from the logs.
+ *
+ * The decision tree is deliberately absent: it is the largest thing derivable
+ * from the stream and most sessions never open it, so `treeStore` builds it on
+ * first read instead. See `model/decisionTree.ts`.
+ */
 export interface SolverRun {
     events: readonly SolverEvent[];
     init: EventOf<"init"> | null;
     result: EventOf<"result"> | null;
     conflicts: ConflictRecord[];
-    tree: DecisionTree;
     clauseDb: ClauseDatabase;
     stats: RunStats;
 }
@@ -54,7 +58,6 @@ export function buildRun(events: SolverEvent[]): SolverRun {
     const litToEventIndex = new Map<number, number>();
 
     const conflicts: ConflictRecord[] = [];
-    const treeBuilder = createDecisionTreeBuilder();
     const clauseDbBuilder = createClauseDatabaseBuilder();
 
     let init: EventOf<"init"> | null = null;
@@ -83,13 +86,11 @@ export function buildRun(events: SolverEvent[]): SolverRun {
             }
             case "decide": {
                 litToEventIndex.set(ev.literal, i);
-                treeBuilder.decide(ev);
                 decisions++;
                 break;
             }
             case "propagate": {
                 litToEventIndex.set(ev.literal, i);
-                treeBuilder.propagate(ev);
                 break;
             }
             case "conflict": {
@@ -100,7 +101,6 @@ export function buildRun(events: SolverEvent[]): SolverRun {
                     litToEventIndex,
                 );
                 conflicts.push(pending);
-                treeBuilder.conflict(ev);
                 break;
             }
             case "learn": {
@@ -124,7 +124,6 @@ export function buildRun(events: SolverEvent[]): SolverRun {
                 }
 
                 backtracks++;
-                treeBuilder.backtrackTo(ev.to_level);
                 break;
             }
             case "restart": {
@@ -152,7 +151,6 @@ export function buildRun(events: SolverEvent[]): SolverRun {
         init,
         result,
         conflicts,
-        tree: treeBuilder.finish(),
         clauseDb: clauseDbBuilder.finish(),
         stats: {
             variables: init?.variables ?? 0,

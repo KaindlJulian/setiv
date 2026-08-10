@@ -69,6 +69,19 @@ export function eventStepBarText(ev: SolverEvent | null): string {
     }
 }
 
+/** 1234 -> "1.2k", so a node label never outgrows its slot */
+export function compactCount(n: number): string {
+    if (n < 1000) {
+        return String(n);
+    }
+
+    if (n < 1_000_000) {
+        return `${(n / 1000).toFixed(n < 10_000 ? 1 : 0)}k`;
+    }
+
+    return `${(n / 1_000_000).toFixed(1)}M`;
+}
+
 export function treeNodeLabel(n: TreeNode): string {
     const implied = n.impliedCount ? ` +${n.impliedCount}` : "";
 
@@ -81,5 +94,13 @@ export function treeNodeLabel(n: TreeNode): string {
             return `${litLabel(n.lit!)} @${n.level} (${clauseRef(n.reasonClauseId)})`;
         case "decision":
             return `${litLabel(n.lit!)} @${n.level}${implied}`;
+        case "collapsed": {
+            const hidden = compactCount(n.hiddenCount ?? 0);
+            const branches = n.sources?.length ?? 0;
+
+            return branches > 1
+                ? `${branches} branches · ${hidden} nodes`
+                : `+${hidden} nodes @${n.level}`;
+        }
     }
 }

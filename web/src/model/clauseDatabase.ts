@@ -22,6 +22,16 @@ export interface ClauseDatabase {
     byId: Int32Array;
     originalCount: number;
     learnedCount: number;
+
+    /** index of the first learned clause in `clauses`, `clauses.length` if none */
+    firstLearnedIndex: number;
+    /** every `deletedAt` in deletion-event order, so non-decreasing */
+    deletionAt: Int32Array;
+    /**
+     * `deletionOriginalPrefix[k]` is how many of
+     * the first `k` deletions were original clauses.
+     */
+    deletionOriginalPrefix: Int32Array;
 }
 
 export interface ClauseDatabaseBuilder {
@@ -33,6 +43,8 @@ export interface ClauseDatabaseBuilder {
 
 export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
     const clauses: ClauseRecord[] = [];
+    /** filled in event order by `remove`, so it is sorted by `deletedAt` */
+    const deletionOrder: number[] = [];
 
     let byId = new Int32Array(0);
     let originalCount = 0;
@@ -92,14 +104,38 @@ export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
                     ? byId[ev.clause_id]
                     : -1;
 
-            if (index < 0) {
-                return;
+            if (index < 0 || clauses[index].deletedAt !== -1) {
+                return; // unknown id, or an id deleted twice
             }
 
             clauses[index].deletedAt = eventIndex;
+            deletionOrder.push(index);
         },
 
-        finish: () => ({ clauses, byId, originalCount, learnedCount }),
+        finish() {
+            const deletionAt = new Int32Array(deletionOrder.length);
+            const deletionOriginalPrefix = new Int32Array(
+                deletionOrder.length + 1,
+            );
+
+            for (let k = 0; k < deletionOrder.length; k++) {
+                const record = clauses[deletionOrder[k]];
+                deletionAt[k] = record.deletedAt;
+                deletionOriginalPrefix[k + 1] =
+                    deletionOriginalPrefix[k] +
+                    (record.origin === "original" ? 1 : 0);
+            }
+
+            return {
+                clauses,
+                byId,
+                originalCount,
+                learnedCount,
+                firstLearnedIndex: originalCount,
+                deletionAt,
+                deletionOriginalPrefix,
+            };
+        },
     };
 }
 
@@ -111,6 +147,103 @@ export function isAliveAt(record: ClauseRecord, step: number): boolean {
     );
 }
 
+export interface ClauseCounts {
+    original: number;
+    learned: number;
+    deleted: number;
+}
+
+/** Which of the sidebar's three clause lists a record belongs to at a step. */
+export type ClauseSection = "original" | "learned" | "deleted";
+
+export function clauseCountsAt(db: ClauseDatabase, step: number): ClauseCounts {
+    const addedLearned = countAddedLearnedAt(db, step);
+    const deleted = countDeletedAt(db, step);
+    const deletedOriginal = db.deletionOriginalPrefix[deleted];
+
+    return {
+        original: db.originalCount - deletedOriginal,
+        learned: addedLearned - (deleted - deletedOriginal),
+        deleted,
+    };
+}
+
+/**
+ * The records for given sidebar section.
+ */
+export function clausesInSectionAt(
+    db: ClauseDatabase,
+    section: ClauseSection,
+    step: number,
+): ClauseRecord[] {
+    const end = originalAndLearnedCountAt(db, step);
+    const wantDeleted = section === "deleted";
+    const wantOrigin: ClauseOrigin =
+        section === "learned" ? "learned" : "original";
+    const out: ClauseRecord[] = [];
+
+    for (let i = 0; i < end; i++) {
+        const record = db.clauses[i];
+        const alive = record.deletedAt === -1 || record.deletedAt > step;
+
+        // The deleted section takes any origin; the other two take only the
+        // clauses still in the database at this step.
+        if (wantDeleted) {
+            if (!alive) {
+                out.push(record);
+            }
+        } else if (alive && record.origin === wantOrigin) {
+            out.push(record);
+        }
+    }
+
+    return out;
+}
+
+/**
+ * Number of total (original + learned) clauses up to `step`.
+ */
+function originalAndLearnedCountAt(db: ClauseDatabase, step: number): number {
+    // Originals all carry addedAt 0, so only the learned suffix needs searching.
+    return db.firstLearnedIndex + countAddedLearnedAt(db, step);
+}
+
+/** Number of learned clauses up to `step`. */
+function countAddedLearnedAt(db: ClauseDatabase, step: number): number {
+    const { clauses, firstLearnedIndex } = db;
+    let lo = firstLearnedIndex;
+    let hi = clauses.length;
+
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (clauses[mid].addedAt <= step) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+
+    return lo - firstLearnedIndex;
+}
+
+/** Number of deletions that have happened at up to `step`. */
+function countDeletedAt(db: ClauseDatabase, step: number): number {
+    const { deletionAt } = db;
+    let lo = 0;
+    let hi = deletionAt.length;
+
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (deletionAt[mid] <= step) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+
+    return lo;
+}
+
 export function clauseById(
     catalog: ClauseDatabase,
     id: number | null,
@@ -118,8 +251,6 @@ export function clauseById(
     if (id == null || id < 0 || id >= catalog.byId.length) {
         return null;
     }
-
     const index = catalog.byId[id];
-
     return index >= 0 ? catalog.clauses[index] : null;
 }
