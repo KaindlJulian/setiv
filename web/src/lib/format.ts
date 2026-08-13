@@ -3,22 +3,21 @@ import type { EventOf, SolverEvent } from "../model/events";
 import type { TrailEntry } from "../model/trail";
 
 const neg = "¬";
-const or = "∨";
-const and = "∧";
+const lor = "∨";
+const land = "∧";
 
 export function litLabel(lit: number): string {
     return lit < 0 ? `${neg}x${-lit}` : `x${lit}`;
 }
 
 export function clauseText(literals: number[]): string {
-    return literals.map(litLabel).join(` ${or} `);
+    return literals.map(litLabel).join(` ${lor} `);
 }
 
 export function clauseRef(id: number | null): string {
     return id != null && id >= 0 ? `c${id}` : "unit";
 }
 
-/** The whole CNF, one clause per line */
 export function formulaText(init: EventOf<"init"> | null): string {
     if (!init) {
         return "";
@@ -28,8 +27,10 @@ export function formulaText(init: EventOf<"init"> | null): string {
 
     return clause_list
         .map((c, i) => {
-            const conj = i < clause_list.length - 1 ? and : "";
-            return `(${clauseText(c.literals)}) ${conj} `;
+            if (i == clause_list.length - 1) {
+                return `(${clauseText(c.literals)})`;
+            }
+            return `(${clauseText(c.literals)}) ${land} `;
         })
         .join("\n");
 }
@@ -38,7 +39,6 @@ export function trailReason(entry: TrailEntry): string {
     if (entry.isDecision) {
         return "decision";
     }
-
     return clauseRef(entry.reasonClauseId);
 }
 

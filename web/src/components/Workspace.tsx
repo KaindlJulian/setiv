@@ -20,12 +20,7 @@ export function Workspace() {
     const source = useSource();
     const projections = useProjections();
     const [tab, setTab] = useState<TabId>("graph");
-    /**
-     * Panels mount on first visit and stay mounted after. Staying mounted is what
-     * keeps a tab switch cheap — `layoutDecisionTree` has no memo cache, unlike
-     * `layoutImplicationGraph`'s `WeakMap`. Not mounting until first visit is what
-     * keeps the decision tree's skeleton unbuilt for a session that never opens it.
-     */
+
     const [visited, setVisited] = useState<ReadonlySet<TabId>>(
         () => new Set<TabId>(["graph"]),
     );

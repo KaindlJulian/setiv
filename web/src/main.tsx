@@ -5,8 +5,6 @@ import "./index.css";
 
 import { SolverProvider } from "./state/context";
 
-// The store sits below the location but above the router, so a loaded log
-// survives navigation between pages.
 render(
     <LocationProvider>
         <SolverProvider>

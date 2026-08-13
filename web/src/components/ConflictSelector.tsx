@@ -11,7 +11,7 @@ const rowHeight = 20;
 const listHeight = 256;
 
 const conflictLabel = (c: ConflictRecord) =>
-    `#${c.index} - c${c.clauseId} @${c.level}`;
+    `#${c.eventIndex} - c${c.clauseId} @${c.level}`;
 
 export function ConflictSelector() {
     const cursor = useCursor();

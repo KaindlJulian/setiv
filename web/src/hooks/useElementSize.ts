@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "preact/hooks";
 import type { RefObject } from "preact";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 export interface Size {
     width: number;
@@ -7,16 +7,9 @@ export interface Size {
 }
 
 /**
- * Observe an element's content box.
- *
- * The graph and tree charts get by on `viewBox` scaling alone, because a
- * stretched node label is harmless. Axis ticks are not: they need real pixels
- * to pick a tick count and to stay undistorted.
+ * Observe an element's content box size for responsive viewboxes
  */
-export function useElementSize<T extends HTMLElement>(): [
-    RefObject<T>,
-    Size,
-] {
+export function useElementSize<T extends HTMLElement>(): [RefObject<T>, Size] {
     const ref = useRef<T>(null);
     const [size, setSize] = useState<Size>({ width: 0, height: 0 });
 
