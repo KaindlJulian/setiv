@@ -1,9 +1,9 @@
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
-import { cn } from "../lib/cn";
-import { useProjections, useSource } from "../state/context";
-import { DecisionTreePanel } from "./DecisionTreePanel";
-import { ImplicationPanel } from "./ImplicationPanel";
+import { cn } from "@/lib/cn";
+import { useProjections, useSource } from "@/state/context";
+import { DecisionTreePanel } from "@/components/DecisionTree/DecisionTreePanel";
+import { ImplicationPanel } from "@/components/ImplicationGraph/ImplicationPanel";
 import { MonoTextArea } from "./MonoTextArea";
 import { Panel } from "./Panel";
 

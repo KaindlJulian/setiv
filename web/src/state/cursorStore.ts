@@ -5,8 +5,8 @@ import {
     signal,
     type ReadonlySignal,
 } from "@preact/signals";
-import { type SolverEvent } from "../model/events";
-import { type ConflictRecord, type SolverRun } from "../model/run";
+import { type SolverEvent } from "@/model/events";
+import { type ConflictRecord, type SolverRun } from "@/model/run";
 
 /**
  * The single cursor into a run. Everything the app shows depends on the current

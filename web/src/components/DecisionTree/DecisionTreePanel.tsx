@@ -1,9 +1,9 @@
-import { compactCount } from "../lib/format";
-import { type TreeScope } from "../model/decisionTree";
-import { useSource, useTrees } from "../state/context";
+import { compactCount } from "@/lib/format";
+import { type TreeScope } from "@/model/decisionTree";
+import { useSource, useTrees } from "@/state/context";
 import { DecisionTree } from "./DecisionTree";
-import { Panel } from "./Panel";
-import { ScopeToggle, type ScopeOption } from "./ScopeToggle";
+import { Panel } from "@/components/Panel";
+import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
 
 const scopes: ScopeOption<TreeScope>[] = [
     {

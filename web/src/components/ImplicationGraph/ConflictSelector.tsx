@@ -1,10 +1,10 @@
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-preact";
 import type { RefObject } from "preact";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
-import { useRowVirtualizer } from "../hooks/useRowVirtualizer";
-import { cn } from "../lib/cn";
-import type { ConflictRecord } from "../model/run";
-import { useCursor } from "../state/context";
+import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
+import { cn } from "@/lib/cn";
+import type { ConflictRecord } from "@/model/run";
+import { useCursor } from "@/state/context";
 
 const rowHeight = 20;
 /** Keep in sync with `max-h-64` on the list. */

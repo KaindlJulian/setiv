@@ -1,6 +1,6 @@
-import { useRowVirtualizer } from "../hooks/useRowVirtualizer";
-import { trailReason } from "../lib/format";
-import type { SolverState, TrailEntry } from "../model/trail";
+import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
+import { trailReason } from "@/lib/format";
+import type { SolverState, TrailEntry } from "@/model/trail";
 
 const rowHeight = 20;
 

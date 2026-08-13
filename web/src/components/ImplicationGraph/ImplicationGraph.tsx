@@ -1,17 +1,17 @@
 import type { Point } from "@dagrejs/dagre";
 import * as d3 from "d3";
 import { useEffect, useRef } from "preact/hooks";
-import { cn } from "../lib/cn";
-import { litLabel } from "../lib/format";
-import type { ImplicationGraph as Graph } from "../model/implicationGraph";
+import { cn } from "@/lib/cn";
+import { litLabel } from "@/lib/format";
+import type { ImplicationGraph as Graph } from "@/model/implicationGraph";
 import {
     layoutImplicationGraph,
     type PositionedNode,
     type RoutedEdge,
-} from "../view/layout/implicationLayout";
-import { createSvgCanvas } from "../view/svgCanvas";
-import { colors, implicationChart } from "../view/theme";
-import { Legend, type LegendItem } from "./Legend";
+} from "@/view/layout/implicationLayout";
+import { createSvgCanvas } from "@/view/svgCanvas";
+import { colors, implicationChart } from "@/view/theme";
+import { Legend, type LegendItem } from "@/components/Legend";
 
 const legend: LegendItem[] = [
     { shape: "circle", label: "propagated", fill: colors.node },

@@ -6,9 +6,9 @@ import {
     ChevronsRight,
 } from "lucide-preact";
 import { useEffect, useMemo } from "preact/hooks";
-import { eventStepBarText } from "../lib/format";
-import { useCursor, useSource } from "../state/context";
-import { tickPath } from "../view/layout/chartLayout";
+import { eventStepBarText } from "@/lib/format";
+import { useCursor, useSource } from "@/state/context";
+import { tickPath } from "@/view/layout/chartLayout";
 
 export function StepBar() {
     const cursor = useCursor();

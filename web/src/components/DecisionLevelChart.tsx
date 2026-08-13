@@ -1,11 +1,11 @@
 import * as d3 from "d3";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { useElementSize } from "../hooks/useElementSize";
-import { cn } from "../lib/cn";
-import { eventStepBarText } from "../lib/format";
-import { useProjections, useSource } from "../state/context";
-import { decimateLevels, type LevelColumn } from "../view/layout/chartLayout";
-import { colors, levelChart } from "../view/theme";
+import { useElementSize } from "@/hooks/useElementSize";
+import { cn } from "@/lib/cn";
+import { eventStepBarText } from "@/lib/format";
+import { useProjections, useSource } from "@/state/context";
+import { decimateLevels, type LevelColumn } from "@/view/layout/chartLayout";
+import { colors, levelChart } from "@/view/theme";
 
 const tooltipWidth = 256;
 const tooltipFlip = 60;

@@ -4,8 +4,8 @@ import {
     coneNodeThreshold,
     coneOf,
     type ImplicationGraph,
-} from "../model/implicationGraph";
-import { type SolverRun } from "../model/run";
+} from "@/model/implicationGraph";
+import { type SolverRun } from "@/model/run";
 
 export interface GraphStore {
     fullGraph: ReadonlySignal<ImplicationGraph | null>;

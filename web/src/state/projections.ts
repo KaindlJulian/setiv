@@ -1,9 +1,9 @@
 import { computed, type ReadonlySignal } from "@preact/signals";
-import { formulaText as renderFormula } from "../lib/format";
-import { clauseCountsAt, type ClauseCounts } from "../model/clauseDatabase";
-import { type SolverRun } from "../model/run";
-import { buildTimeline, type Timeline } from "../model/timeline";
-import { createReplay, type Replay, type SolverState } from "../model/trail";
+import { formulaText as renderFormula } from "@/lib/format";
+import { clauseCountsAt, type ClauseCounts } from "@/model/clauseDatabase";
+import { type SolverRun } from "@/model/run";
+import { buildTimeline, type Timeline } from "@/model/timeline";
+import { createReplay, type Replay, type SolverState } from "@/model/trail";
 
 export type { ClauseCounts };
 

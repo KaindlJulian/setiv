@@ -1,6 +1,6 @@
-import type { TreeNode } from "../model/decisionTree";
-import type { EventOf, SolverEvent } from "../model/events";
-import type { TrailEntry } from "../model/trail";
+import type { TreeNode } from "@/model/decisionTree";
+import type { EventOf, SolverEvent } from "@/model/events";
+import type { TrailEntry } from "@/model/trail";
 
 const neg = "¬";
 const lor = "∨";

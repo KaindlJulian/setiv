@@ -3,8 +3,8 @@ import type {
     ImplicationEdge,
     ImplicationGraph,
     ImplicationNode,
-} from "../../model/implicationGraph";
-import { implicationChart } from "../theme";
+} from "@/model/implicationGraph";
+import { implicationChart } from "@/view/theme";
 
 export interface PositionedNode extends ImplicationNode {
     x: number;

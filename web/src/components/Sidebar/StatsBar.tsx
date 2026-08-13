@@ -1,6 +1,6 @@
-import { cn } from "../lib/cn";
-import { useSource } from "../state/context";
-import { colors } from "../view/theme";
+import { cn } from "@/lib/cn";
+import { useSource } from "@/state/context";
+import { colors } from "@/view/theme";
 
 export function StatsBar() {
     const source = useSource();

@@ -1,10 +1,10 @@
 import { useState } from "preact/hooks";
-import { clauseRef } from "../lib/format";
-import { useCursor, useGraphs } from "../state/context";
+import { clauseRef } from "@/lib/format";
+import { useCursor, useGraphs } from "@/state/context";
 import { ConflictSelector } from "./ConflictSelector";
 import { ImplicationGraph } from "./ImplicationGraph";
-import { Panel } from "./Panel";
-import { ScopeToggle, type ScopeOption } from "./ScopeToggle";
+import { Panel } from "@/components/Panel";
+import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
 
 const scopes: ScopeOption<boolean>[] = [
     {

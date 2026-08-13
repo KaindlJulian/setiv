@@ -1,7 +1,7 @@
-import { useRowVirtualizer } from "../hooks/useRowVirtualizer";
-import type { ClauseRecord } from "../model/clauseDatabase";
-import { litValue, type SolverState } from "../model/trail";
-import { colors } from "../view/theme";
+import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
+import type { ClauseRecord } from "@/model/clauseDatabase";
+import { litValue, type SolverState } from "@/model/trail";
+import { colors } from "@/view/theme";
 
 const rowHeight = 20;
 

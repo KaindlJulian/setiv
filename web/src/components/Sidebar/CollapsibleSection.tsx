@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-preact";
 import type { ComponentChildren } from "preact";
-import { cn } from "../lib/cn";
+import { cn } from "@/lib/cn";
 
 interface CollapsibleSectionProps {
     title: string;

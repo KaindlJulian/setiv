@@ -1,16 +1,16 @@
 import * as d3 from "d3";
 import { useEffect, useRef } from "preact/hooks";
-import { cn } from "../lib/cn";
-import { treeNodeLabel } from "../lib/format";
-import type { DecisionTree as Tree, TreeScope } from "../model/decisionTree";
+import { cn } from "@/lib/cn";
+import { treeNodeLabel } from "@/lib/format";
+import type { DecisionTree as Tree, TreeScope } from "@/model/decisionTree";
 import {
     layoutDecisionTree,
     type TreeLayoutEdge,
     type TreeLayoutNode,
-} from "../view/layout/treeLayout";
-import { createSvgCanvas } from "../view/svgCanvas";
-import { colors, treeChart } from "../view/theme";
-import { Legend, type LegendItem } from "./Legend";
+} from "@/view/layout/treeLayout";
+import { createSvgCanvas } from "@/view/svgCanvas";
+import { colors, treeChart } from "@/view/theme";
+import { Legend, type LegendItem } from "@/components/Legend";
 
 const decisionEdge: LegendItem = {
     shape: "line",

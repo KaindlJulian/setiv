@@ -3,7 +3,7 @@ import { LocationProvider } from "preact-iso";
 import { App } from "./app";
 import "./index.css";
 
-import { SolverProvider } from "./state/context";
+import { SolverProvider } from "@/state/context";
 
 render(
     <LocationProvider>

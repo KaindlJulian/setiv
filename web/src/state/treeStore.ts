@@ -12,9 +12,9 @@ import {
     type DecisionTree,
     type TreeScope,
     type TreeSkeleton,
-} from "../model/decisionTree";
-import { type SolverRun } from "../model/run";
-import { treeChart } from "../view/theme";
+} from "@/model/decisionTree";
+import { type SolverRun } from "@/model/run";
+import { treeChart } from "@/view/theme";
 
 export interface TreeStore {
     /** what the panel draws: already bounded, never the whole tree */

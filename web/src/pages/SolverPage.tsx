@@ -1,9 +1,9 @@
-import { EmptyState } from "../components/EmptyState";
-import { LoadDiagnostics } from "../components/LoadDiagnostics";
-import { Sidebar } from "../components/Sidebar";
-import { StepBar } from "../components/StepBar";
-import { Workspace } from "../components/Workspace";
-import { useSource } from "../state/context";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadDiagnostics } from "@/components/LoadDiagnostics";
+import { Sidebar } from "@/components/Sidebar/Sidebar";
+import { StepBar } from "@/components/StepBar";
+import { Workspace } from "@/components/Workspace";
+import { useSource } from "@/state/context";
 
 export function SolverPage() {
     const source = useSource();

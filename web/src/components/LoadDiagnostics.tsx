@@ -1,5 +1,5 @@
 import { CircleAlert, TriangleAlert } from "lucide-preact";
-import { useSource } from "../state/context";
+import { useSource } from "@/state/context";
 
 export function LoadDiagnostics() {
     const source = useSource();

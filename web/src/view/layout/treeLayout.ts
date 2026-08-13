@@ -1,6 +1,6 @@
 import * as d3 from "d3";
-import type { DecisionTree, TreeNode } from "../../model/decisionTree";
-import { treeChart } from "../theme";
+import type { DecisionTree, TreeNode } from "@/model/decisionTree";
+import { treeChart } from "@/view/theme";
 
 export interface TreeLayoutNode {
     node: TreeNode;

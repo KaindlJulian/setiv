@@ -1,8 +1,8 @@
-import { DecisionLevelChart } from "../components/DecisionLevelChart";
-import { EmptyState } from "../components/EmptyState";
-import { LoadDiagnostics } from "../components/LoadDiagnostics";
-import { Panel } from "../components/Panel";
-import { useSource } from "../state/context";
+import { DecisionLevelChart } from "@/components/DecisionLevelChart";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadDiagnostics } from "@/components/LoadDiagnostics";
+import { Panel } from "@/components/Panel";
+import { useSource } from "@/state/context";
 
 export function ChartPage() {
     const source = useSource();

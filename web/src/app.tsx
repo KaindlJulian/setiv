@@ -1,8 +1,8 @@
 import { Route, Router } from "preact-iso";
-import { Navbar } from "./components/Navbar";
-import { ChartPage } from "./pages/ChartPage";
-import { HelpPage } from "./pages/Help";
-import { SolverPage } from "./pages/SolverPage";
+import { Navbar } from "@/components/Navbar/Navbar";
+import { ChartPage } from "@/pages/ChartPage";
+import { HelpPage } from "@/pages/Help";
+import { SolverPage } from "@/pages/SolverPage";
 
 export function App() {
     return (

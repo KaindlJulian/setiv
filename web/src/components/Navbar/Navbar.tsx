@@ -1,8 +1,8 @@
 import { FolderOpen } from "lucide-preact";
 import { useLocation } from "preact-iso";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { cn } from "../lib/cn";
-import { FileInput } from "./FileInput";
+import { cn } from "@/lib/cn";
+import { FileInput } from "@/components/FileInput";
 import { ThemeToggle } from "./ThemeToggle";
 
 declare const __GIT_COMMIT__: string;

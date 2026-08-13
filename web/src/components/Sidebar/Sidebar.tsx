@@ -3,8 +3,8 @@ import {
     clausesInSectionAt,
     type ClauseRecord,
     type ClauseSection,
-} from "../model/clauseDatabase";
-import { useCursor, useProjections, useSource } from "../state/context";
+} from "@/model/clauseDatabase";
+import { useCursor, useProjections, useSource } from "@/state/context";
 import { ClauseList } from "./ClauseList";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { StatsBar } from "./StatsBar";

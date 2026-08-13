@@ -1,4 +1,4 @@
-import { useSource } from "../state/context";
+import { useSource } from "@/state/context";
 
 const sample = [
     "cadical_php_4_3_events.jsonl",

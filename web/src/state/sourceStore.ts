@@ -1,7 +1,7 @@
 import { batch, signal, type ReadonlySignal } from "@preact/signals";
-import { SUPPORTED_PROTOCOL_VERSION } from "../model/events";
-import { parseEventLog, type ParseIssue } from "../model/parse";
-import { buildRun, type SolverRun } from "../model/run";
+import { SUPPORTED_PROTOCOL_VERSION } from "@/model/events";
+import { parseEventLog, type ParseIssue } from "@/model/parse";
+import { buildRun, type SolverRun } from "@/model/run";
 
 /**
  * Where the data comes from: raw log text in, a `SolverRun` plus diagnostics
