@@ -1,7 +1,7 @@
-import { batch, signal, type ReadonlySignal } from "@preact/signals";
 import { SUPPORTED_PROTOCOL_VERSION } from "@/model/events";
 import { parseEventLog, type ParseIssue } from "@/model/parse";
 import { buildRun, type SolverRun } from "@/model/run";
+import { batch, signal, type ReadonlySignal } from "@preact/signals";
 
 /**
  * Where the data comes from: raw log text in, a `SolverRun` plus diagnostics
@@ -32,7 +32,7 @@ export function createSourceStore(): SourceStore {
         let rejection = "";
 
         if (protocolVersion !== SUPPORTED_PROTOCOL_VERSION) {
-            rejection += `Unsupported protocol version "${protocolVersion}". (supported version '${SUPPORTED_PROTOCOL_VERSION}')`;
+            rejection += `"${name}" has wrong protocol version "${protocolVersion}". (Use version >=${SUPPORTED_PROTOCOL_VERSION})`;
         }
 
         if (rejection) {

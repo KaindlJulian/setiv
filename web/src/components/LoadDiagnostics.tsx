@@ -1,5 +1,6 @@
-import { CircleAlert, TriangleAlert } from "lucide-preact";
+import { maxIssues } from "@/model/parse";
 import { useSource } from "@/state/context";
+import { CircleAlert, TriangleAlert } from "lucide-preact";
 
 export function LoadDiagnostics() {
     const source = useSource();
@@ -9,6 +10,8 @@ export function LoadDiagnostics() {
     if (!error && issues.length === 0) {
         return null;
     }
+
+    console.error("LoadDiagnostics", { error, issues });
 
     return (
         <div class="flex shrink-0 flex-col gap-2 px-3 pt-3">
@@ -26,9 +29,13 @@ export function LoadDiagnostics() {
                 >
                     <TriangleAlert size={16} class="mt-0.5 shrink-0" />
                     <div class="min-w-0 text-sm">
-                        <p>Skipped {issues.length} unreadable lines</p>
+                        <p>
+                            Skipped {issues.length}
+                            {issues.length === maxIssues ? "+" : ""} unreadable
+                            lines
+                        </p>
                         <ul class="mt-1 list-inside list-disc font-mono text-xs opacity-80">
-                            {issues.slice(0, 5).map((issue) => (
+                            {issues.map((issue) => (
                                 <li key={issue.line}>
                                     line {issue.line}: {issue.reason}
                                 </li>

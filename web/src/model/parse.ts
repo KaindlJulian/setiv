@@ -13,7 +13,7 @@ export interface ParseResult {
     protocolVersion: String | null;
 }
 
-const maxIssues = 50;
+export const maxIssues = 50;
 
 export function parseEventLog(text: string): ParseResult {
     const issues: ParseIssue[] = [];

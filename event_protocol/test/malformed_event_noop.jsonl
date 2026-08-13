@@ -1,0 +1,11 @@
+{"event":"init","protocol_version":"2","variables":2,"clauses":4,"variable_ids":[1,2],"clause_list":[{"id":1,"literals":[1,2]},{"id":2,"literals":[-1,2]},{"id":3,"literals":[1,-2]},{"id":4,"literals":[-1,-2]}]}
+{"event":"decide","literal":2,"level":1,"heuristic":"vmtf"}
+{"event":"propagate","literal":1,"level":1,"reason_clause_id":3,"reason_literals":[1,-2]}
+{"event":"conflict","clause_id":4,"literals":[-1,-2],"level":1,"trail":[2,1]}
+{"event":"learn","learned_literals":[-2],"glue":0,"clause_id":-1,"jump_level":0}
+{"event":"backtrack","from_level":1,"to_level":0,"kind":"conflict","reason":"analyze"}
+{"event":"propagate","literal":-2,"level":0,"reason_clause_id":null,"reason_literals":[]}
+{"event":"propagate","literal":1,"level":0,"reason_clause_id":1,"reason_literals":[1,2]}
+{"event":"propagate"}
+{"event":"conflict","clause_id":2,"literals":[-1,2],"level":0,"trail":[-2,1]}
+{"event":"result","result":"unsat","model":[]}
