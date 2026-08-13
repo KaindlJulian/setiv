@@ -1,17 +1,17 @@
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-preact";
-import type { RefObject } from "preact";
-import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
 import { cn } from "@/lib/cn";
 import type { ConflictRecord } from "@/model/run";
 import { useCursor } from "@/state/context";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-preact";
+import type { RefObject } from "preact";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 
 const rowHeight = 20;
 /** Keep in sync with `max-h-64` on the list. */
 const listHeight = 256;
 
 const conflictLabel = (c: ConflictRecord) =>
-    `#${c.eventIndex} - c${c.clauseId} @${c.level}`;
+    `#${c.index} - c${c.clauseId} @${c.level} (event #${c.eventIndex})`;
 
 export function ConflictSelector() {
     const cursor = useCursor();
@@ -54,9 +54,11 @@ export function ConflictSelector() {
                     onClick={() => setOpen(!open)}
                     class="btn join-item btn-xs w-52 justify-between font-mono font-normal"
                 >
-                    {selected < 0
-                        ? "no conflict yet"
-                        : conflictLabel(conflicts[selected])}
+                    <span class="truncate">
+                        {selected < 0
+                            ? "no conflict yet"
+                            : conflictLabel(conflicts[selected])}
+                    </span>
                     <ChevronDown size={13} />
                 </button>
 

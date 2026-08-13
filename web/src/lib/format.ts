@@ -49,7 +49,7 @@ export function eventStepBarText(ev: SolverEvent | null): string {
 
     switch (ev.event) {
         case "init":
-            return `init | ${ev.variables} vars | ${ev.clauses} clauses`;
+            return `init ${ev.variables} variables ${ev.clauses} clauses`;
         case "decide":
             return `decide ${litLabel(ev.literal)} @${ev.level}`;
         case "propagate":
@@ -57,7 +57,7 @@ export function eventStepBarText(ev: SolverEvent | null): string {
         case "conflict":
             return `conflict ${clauseRef(ev.clause_id)} @${ev.level}`;
         case "learn":
-            return `learn ${clauseRef(ev.clause_id)} | jump @${ev.jump_level}`;
+            return `learn ${clauseRef(ev.clause_id)} (${clauseText(ev.learned_literals)})`;
         case "backtrack":
             return `backtrack @${ev.from_level} -> @${ev.to_level} (${ev.kind}${ev.reason ? `: ${ev.reason}` : ""})`;
         case "restart":

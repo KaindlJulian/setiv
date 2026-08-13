@@ -1,3 +1,6 @@
+import { eventStepBarText } from "@/lib/format";
+import { useCursor, useSource } from "@/state/context";
+import { tickPath } from "@/view/layout/chartLayout";
 import type { LucideIcon } from "lucide-preact";
 import {
     ChevronLeft,
@@ -6,9 +9,6 @@ import {
     ChevronsRight,
 } from "lucide-preact";
 import { useEffect, useMemo } from "preact/hooks";
-import { eventStepBarText } from "@/lib/format";
-import { useCursor, useSource } from "@/state/context";
-import { tickPath } from "@/view/layout/chartLayout";
 
 export function StepBar() {
     const cursor = useCursor();
@@ -67,8 +67,10 @@ export function StepBar() {
                 />
             </div>
 
-            <div class="relative max-w-100 min-w-40 flex-1">
-                {run.conflicts.length < 200 && <Ticks max={max} />}
+            <div class="relative flex grow">
+                {run.conflicts.length < 200 && (
+                    <Ticks pixels={1145} max={max} />
+                )}
                 <input
                     type="range"
                     min={0}
@@ -82,8 +84,11 @@ export function StepBar() {
                 />
             </div>
 
-            <div class="flex min-w-0 flex-1 items-center gap-3 text-xs">
-                <span class="text-base-content/70 font-mono whitespace-nowrap">
+            <div
+                class="flex max-w-72 min-w-72 items-center justify-end gap-3 text-xs"
+                title={eventStepBarText(cursor.currentEvent.value)}
+            >
+                <span class="text-base-content/70 font-mono font-bold whitespace-nowrap">
                     {step} / {max}
                 </span>
                 <span class="text-base-content/50 truncate font-mono">
@@ -91,7 +96,7 @@ export function StepBar() {
                 </span>
                 {conflictIndex >= 0 && (
                     <span class="badge badge-error badge-sm whitespace-nowrap">
-                        conflict #{conflictIndex + 1}
+                        κ #{conflictIndex + 1}
                     </span>
                 )}
             </div>
@@ -121,9 +126,9 @@ function Transport({
     );
 }
 
-function Ticks({ max }: { max: number }) {
-    const tickColumns = 600;
-    const tickHeight = 6;
+function Ticks({ max, pixels }: { max: number; pixels: number }) {
+    const tickColumns = pixels;
+    const tickHeight = 4;
     const run = useSource().run.value;
 
     const d = useMemo(
@@ -141,7 +146,7 @@ function Ticks({ max }: { max: number }) {
             aria-hidden="true"
             viewBox={`0 0 ${tickColumns} ${tickHeight}`}
             preserveAspectRatio="none"
-            class="pointer-events-none absolute inset-x-0 top-0 h-1.5 w-full"
+            class="pointer-events-none absolute inset-x-0 top-1 h-2 w-full"
         >
             <path
                 d={d}

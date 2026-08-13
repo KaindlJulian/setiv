@@ -1,11 +1,12 @@
-import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
-import { cn } from "@/lib/cn";
-import { useProjections, useSource } from "@/state/context";
 import { DecisionTreePanel } from "@/components/DecisionTree/DecisionTreePanel";
 import { ImplicationPanel } from "@/components/ImplicationGraph/ImplicationPanel";
+import { cn } from "@/lib/cn";
+import { useProjections, useSource } from "@/state/context";
+import type { ComponentChildren } from "preact";
+import { useState } from "preact/hooks";
 import { MonoTextArea } from "./MonoTextArea";
 import { Panel } from "./Panel";
+import { StepBar } from "./StepBar";
 
 type TabId = "graph" | "tree" | "formula" | "log";
 
@@ -41,7 +42,7 @@ export function Workspace() {
 
     return (
         <div class="flex min-h-0 flex-1 flex-col gap-3 p-3">
-            <div role="tablist" class="tabs tabs-border shrink-0">
+            <div role="tablist" class="tabs tabs-sm tabs-border shrink-0">
                 {tabs.map(({ id, label }) => (
                     <button
                         key={id}
@@ -74,6 +75,10 @@ export function Workspace() {
                     <MonoTextArea fill value={source.rawText.value} />
                 </Panel>
             </TabPanel>
+
+            <div class="card card-border border-base-300 bg-base-100 overflow-hidden">
+                <StepBar />
+            </div>
         </div>
     );
 }

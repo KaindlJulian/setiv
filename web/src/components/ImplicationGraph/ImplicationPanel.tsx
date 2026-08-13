@@ -1,10 +1,10 @@
-import { useState } from "preact/hooks";
-import { clauseRef } from "@/lib/format";
-import { useCursor, useGraphs } from "@/state/context";
-import { ConflictSelector } from "./ConflictSelector";
-import { ImplicationGraph } from "./ImplicationGraph";
 import { Panel } from "@/components/Panel";
 import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
+import { clauseRef } from "@/lib/format";
+import { useCursor, useGraphs } from "@/state/context";
+import { useState } from "preact/hooks";
+import { ConflictSelector } from "./ConflictSelector";
+import { ImplicationGraph } from "./ImplicationGraph";
 
 const scopes: ScopeOption<boolean>[] = [
     {
@@ -55,7 +55,7 @@ export function ImplicationPanel() {
                 <>
                     <div class="border-base-300 text-base-content/70 flex shrink-0 flex-wrap items-center gap-1.5 border-b px-3 py-1.5 text-xs">
                         <span>
-                            falsified{" "}
+                            in{" "}
                             <code class="font-mono">
                                 {clauseRef(conflict.clauseId)}
                             </code>{" "}
