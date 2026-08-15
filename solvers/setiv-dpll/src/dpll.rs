@@ -1,20 +1,12 @@
-//! Implements the textbook DPLL procedure (https://en.wikipedia.org/wiki/DPLL_algorithm):
+//! Implements a very simple recursive DPLL search (no PLE)
 //!
-//! function DPLL(Φ)
-//!     // unit propagation:
-//!     while there is a unit clause {l} in Φ do
-//!         Φ ← unit-propagate(l, Φ);
-//!     // pure literal elimination:
-//!     while there is a literal l that occurs pure in Φ do
-//!         Φ ← pure-literal-assign(l, Φ);
-//!     // stopping conditions:
-//!     if Φ is empty then
-//!         return true;
-//!     if Φ contains an empty clause then
-//!         return false;
-//!     // DPLL procedure:
-//!     l ← choose-literal(Φ);
-//!     return DPLL(Φ ∧ {l}) or DPLL(Φ ∧ {¬l});
+//! DPLL(φ)
+//! F := BCP(φ) boolean constraint propagation
+//! if φ = > return satisfiable
+//! if ⊥ ∈ φ return unsatisfiable
+//! pick remaining variable x and literal l ∈ {x, ¬x}
+//! if DPLL(φ ∧ {l}) returns satisfiable return satisfiable
+//! return DPLL(φ ∧ {¬l})
 
 use crate::dimacs::{Clause, Formula};
 use crate::events::{BacktrackKind, EventWriter};
@@ -25,6 +17,13 @@ pub struct Solver<'a, W: Write> {
     assign: Vec<Option<bool>>,
     trail: Vec<i32>,
     events: EventWriter<W>,
+}
+
+enum Status {
+    Satisfied,
+    Falsified,
+    Unit(i32),
+    Unresolved,
 }
 
 impl<'a, W: Write> Solver<'a, W> {
@@ -42,38 +41,30 @@ impl<'a, W: Write> Solver<'a, W> {
             .init(self.formula.num_vars, &self.formula.clauses)?;
 
         let model = if self.search(0)? {
-            let model: Vec<i32> = (1..=self.formula.num_vars)
-                .map(|v| {
-                    if self.assign[v] == Some(true) {
-                        v as i32
-                    } else {
-                        -(v as i32)
-                    }
-                })
-                .collect();
-            self.events.result("sat", &model)?;
-            Some(model)
+            Some(self.model())
         } else {
-            self.events.result("unsat", &[])?;
             None
         };
 
+        match &model {
+            Some(model) => self.events.result("sat", model)?,
+            None => self.events.result("unsat", &[])?,
+        }
         self.events.flush()?;
         Ok(model)
     }
 
     fn search(&mut self, level: usize) -> io::Result<bool> {
-        if let Some(clause) = self.unit_propagate(level)? {
+        let conflict = self.propagate(level)?;
+
+        if self.all_clauses_satisfied() {
+            return Ok(true);
+        }
+
+        if let Some(clause) = conflict {
             self.events
                 .conflict(clause.id, &clause.lits, level, &self.trail)?;
             return Ok(false);
-        }
-
-        self.assign_pure_literals(level)?;
-
-        if self.all_clauses_satisfied() {
-            self.assign_free_variables(level)?;
-            return Ok(true);
         }
 
         let literal = self.choose_literal();
@@ -94,39 +85,20 @@ impl<'a, W: Write> Solver<'a, W> {
         Ok(false)
     }
 
-    fn unit_propagate(&mut self, level: usize) -> io::Result<Option<&'a Clause>> {
+    fn propagate(&mut self, level: usize) -> io::Result<Option<&'a Clause>> {
         let formula = self.formula;
         loop {
             let mut assigned_something = false;
             for clause in &formula.clauses {
-                let mut unassigned: Option<i32> = None;
-                let mut free = 0;
-                let mut satisfied = false;
-                for &lit in &clause.lits {
-                    match self.value(lit) {
-                        Some(true) => {
-                            satisfied = true;
-                            break;
-                        }
-                        Some(false) => {}
-                        None => {
-                            free += 1;
-                            unassigned = Some(lit);
-                        }
+                match self.status(clause) {
+                    Status::Falsified => return Ok(Some(clause)),
+                    Status::Unit(lit) => {
+                        self.enqueue(lit);
+                        self.events
+                            .propagate(lit, level, Some(clause.id), &clause.lits)?;
+                        assigned_something = true;
                     }
-                }
-                if satisfied {
-                    continue;
-                }
-                if free == 0 {
-                    return Ok(Some(clause));
-                }
-                if free == 1 {
-                    let lit = unassigned.unwrap();
-                    self.enqueue(lit);
-                    self.events
-                        .propagate(lit, level, Some(clause.id), &clause.lits)?;
-                    assigned_something = true;
+                    Status::Satisfied | Status::Unresolved => {}
                 }
             }
             if !assigned_something {
@@ -135,61 +107,43 @@ impl<'a, W: Write> Solver<'a, W> {
         }
     }
 
-    fn assign_pure_literals(&mut self, level: usize) -> io::Result<()> {
-        loop {
-            let pure = self.pure_literals();
-            if pure.is_empty() {
-                return Ok(());
-            }
-            for lit in pure {
-                self.enqueue(lit);
-                self.events.propagate(lit, level, None, &[])?;
-            }
-        }
-    }
-
-    fn pure_literals(&self) -> Vec<i32> {
-        let mut positive = vec![false; self.formula.num_vars + 1];
-        let mut negative = vec![false; self.formula.num_vars + 1];
-        for clause in &self.formula.clauses {
-            if clause.lits.iter().any(|&lit| self.value(lit) == Some(true)) {
-                continue;
-            }
-            for &lit in &clause.lits {
-                if self.value(lit).is_none() {
-                    let seen = if lit > 0 {
-                        &mut positive
-                    } else {
-                        &mut negative
-                    };
-                    seen[lit.unsigned_abs() as usize] = true;
+    fn status(&self, clause: &Clause) -> Status {
+        let mut unassigned = None;
+        let mut free = 0;
+        for &lit in &clause.lits {
+            match self.value(lit) {
+                Some(true) => return Status::Satisfied,
+                Some(false) => {}
+                None => {
+                    free += 1;
+                    unassigned = Some(lit);
                 }
             }
         }
-        (1..=self.formula.num_vars)
-            .filter_map(|v| match (positive[v], negative[v]) {
-                (true, false) => Some(v as i32),
-                (false, true) => Some(-(v as i32)),
-                _ => None,
-            })
-            .collect()
+        match free {
+            0 => Status::Falsified,
+            1 => Status::Unit(unassigned.expect("a free literal was recorded")),
+            _ => Status::Unresolved,
+        }
     }
 
     fn all_clauses_satisfied(&self) -> bool {
         self.formula
             .clauses
             .iter()
-            .all(|clause| clause.lits.iter().any(|&lit| self.value(lit) == Some(true)))
+            .all(|clause| matches!(self.status(clause), Status::Satisfied))
     }
 
-    fn assign_free_variables(&mut self, level: usize) -> io::Result<()> {
-        for v in 1..=self.formula.num_vars {
-            if self.assign[v].is_none() {
-                self.enqueue(v as i32);
-                self.events.propagate(v as i32, level, None, &[])?;
-            }
-        }
-        Ok(())
+    fn model(&self) -> Vec<i32> {
+        (1..=self.formula.num_vars)
+            .map(|v| {
+                if self.assign[v] == Some(false) {
+                    -(v as i32)
+                } else {
+                    v as i32
+                }
+            })
+            .collect()
     }
 
     fn choose_literal(&self) -> i32 {

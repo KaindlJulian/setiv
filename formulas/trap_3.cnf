@@ -1,0 +1,22 @@
+p cnf 11 10
+c A depth-limited trap.cnf: same structure, 3 triples instead of 7, so a
+c plain DPLL search finishes in a few thousand events instead of millions.
+
+c --- THE TRAP ---
+c These clauses are easily satisfied but create a
+c tree of valid assignments for variables 1 through 9.
+c Each triple admits 6 of its 8 assignments, so the search
+c below it is entered 6^3 = 216 times.
+1 2 3 0
+-1 -2 -3 0
+4 5 6 0
+-4 -5 -6 0
+7 8 9 0
+-7 -8 -9 0
+
+c --- THE CONTRADICTION ---
+c Variables 10 and 11 form a standalone logical impossibility.
+10 11 0
+-10 11 0
+10 -11 0
+-10 -11 0
