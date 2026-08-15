@@ -1,10 +1,10 @@
-import { useMemo, useState } from "preact/hooks";
 import {
     clausesInSectionAt,
     type ClauseRecord,
     type ClauseSection,
 } from "@/model/clauseDatabase";
 import { useCursor, useProjections, useSource } from "@/state/context";
+import { useMemo, useState } from "preact/hooks";
 import { ClauseList } from "./ClauseList";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { StatsBar } from "./StatsBar";
@@ -76,7 +76,7 @@ export function Sidebar() {
                 <ClauseList
                     records={listFor("learned")}
                     state={state}
-                    empty="Nothing learned yet at this step."
+                    empty="Nothing learned at this step."
                 />
             </CollapsibleSection>
 

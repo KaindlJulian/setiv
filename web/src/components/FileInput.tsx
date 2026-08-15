@@ -1,6 +1,9 @@
 import { useSource } from "@/state/context";
 
-const logFiles = import.meta.glob("../../public/samples/*.jsonl");
+const logFiles = import.meta.glob("../../public/samples/*.jsonl", {
+    query: "?url",
+    import: "default",
+});
 const fileNames = Object.keys(logFiles).map((path) => {
     return path.split("/").pop() || "";
 });
