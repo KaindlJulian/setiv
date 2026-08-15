@@ -4,4 +4,7 @@
     "editor.formatOnSave": false,
     "editor.defaultFormatter": null
   },
+  "rust-analyzer.linkedProjects": [
+    "${workspaceFolder}/solvers/setiv-dpll/Cargo.toml"
+  ]
 }

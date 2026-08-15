@@ -1,0 +1,11 @@
+[package]
+name = "setiv-dpll"
+version = "0.1.0"
+edition = "2021"
+description = "A minimal DPLL solver that emits a Solver Event Protocol NDJSON log"
+
+[dependencies]
+nom = "8"
+
+[profile.release]
+opt-level = 2
