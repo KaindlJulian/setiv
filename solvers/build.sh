@@ -16,5 +16,14 @@ cd build-opt
 make -j"$(nproc)"
 cd ..
 
-# set $CADICAL
+
 CADICAL="$(pwd)/build-opt/cadical"
+
+
+# setiv-dpll build
+
+cd "$(dirname "$0")/setiv-dpll"
+
+cargo build --release
+
+SETIV_DPLL="$(pwd)/target/release/setiv-dpll"

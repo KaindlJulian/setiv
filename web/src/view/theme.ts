@@ -1,5 +1,5 @@
 /**
- * Colour is expressed as Tailwind utility classes defined in index.css, and the
+ * Color is expressed as Tailwind utility classes defined in index.css, and the
  * charts apply them with .attr("class", ...)
  */
 export const colors = {
@@ -11,6 +11,7 @@ export const colors = {
     node: "fill-setiv-node",
     nodeLabel: "fill-setiv-node-label",
     decisionStroke: "stroke-setiv-decision",
+    decisionAccent: "fill-setiv-decision",
     learned: "fill-setiv-learned",
     learnedLabel: "fill-setiv-learned-label",
     conflict: "fill-setiv-conflict",
@@ -34,10 +35,17 @@ export const colors = {
 
 export const implicationChart = {
     height: 460,
-    nodeRadius: 13,
-    nodeExtent: 30, // the box that dagre reserves
-    nodesep: 24,
-    ranksep: 60,
+    /** the drawn chip: a literal cell and a level cell */
+    nodeWidth: 58,
+    nodeHeight: 24,
+    /** x of the rule between the two cells */
+    nodeDivider: 9,
+    nodeRadius: 5, // corner radius
+    /** the box dagre reserves: the chip plus breathing room */
+    boxWidth: 66,
+    boxHeight: 32,
+    nodesep: 20,
+    ranksep: 74,
     margin: 20,
     scaleExtent: [0.1, 100] as [number, number],
 } as const;

@@ -88,7 +88,7 @@ export function Sidebar() {
                 <ClauseList
                     records={listFor("deleted")}
                     state={state}
-                    empty="No clauses deleted yet."
+                    empty="No clauses deleted at this step."
                 />
             </CollapsibleSection>
         </>

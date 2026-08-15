@@ -2,11 +2,7 @@ import { ClauseDatabase, createClauseDatabaseBuilder } from "./clauseDatabase";
 import type { EventOf, SolverEvent } from "./events";
 
 /**
- * The core "source of truth". This holds everything we derived from the logs.
- *
- * The decision tree is deliberately absent: it is the largest thing derivable
- * from the stream and most sessions never open it, so `treeStore` builds it on
- * first read instead. See `model/decisionTree.ts`.
+ * The core "source of truth". This holds the parsed data.
  */
 export interface SolverRun {
     events: readonly SolverEvent[];
@@ -37,7 +33,7 @@ export interface ConflictRecord {
     conflictLiterals: number[]; // todo: maybe replace with clause id lookup, what about units?
     trail: number[];
     /**
-     * Parallel to `trail`: index of the `decide`/`propagate` event that
+     * Parallel to trail: index of the event that
      * assigned that literal, or -1 if it was never seen
      */
     reasonEventIndex: Int32Array;
@@ -53,7 +49,7 @@ export interface ConflictRecord {
     backtrackLevel: number | null;
 }
 
-// One pass over the event stream, producing everything derivable from it
+// One pass over the event stream
 export function buildRun(events: SolverEvent[]): SolverRun {
     const litToEventIndex = new Map<number, number>();
 

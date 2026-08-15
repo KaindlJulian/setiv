@@ -26,6 +26,17 @@ export interface GraphLayout {
 }
 
 /**
+ * Overrides for the boxes dagre reserves. Only the node lab passes these, so it
+ * can lay the same graph out for node designs of different sizes.
+ */
+export interface LayoutOptions {
+    nodeWidth?: number;
+    nodeHeight?: number;
+    nodesep?: number;
+    ranksep?: number;
+}
+
+/**
  * Layered left-to-right DAG:
  *
  *  - decisions and other sources on the left
@@ -36,7 +47,16 @@ export interface GraphLayout {
  */
 const layoutCache = new WeakMap<ImplicationGraph, GraphLayout>();
 
-export function layoutImplicationGraph(graph: ImplicationGraph): GraphLayout {
+export function layoutImplicationGraph(
+    graph: ImplicationGraph,
+    options?: LayoutOptions,
+): GraphLayout {
+    // The cache is keyed on the graph alone, so it can only serve the default
+    // sizing. Anything with overrides is computed fresh.
+    if (options) {
+        return computeLayout(graph, options);
+    }
+
     const cached = layoutCache.get(graph);
 
     if (cached) {
@@ -49,8 +69,16 @@ export function layoutImplicationGraph(graph: ImplicationGraph): GraphLayout {
     return layout;
 }
 
-function computeLayout(graph: ImplicationGraph): GraphLayout {
-    const { nodeExtent, nodesep, ranksep, margin, height } = implicationChart;
+function computeLayout(
+    graph: ImplicationGraph,
+    options: LayoutOptions = {},
+): GraphLayout {
+    const { boxWidth, boxHeight, margin, height } = implicationChart;
+
+    const nodeWidth = options.nodeWidth ?? boxWidth;
+    const nodeHeight = options.nodeHeight ?? boxHeight;
+    const nodesep = options.nodesep ?? implicationChart.nodesep;
+    const ranksep = options.ranksep ?? implicationChart.ranksep;
 
     const g = new dagre.graphlib.Graph({ multigraph: true });
 
@@ -64,7 +92,7 @@ function computeLayout(graph: ImplicationGraph): GraphLayout {
     g.setDefaultEdgeLabel(() => ({}));
 
     for (const n of graph.nodes) {
-        g.setNode(n.id, { width: nodeExtent, height: nodeExtent });
+        g.setNode(n.id, { width: nodeWidth, height: nodeHeight });
     }
 
     for (const e of graph.edges) {

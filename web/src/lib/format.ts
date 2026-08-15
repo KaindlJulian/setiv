@@ -2,12 +2,12 @@ import type { TreeNode } from "@/model/decisionTree";
 import type { EventOf, SolverEvent } from "@/model/events";
 import type { TrailEntry } from "@/model/trail";
 
-const neg = "¬";
+const neg = "-"; // ¬
 const lor = "∨";
 const land = "∧";
 
 export function litLabel(lit: number): string {
-    return lit < 0 ? `${neg}x${-lit}` : `x${lit}`;
+    return lit < 0 ? `${neg}${-lit}` : `${lit}`;
 }
 
 export function clauseText(literals: number[]): string {
@@ -69,7 +69,6 @@ export function eventStepBarText(ev: SolverEvent | null): string {
     }
 }
 
-/** 1234 -> "1.2k", so a node label never outgrows its slot */
 export function compactCount(n: number): string {
     if (n < 1000) {
         return String(n);

@@ -3,12 +3,8 @@ import { parseEventLog, type ParseIssue } from "@/model/parse";
 import { buildRun, type SolverRun } from "@/model/run";
 import { batch, signal, type ReadonlySignal } from "@preact/signals";
 
-/**
- * Where the data comes from: raw log text in, a `SolverRun` plus diagnostics
- * out. Owns nothing about how the run is then viewed.
- */
 export interface SourceStore {
-    /** holds all the parsed data, source of truth */
+    /** holds all the parsed and derived data, source of truth */
     run: ReadonlySignal<SolverRun | null>;
     fileName: ReadonlySignal<string>;
     rawText: ReadonlySignal<string>;

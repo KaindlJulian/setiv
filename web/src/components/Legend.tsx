@@ -1,11 +1,12 @@
 import { cn } from "@/lib/cn";
 
 export interface LegendItem {
-    shape: "circle" | "diamond" | "line";
+    shape: "circle" | "diamond" | "line" | "chip";
     label: string;
     fill?: string;
     stroke?: string;
     dashed?: boolean;
+    accent?: string;
 }
 
 export function Legend({ items }: { items: LegendItem[] }) {
@@ -22,6 +23,37 @@ export function Legend({ items }: { items: LegendItem[] }) {
 }
 
 function Swatch({ item }: { item: LegendItem }) {
+    if (item.shape === "chip") {
+        return (
+            <svg
+                width="20"
+                height="12"
+                viewBox="-10 -6 20 12"
+                aria-hidden="true"
+                class="shrink-0"
+            >
+                <rect
+                    x="-9.5"
+                    y="-5.5"
+                    width="19"
+                    height="11"
+                    rx="2.5"
+                    class={item.fill}
+                />
+                {item.accent && (
+                    <rect
+                        x="-8.5"
+                        y="-4.5"
+                        width="2.5"
+                        height="9"
+                        rx="1.25"
+                        class={item.accent}
+                    />
+                )}
+            </svg>
+        );
+    }
+
     if (item.shape === "line") {
         return (
             <svg width="20" height="10" aria-hidden="true" class="shrink-0">

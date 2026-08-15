@@ -1,8 +1,10 @@
 import type { Point } from "@dagrejs/dagre";
 import * as d3 from "d3";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { HoverCard } from "@/components/HoverCard";
+import { Legend } from "@/components/Legend";
+import { useElementSize } from "@/hooks/useElementSize";
 import { cn } from "@/lib/cn";
-import { litLabel } from "@/lib/format";
 import type { ImplicationGraph as Graph } from "@/model/implicationGraph";
 import {
     layoutImplicationGraph,
@@ -11,44 +13,42 @@ import {
 } from "@/view/layout/implicationLayout";
 import { createSvgCanvas } from "@/view/svgCanvas";
 import { colors, implicationChart } from "@/view/theme";
-import { Legend, type LegendItem } from "@/components/Legend";
+import { drawImplicationNode, implicationLegend } from "@/view/implicationNode";
+import { NodeTooltip } from "./NodeTooltip";
 
-const legend: LegendItem[] = [
-    { shape: "circle", label: "propagated", fill: colors.node },
-    {
-        shape: "circle",
-        label: "decision (outlined)",
-        fill: "fill-none",
-        stroke: colors.decisionStroke,
-    },
-    { shape: "circle", label: "on learned clause", fill: colors.learned },
-    { shape: "diamond", label: "κ conflict", fill: colors.conflict },
-];
+interface Hover {
+    node: PositionedNode;
+    /** anchor, relative to the container */
+    x: number;
+    y: number;
+}
 
-const fillOf = (d: PositionedNode) =>
-    d.isConflict
-        ? colors.conflict
-        : d.onLearnedClause
-          ? colors.learned
-          : colors.node;
-
-const labelFillOf = (d: PositionedNode) =>
-    d.isConflict
-        ? colors.conflictLabel
-        : d.onLearnedClause
-          ? colors.learnedLabel
-          : colors.nodeLabel;
+/** opacity of everything outside the hovered neighbourhood */
+const dimmed = 0.15;
+const edgeOpacity = 0.5;
+const edgeLabelOpacity = 0.75;
 
 export function ImplicationGraph({ graph }: { graph: Graph | null }) {
-    const ref = useRef<SVGSVGElement>(null);
+    const [box, size] = useElementSize<HTMLDivElement>();
+    const svgRef = useRef<SVGSVGElement>(null);
+    const [hover, setHover] = useState<Hover | null>(null);
+
+    /** the literals the trail held when the conflict hit, for the tooltip */
+    const assigned = useMemo(
+        () => new Set(graph?.conflict.trail ?? []),
+        [graph],
+    );
 
     useEffect(() => {
-        const svgEl = ref.current;
-        if (!svgEl || !graph) {
+        const svgEl = svgRef.current;
+        const boxEl = box.current;
+
+        if (!svgEl || !boxEl || !graph) {
             return;
         }
 
         const { nodes, edges, width, height } = layoutImplicationGraph(graph);
+
         const layer = createSvgCanvas(svgEl, width, height, {
             arrowMarker: true,
             scaleExtent: implicationChart.scaleExtent,
@@ -62,20 +62,18 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
 
         const midOf = (e: RoutedEdge) => e.points[e.points.length >> 1];
 
-        layer
+        const edge = layer
             .append("g")
-            .attr(
-                "class",
-                cn("fill-none", "opacity-50", colors.implicationEdge),
-            )
+            .attr("class", cn("fill-none", colors.implicationEdge))
             .selectAll("path")
             .data(edges)
             .join("path")
             .attr("stroke-width", 1.5)
+            .attr("opacity", edgeOpacity)
             .attr("marker-end", "url(#arrow)")
             .attr("d", (d: RoutedEdge) => lineGen(d.points));
 
-        layer
+        const edgeLabel = layer
             .append("g")
             .attr("class", colors.edgeLabel)
             .selectAll("text")
@@ -83,6 +81,7 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             .join("text")
             .attr("font-size", 9)
             .attr("text-anchor", "middle")
+            .attr("opacity", edgeLabelOpacity)
             .attr("x", (d: RoutedEdge) => midOf(d).x)
             .attr("y", (d: RoutedEdge) => midOf(d).y)
             .text(
@@ -97,58 +96,73 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             .selectAll("g")
             .data(nodes)
             .join("g")
+            .attr("class", "cursor-pointer")
             .attr(
                 "transform",
                 (d: PositionedNode) => `translate(${d.x},${d.y})`,
             );
 
         node.each(function (this: SVGGElement, d: PositionedNode) {
-            const sel = d3.select(this);
-            const r = implicationChart.nodeRadius;
-
-            if (d.isConflict) {
-                sel.append("rect")
-                    .attr("x", -r)
-                    .attr("y", -r)
-                    .attr("width", 2 * r)
-                    .attr("height", 2 * r)
-                    .attr("transform", "rotate(45)")
-                    .attr("class", fillOf(d));
-            } else {
-                sel.append("circle")
-                    .attr("r", r)
-                    .attr("stroke-width", 2)
-                    .attr(
-                        "class",
-                        cn(
-                            fillOf(d),
-                            d.isDecision
-                                ? colors.decisionStroke
-                                : "stroke-none",
-                        ),
-                    );
-            }
+            drawImplicationNode(d3.select(this), d);
         });
 
-        node.append("text")
-            .attr("text-anchor", "middle")
-            .attr("dy", 4)
-            .attr("font-size", 11)
-            .attr("font-weight", 600)
-            .attr("pointer-events", "none")
-            .attr("class", labelFillOf)
-            .text((d: PositionedNode) =>
-                d.isConflict ? "κ" : litLabel(d.lit!),
-            );
+        /** the hovered node plus everything one edge away from it */
+        const neighbourhood = (id: string) => {
+            const near = new Set([id]);
 
-        node.append("text")
-            .attr("text-anchor", "middle")
-            .attr("dx", 20)
-            .attr("dy", 4)
-            .attr("font-size", 9)
-            .attr("pointer-events", "none")
-            .attr("class", colors.levelBadge)
-            .text((d: PositionedNode) => `@${d.level}`);
+            for (const e of edges) {
+                if (e.source === id) {
+                    near.add(e.target);
+                } else if (e.target === id) {
+                    near.add(e.source);
+                }
+            }
+
+            return near;
+        };
+
+        const focus = (d: PositionedNode | null) => {
+            if (!d) {
+                node.attr("opacity", 1);
+                edge.attr("opacity", edgeOpacity);
+                edgeLabel.attr("opacity", edgeLabelOpacity);
+                return;
+            }
+
+            const near = neighbourhood(d.id);
+            const incident = (e: RoutedEdge) =>
+                e.source === d.id || e.target === d.id;
+
+            node.attr("opacity", (n: PositionedNode) =>
+                near.has(n.id) ? 1 : dimmed,
+            );
+            edge.attr("opacity", (e: RoutedEdge) => (incident(e) ? 1 : dimmed));
+            edgeLabel.attr("opacity", (e: RoutedEdge) =>
+                incident(e) ? 1 : dimmed,
+            );
+        };
+
+        node.on(
+            "pointerenter",
+            function (this: SVGGElement, _: PointerEvent, d: PositionedNode) {
+                // The nodes is inside a zoomed layer under a viewBox, so the
+                // layout coordinates are not screen coordinates.
+                const rect = this.getBoundingClientRect();
+                const container = boxEl.getBoundingClientRect();
+
+                focus(d);
+                setHover({
+                    node: d,
+                    x: rect.left + rect.width / 2 - container.left,
+                    y: rect.top + rect.height / 2 - container.top,
+                });
+            },
+        ).on("pointerleave", () => {
+            focus(null);
+            setHover(null);
+        });
+
+        return () => setHover(null);
     }, [graph]);
 
     if (!graph) {
@@ -157,11 +171,28 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
 
     return (
         <div class="flex min-h-0 flex-1 flex-col">
-            <svg
-                ref={ref}
-                class="setiv-canvas bg-setiv-surface min-h-0 w-full flex-1 cursor-grab active:cursor-grabbing"
-            />
-            <Legend items={legend} />
+            <div ref={box} class="relative min-h-0 flex-1">
+                <svg
+                    ref={svgRef}
+                    class="setiv-canvas bg-setiv-surface absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
+                />
+
+                {hover && (
+                    <HoverCard
+                        x={hover.x}
+                        y={hover.y}
+                        containerWidth={size.width}
+                    >
+                        <NodeTooltip
+                            node={hover.node}
+                            assigned={assigned}
+                            trailLength={graph.conflict.trail.length}
+                        />
+                    </HoverCard>
+                )}
+            </div>
+
+            <Legend items={implicationLegend} />
         </div>
     );
 }
