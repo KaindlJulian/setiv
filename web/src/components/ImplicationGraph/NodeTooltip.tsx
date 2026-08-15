@@ -29,7 +29,7 @@ export function NodeTooltip({ node: d, assigned, trailLength }: Props) {
     const run = source.run.value;
 
     return (
-        <div class="flex flex-col gap-1">
+        <div class="flex min-w-40 flex-col gap-1">
             <div class="flex items-center gap-2">
                 <span
                     class={cn(

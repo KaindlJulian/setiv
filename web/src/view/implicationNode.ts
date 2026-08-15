@@ -21,16 +21,14 @@ export const implicationLegend: LegendItem[] = [
 export const kindOf = (d: ImplicationNode): string =>
     d.isConflict ? "conflict" : d.isDecision ? "decision" : "propagated";
 
-/** Digits only: the sign is drawn as an overbar, not written out. */
 export const magnitude = (d: ImplicationNode): string =>
     d.isConflict ? "κ" : String(Math.abs(d.lit!));
 
 export const isNegative = (d: ImplicationNode): boolean =>
     !d.isConflict && d.lit! < 0;
 
-/** `x2 = false`, what the overbar is shorthand for. */
 export const assignmentText = (d: ImplicationNode): string =>
-    d.isConflict ? "no assignment" : `x${Math.abs(d.lit!)} = ${d.lit! > 0}`;
+    d.isConflict ? "" : `x${Math.abs(d.lit!)} = ${d.lit! > 0}`;
 
 export const fillOf = (d: ImplicationNode): string =>
     d.isConflict
@@ -46,11 +44,6 @@ export const labelFillOf = (d: ImplicationNode): string =>
           ? colors.learnedLabel
           : colors.nodeLabel;
 
-/**
- * The overbar is a `<line>`, so it needs the stroke twin of the label's fill
- * class. Spelled out rather than derived, because Tailwind only emits classes
- * it can see literally in the source.
- */
 const barStroke: Record<string, string> = {
     "fill-setiv-node-label": "stroke-setiv-node-label",
     "fill-setiv-learned-label": "stroke-setiv-learned-label",
@@ -62,15 +55,6 @@ const barStroke: Record<string, string> = {
 export const strokeFor = (fillClass: string): string =>
     barStroke[fillClass] ?? "stroke-setiv-ink";
 
-/**
- * Draws one node into its already translated `<g>`.
- *
- * A two-cell chip: the literal on the left, its decision level on the right.
- * Nothing floats outside the shape, and the aspect ratio suits the
- * left-to-right flow of the graph better than a circle does. Decisions get an
- * accent bar rather than an outline, which stays readable once the fill is
- * already warning-coloured.
- */
 export function drawImplicationNode(sel: Selection, d: ImplicationNode): void {
     sel.append("rect")
         .attr("x", -nodeWidth / 2)
