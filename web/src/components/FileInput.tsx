@@ -1,15 +1,9 @@
 import { useSource } from "@/state/context";
 
-const sample = [
-    "cadical_php_4_3_events.jsonl",
-    "cadical_shrink_php_4_3_events.jsonl",
-    "cadical_php_3_2_events.jsonl",
-    "cadical_e3220_events.jsonl",
-    "cadical_full_2_events.jsonl",
-    "cadical_prime529_events.jsonl",
-    "cadical_bf0432-007_events.jsonl",
-    "cadical_ssa2670-141_events.jsonl",
-];
+const logFiles = import.meta.glob("../../public/samples/*.jsonl");
+const fileNames = Object.keys(logFiles).map((path) => {
+    return path.split("/").pop() || "";
+});
 
 interface FileInputProps {
     onSettled?: () => void;
@@ -85,7 +79,7 @@ export function FileInput({ onSettled }: FileInputProps) {
             <div class="flex flex-col gap-1.5">
                 <span class="text-sm font-medium">Example</span>
                 <div class="flex flex-wrap gap-1">
-                    {sample.map((s) => (
+                    {fileNames.map((s) => (
                         <button
                             key={s}
                             type="button"
