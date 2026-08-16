@@ -8,11 +8,47 @@ import {
     ChevronsLeft,
     ChevronsRight,
 } from "lucide-preact";
-import { useEffect, useMemo } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
+
+const debounce_ms = 150;
 
 export function StepBar() {
     const cursor = useCursor();
     const run = useSource().run.value;
+
+    const dragging = useRef(false);
+    const commitTimer = useRef<number | undefined>(undefined);
+
+    const cancelPending = () => {
+        clearTimeout(commitTimer.current);
+        commitTimer.current = undefined;
+    };
+
+    const doCommit = () => {
+        cancelPending();
+        cursor.commitStep();
+    };
+
+    useEffect(() => {
+        const endDrag = () => {
+            if (!dragging.current) {
+                return;
+            }
+
+            dragging.current = false;
+            cancelPending();
+            cursor.commitStep();
+        };
+
+        window.addEventListener("pointerup", endDrag);
+        window.addEventListener("pointercancel", endDrag);
+
+        return () => {
+            window.removeEventListener("pointerup", endDrag);
+            window.removeEventListener("pointercancel", endDrag);
+            cancelPending();
+        };
+    }, [cursor]);
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
@@ -76,10 +112,26 @@ export function StepBar() {
                     min={0}
                     max={max}
                     value={step}
-                    onInput={(e) =>
-                        cursor.setStep(Number(e.currentTarget.value))
-                    }
-                    onChange={() => cursor.commitStep()}
+                    onPointerDown={() => {
+                        dragging.current = true;
+                        cancelPending();
+                    }}
+                    onInput={(e) => {
+                        cursor.setStep(Number(e.currentTarget.value));
+
+                        // A drag commits on release, never mid-gesture.
+                        if (dragging.current) {
+                            return;
+                        }
+
+                        cancelPending();
+                        commitTimer.current = window.setTimeout(
+                            () => cursor.commitStep(),
+                            debounce_ms,
+                        );
+                    }}
+                    onKeyUp={doCommit}
+                    onBlur={doCommit}
                     class="range range-primary range-xs w-full"
                 />
             </div>
