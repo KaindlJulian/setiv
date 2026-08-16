@@ -36,7 +36,7 @@ export function NodeTooltip({ node: d, assigned, trailLength }: Props) {
                 <span class="font-mono font-semibold">{assignmentText(d)}</span>
             </div>
 
-            <dl class="text-base-content grid grid-cols-[auto_1fr] gap-x-2">
+            <dl class="text-base-content grid grid-cols-[auto_1fr] gap-x-4">
                 {d.eventIndex >= 0 && (
                     <>
                         <dt>event</dt>
@@ -62,7 +62,7 @@ export function NodeTooltip({ node: d, assigned, trailLength }: Props) {
                     <>
                         {d.isDecision ? (
                             <div class="text-base-content">
-                                {`${(run?.events[d.eventIndex] as DecideEvent).heuristic}`}
+                                {`${(run?.events[d.eventIndex] as DecideEvent | null)?.heuristic}`}
                             </div>
                         ) : (
                             "unit"

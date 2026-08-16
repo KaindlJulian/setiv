@@ -34,7 +34,7 @@ export function Workspace() {
         <div class="flex min-h-0 flex-1 flex-col gap-3 p-3">
             <div
                 role="tablist"
-                class="tabs tabs-sm tabs-box shrink-0 shadow-none"
+                class="tabs tabs-box tabs-sm shrink-0 shadow-none"
             >
                 {tabs.map(({ id, label }) => (
                     <button
@@ -43,7 +43,10 @@ export function Workspace() {
                         role="tab"
                         aria-selected={tab === id}
                         onClick={() => view.showTab(id)}
-                        class={cn("tab", tab === id && "tab-active")}
+                        class={cn(
+                            "tab shadow-none",
+                            tab === id && "tab-active",
+                        )}
                     >
                         {label}
                     </button>

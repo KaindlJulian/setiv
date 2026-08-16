@@ -91,7 +91,7 @@ export function buildRun(events: SolverEvent[]): SolverRun {
             }
             case "conflict": {
                 pending = snapshotConflict(
-                    conflicts.length + 1,
+                    conflicts.length,
                     i,
                     ev,
                     litToEventIndex,
@@ -188,16 +188,4 @@ function snapshotConflict(
         jumpLevel: null,
         backtrackLevel: null,
     };
-}
-
-/**
- * Whether the solver returned to a different level than the learned clause
- * called for.
- */
-export function isChronologicalBackjump(conflict: ConflictRecord): boolean {
-    return (
-        conflict.jumpLevel !== null &&
-        conflict.backtrackLevel !== null &&
-        conflict.jumpLevel !== conflict.backtrackLevel
-    );
 }

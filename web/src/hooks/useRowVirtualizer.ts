@@ -20,7 +20,7 @@ export interface RowWindowOptions {
 export function useRowVirtualizer(
     count: number,
     rowHeight: number,
-    { overscan = 8, follow = false }: RowWindowOptions,
+    { overscan = 8, follow = false }: RowWindowOptions = {},
 ): RowWindow {
     const ref = useRef<HTMLDivElement>(null);
 

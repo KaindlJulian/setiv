@@ -31,12 +31,11 @@ function trailIndexOf(state: SolverState | null, node: TreeNode): number {
 
 export function TreeNodeTooltip({ node }: { node: TreeNode }) {
     const run = useSource().run.value;
+    const state = useProjections().solverState.value;
 
     if (!run) {
         return null;
     }
-
-    const state = useProjections().solverState.value;
 
     const trailIndex = trailIndexOf(state, node);
     const event =
