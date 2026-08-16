@@ -57,7 +57,7 @@ export function EventLog({ active }: { active: boolean }) {
                 class={cn(
                     "flex h-5 cursor-pointer items-center gap-3 border-l-2 px-2 font-mono text-xs whitespace-nowrap",
                     current
-                        ? "border-primary bg-base-300"
+                        ? "border-primary bg-primary/20"
                         : "hover:bg-base-200 border-transparent",
                 )}
             >

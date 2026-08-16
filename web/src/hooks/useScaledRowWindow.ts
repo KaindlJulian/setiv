@@ -24,6 +24,7 @@ export interface ScaledRowWindow extends Block {
     scrollToRow(row: number): void;
 }
 
+// scaled because the event log can have a lot of rows, which exceeds the browser hieght limit for elements
 export function useScaledRowWindow(
     count: number,
     rowHeight: number,
