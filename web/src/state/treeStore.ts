@@ -1,11 +1,4 @@
 import {
-    batch,
-    computed,
-    effect,
-    signal,
-    type ReadonlySignal,
-} from "@preact/signals";
-import {
     buildTreeSkeleton,
     materializeTree,
     treeNodeThreshold,
@@ -15,6 +8,13 @@ import {
 } from "@/model/decisionTree";
 import { type SolverRun } from "@/model/run";
 import { treeChart } from "@/view/theme";
+import {
+    batch,
+    computed,
+    effect,
+    signal,
+    type ReadonlySignal,
+} from "@preact/signals";
 
 export interface TreeStore {
     /** what the panel draws: already bounded, never the whole tree */
@@ -40,8 +40,7 @@ export function createTreeStore(
     let skeletonFor: SolverRun | null = null;
     let skeletonCache: TreeSkeleton | null = null;
 
-    // A new run invalidates both the chosen scope and every open branch. Reading
-    // `run` here costs nothing; it is the skeleton that must stay untouched.
+    // A new run invalidates both the chosen scope and every open branch.
     effect(() => {
         run.value;
 
@@ -71,7 +70,7 @@ export function createTreeStore(
     const scope = computed(() => override.value ?? defaultScope.value);
 
     /**
-     * Built on first read
+     * Built on first read, must not be touched after
      */
     const skeleton = computed(() => {
         const r = run.value;
@@ -99,8 +98,6 @@ export function createTreeStore(
 
         return materializeTree(skelet, {
             scope: current,
-            // Only `active` follows the cursor, and off the committed step so a
-            // slider drag never re-lays-out the tree.
             step: current === "active" ? committedStep.value : skelet.lastStep,
             expanded: expanded.value,
             budget: treeChart.maxNodes,

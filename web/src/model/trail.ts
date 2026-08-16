@@ -23,7 +23,10 @@ export interface SolverState {
 }
 
 /**
- * A cursor over the event stream that remembers where it is
+ * A cursor over the event stream that remembers where it is. Abstracts all of the caching / checkpoint logic behind
+ * a simple interface.
+ *
+ * `stateAT(step)` returns a snapshot of the solver state at that step, and can be called repeatedly with increasing or decreasing step values.
  */
 export interface Replay {
     stateAt(step: number): SolverState;
@@ -58,21 +61,20 @@ function defaultCheckpointInterval(eventCount: number): number {
     return Math.max(1024 * 8, Math.ceil(eventCount / 1024));
 }
 
-export function createReplay(
-    run: SolverRun,
-    checkpointInterval?: number,
-): Replay {
+/**
+ * Creates a replay cursor for a run. The cursor can be moved forward and backward, and will return the solver state at any step.
+ */
+export function createReplay(run: SolverRun): Replay {
     const events = run.events;
     const size = variableCount(run) + 1;
-    const interval =
-        checkpointInterval ?? defaultCheckpointInterval(events.length);
+    const interval = defaultCheckpointInterval(events.length);
 
     const value = new Int8Array(size);
     const level = new Int32Array(size).fill(-1);
     let trail: TrailEntry[] = [];
     let decisionLevel = 0;
 
-    /** Index of the last applied event; -1 when nothing has been applied. */
+    /** Index of the last applied event */
     let cursor = -1;
 
     /**
@@ -168,7 +170,7 @@ export function createReplay(
      */
     const checkpointBefore = (i: number) => {
         if (i === 0 || i % interval !== 0) {
-            return;
+            return; // not a checkpoint boundary
         }
 
         if (i / interval - 1 !== checkpoints.length) {
@@ -217,13 +219,5 @@ function variableCount(run: SolverRun): number {
         return 0;
     }
 
-    let max = init.variables;
-
-    for (const v of init.variable_ids) {
-        if (v > max) {
-            max = v;
-        }
-    }
-
-    return max;
+    return init.variables;
 }
