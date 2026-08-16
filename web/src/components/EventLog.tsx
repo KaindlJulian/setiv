@@ -2,7 +2,7 @@ import { useScaledRowWindow } from "@/hooks/useScaledRowWindow";
 import { cn } from "@/lib/cn";
 import type { SolverEvent } from "@/model/events";
 import { useCursor, useSource } from "@/state/context";
-import { useLayoutEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 
 const rowHeight = 20;
 
@@ -18,12 +18,15 @@ export function EventLog({ active }: { active: boolean }) {
 
     const window = useScaledRowWindow(events.length, rowHeight);
 
+    const latest = useRef(window);
+    latest.current = window;
+
     // follow cursor
-    useLayoutEffect(() => {
-        if (active && !window.isRowVisible(step)) {
-            window.scrollToRow(step);
+    useEffect(() => {
+        if (active && !latest.current.isRowVisible(step)) {
+            latest.current.scrollToRow(step);
         }
-    }, [step, active]);
+    }, [step, active, window.viewport]);
 
     if (events.length === 0) {
         return;
