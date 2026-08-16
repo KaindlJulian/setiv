@@ -7,7 +7,6 @@ export interface SourceStore {
     /** holds all the parsed and derived data, source of truth */
     run: ReadonlySignal<SolverRun | null>;
     fileName: ReadonlySignal<string>;
-    rawText: ReadonlySignal<string>;
     parseIssues: ReadonlySignal<ParseIssue[]>;
     loadError: ReadonlySignal<string | null>;
 
@@ -17,7 +16,6 @@ export interface SourceStore {
 
 export function createSourceStore(): SourceStore {
     const fileName = signal("");
-    const rawText = signal("");
     const run = signal<SolverRun | null>(null);
     const parseIssues = signal<ParseIssue[]>([]);
     const loadError = signal<string | null>(null);
@@ -34,7 +32,6 @@ export function createSourceStore(): SourceStore {
         if (rejection) {
             batch(() => {
                 fileName.value = name;
-                rawText.value = text;
                 run.value = null;
                 parseIssues.value = issues;
                 loadError.value = rejection;
@@ -44,7 +41,6 @@ export function createSourceStore(): SourceStore {
 
         batch(() => {
             fileName.value = name;
-            rawText.value = text;
             run.value = buildRun(events);
             parseIssues.value = issues;
             loadError.value = null;
@@ -54,7 +50,6 @@ export function createSourceStore(): SourceStore {
     const setLoadError = (message: string, name = "") => {
         batch(() => {
             fileName.value = name;
-            rawText.value = "";
             run.value = null;
             parseIssues.value = [];
             loadError.value = message;
@@ -64,7 +59,6 @@ export function createSourceStore(): SourceStore {
     return {
         run,
         fileName,
-        rawText,
         parseIssues,
         loadError,
         loadLog,

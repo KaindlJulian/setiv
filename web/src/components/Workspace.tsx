@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { useProjections, useSource } from "@/state/context";
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
+import { EventLog } from "./EventLog";
 import { MonoTextArea } from "./MonoTextArea";
 import { Panel } from "./Panel";
 import { StepBar } from "./StepBar";
@@ -72,7 +73,7 @@ export function Workspace() {
 
             <TabPanel id="log" tab={tab} visited={visited}>
                 <Panel fill title="Event Log">
-                    <MonoTextArea fill value={source.rawText.value} />
+                    <EventLog active={tab === "log"} />
                 </Panel>
             </TabPanel>
 

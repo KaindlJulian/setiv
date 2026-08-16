@@ -32,10 +32,13 @@ export function parseEventLog(text: string): ParseResult {
         });
     };
 
-    const lines = text.split(/\r?\n/);
+    for (let start = 0, i = 0; start <= text.length; i++) {
+        const br = text.indexOf("\n", start);
+        const end = br === -1 ? text.length : br;
+        const line = text.slice(start, end).trim();
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
+        start = end + 1;
+
         let value: unknown;
 
         if (line === "") {

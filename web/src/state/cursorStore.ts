@@ -1,3 +1,5 @@
+import { type SolverEvent } from "@/model/events";
+import { type ConflictRecord, type SolverRun } from "@/model/run";
 import {
     batch,
     computed,
@@ -5,8 +7,6 @@ import {
     signal,
     type ReadonlySignal,
 } from "@preact/signals";
-import { type SolverEvent } from "@/model/events";
-import { type ConflictRecord, type SolverRun } from "@/model/run";
 
 /**
  * The single cursor into a run. Everything the app shows depends on the current
@@ -27,6 +27,9 @@ export interface CursorStore {
     selectConflict(index: number): void;
     setStep(step: number): void;
     commitStep(): void;
+    /** Move the live and the committed step at same time */
+    jumpTo(step: number): void;
+
     stepBy(delta: number): void;
     stepToConflict(direction: 1 | -1): void;
 }
@@ -137,6 +140,7 @@ export function createCursorStore(
         selectedConflict,
         selectConflict,
         setStep,
+        jumpTo,
         commitStep,
         stepBy,
         stepToConflict,
