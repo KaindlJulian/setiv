@@ -1,3 +1,4 @@
+import { useRevealRow } from "@/hooks/useRevealRow";
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
 import { cn } from "@/lib/cn";
 import { litLabel, trailReason } from "@/lib/format";
@@ -38,14 +39,13 @@ export function TrailList({ state }: { state: SolverState }) {
 
     const virtualizer = useRowVirtualizer(rows.length, rowHeight);
 
-    // scrollToIndex on event selection
-    useEffect(() => {
-        const row = selected === null ? undefined : rowOf.get(selected);
+    // Revealing an event also opens this section, which takes a moment to
+    // expand: nothing to scroll to until then, and nothing while it is closed.
+    const open = view.sidebarSection.value === "trail";
+    const revealed =
+        (open && selected !== null ? rowOf.get(selected) : undefined) ?? null;
 
-        if (row !== undefined) {
-            virtualizer.scrollToIndex(row, "center");
-        }
-    }, [selected]);
+    useRevealRow(virtualizer, revealed);
 
     const offTrail =
         selected !== null && !rowOf.has(selected)
