@@ -43,7 +43,10 @@ export function Workspace() {
 
     return (
         <div class="flex min-h-0 flex-1 flex-col gap-3 p-3">
-            <div role="tablist" class="tabs tabs-sm tabs-border shrink-0">
+            <div
+                role="tablist"
+                class="tabs tabs-sm tabs-box shrink-0 shadow-none"
+            >
                 {tabs.map(({ id, label }) => (
                     <button
                         key={id}
