@@ -17,7 +17,7 @@ import {
 } from "@preact/signals";
 
 export interface TreeStore {
-    /** what the panel draws: already bounded, never the whole tree */
+    /** what the panel draws */
     tree: ReadonlySignal<DecisionTree | null>;
 
     scope: ReadonlySignal<TreeScope>;
@@ -38,7 +38,7 @@ export function createTreeStore(
     const expanded = signal<ReadonlySet<string>>(new Set());
 
     let skeletonFor: SolverRun | null = null;
-    let skeletonCache: TreeSkeleton | null = null;
+    let skeletonCache: TreeSkeleton | null = null; // built once for a run. the structure of the full tree, everything needed to materialize the tree
 
     // A new run invalidates both the chosen scope and every open branch.
     effect(() => {
@@ -94,11 +94,12 @@ export function createTreeStore(
             return null;
         }
 
-        const current = scope.value;
-
         return materializeTree(skelet, {
-            scope: current,
-            step: current === "active" ? committedStep.value : skelet.lastStep,
+            scope: scope.value,
+            step:
+                scope.value === "active"
+                    ? committedStep.value
+                    : skelet.lastStep,
             expanded: expanded.value,
             budget: treeChart.maxNodes,
         });

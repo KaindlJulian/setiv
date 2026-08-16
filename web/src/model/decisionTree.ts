@@ -4,11 +4,9 @@ export type TreeNodeKind =
     "root" | "decision" | "propagation" | "conflict" | "collapsed";
 
 /**
- * What the panel draws.
- *
  * - `full` and `decisions` are whole-run views, bounded by the node budget.
  * - `active` is the trail at the cursor, with every abandoned branch hanging off
- *   it replaced by a single node the user can click to load.
+ *   it replaced by a single node.
  */
 export type TreeScope = "active" | "decisions" | "full";
 
