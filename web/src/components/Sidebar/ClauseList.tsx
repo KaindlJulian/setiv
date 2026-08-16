@@ -12,7 +12,9 @@ interface ClauseListProps {
 }
 
 export function ClauseList({ records, state, empty }: ClauseListProps) {
-    const window = useRowVirtualizer(records.length, rowHeight);
+    const window = useRowVirtualizer(records.length, rowHeight, {
+        follow: true,
+    });
 
     if (records.length === 0) {
         return <p class="text-base-content/40 px-2 py-2 text-xs">{empty}</p>;

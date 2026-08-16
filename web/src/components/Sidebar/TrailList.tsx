@@ -37,7 +37,9 @@ export function TrailList({ state }: { state: SolverState }) {
         [state.trail],
     );
 
-    const virtualizer = useRowVirtualizer(rows.length, rowHeight);
+    const virtualizer = useRowVirtualizer(rows.length, rowHeight, {
+        follow: true,
+    });
 
     // Revealing an event also opens this section, which takes a moment to
     // expand: nothing to scroll to until then, and nothing while it is closed.

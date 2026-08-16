@@ -12,10 +12,15 @@ export interface RowWindow {
     scrollToIndex: (index: number, align?: RowAlignment) => void;
 }
 
+export interface RowWindowOptions {
+    overscan?: number;
+    follow?: boolean;
+}
+
 export function useRowVirtualizer(
     count: number,
     rowHeight: number,
-    overscan = 8,
+    { overscan = 8, follow = false }: RowWindowOptions,
 ): RowWindow {
     const ref = useRef<HTMLDivElement>(null);
 
@@ -24,6 +29,9 @@ export function useRowVirtualizer(
         getScrollElement: () => ref.current,
         estimateSize: () => rowHeight,
         overscan,
+        anchorTo: follow ? "end" : "start",
+        followOnAppend: follow,
+        scrollEndThreshold: rowHeight / 2,
     });
 
     const items = virtualizer.getVirtualItems();
