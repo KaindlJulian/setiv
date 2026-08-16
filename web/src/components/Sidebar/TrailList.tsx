@@ -1,3 +1,4 @@
+import { useDismissOnOutside } from "@/hooks/useDismissOnOutside";
 import { useRevealRow } from "@/hooks/useRevealRow";
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
 import { cn } from "@/lib/cn";
@@ -6,7 +7,7 @@ import type { EventOf, SolverEvent } from "@/model/events";
 import type { SolverState } from "@/model/trail";
 import { useCursor, useSource, useView } from "@/state/context";
 import { buildTrailRows } from "@/view/trailRows";
-import { useEffect, useMemo, useRef } from "preact/hooks";
+import { useMemo, useRef } from "preact/hooks";
 
 const rowHeight = 20;
 
@@ -56,20 +57,7 @@ export function TrailList({ state }: { state: SolverState }) {
 
     const bannerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!offTrail) {
-            return;
-        }
-
-        const dismiss = (e: PointerEvent) => {
-            if (!bannerRef.current?.contains(e.target as Node)) {
-                view.select(null);
-            }
-        };
-
-        document.addEventListener("pointerdown", dismiss);
-        return () => document.removeEventListener("pointerdown", dismiss);
-    }, [offTrail, view]);
+    useDismissOnOutside(bannerRef, offTrail !== null, () => view.select(null));
 
     const banner = offTrail && selected !== null && (
         <div

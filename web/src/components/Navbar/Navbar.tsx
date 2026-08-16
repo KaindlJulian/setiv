@@ -1,6 +1,7 @@
 import { FolderOpen } from "lucide-preact";
 import { useLocation } from "preact-iso";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
+import { useDismissOnOutside } from "@/hooks/useDismissOnOutside";
 import { cn } from "@/lib/cn";
 import { FileInput } from "@/components/FileInput";
 import { ThemeToggle } from "./ThemeToggle";
@@ -12,7 +13,6 @@ declare const __GIT_DATE__: string;
 const pages = [
     { href: "/", label: "Main" },
     { href: "/chart", label: "Chart" },
-    { href: "/nodes", label: "Nodes" },
     { href: "/help", label: "Help" },
 ] as const;
 
@@ -63,20 +63,7 @@ function LogMenu() {
     const ref = useRef<HTMLDetailsElement>(null);
     const [open, setOpen] = useState(false);
 
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
-
-        const onPointerDown = (e: PointerEvent) => {
-            if (!ref.current?.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        };
-
-        window.addEventListener("pointerdown", onPointerDown);
-        return () => window.removeEventListener("pointerdown", onPointerDown);
-    }, [open]);
+    useDismissOnOutside(ref, open, () => setOpen(false));
 
     return (
         <details ref={ref} open={open} class="dropdown dropdown-end">
