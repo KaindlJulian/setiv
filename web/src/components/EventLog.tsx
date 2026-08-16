@@ -20,10 +20,23 @@ export function EventLog({ active }: { active: boolean }) {
 
     const latest = useRef(window);
     latest.current = window;
+    const followed = useRef({ events: noEvents, step: -1 });
 
-    // follow cursor
+    // scroll to step
     useEffect(() => {
-        if (active && !latest.current.isRowVisible(step)) {
+        const done = followed.current;
+
+        if (!active || window.viewport === 0) {
+            return;
+        }
+
+        if (done.events === events && done.step === step) {
+            return;
+        }
+
+        followed.current = { events, step };
+
+        if (!latest.current.isRowVisible(step)) {
             latest.current.scrollToRow(step);
         }
     }, [step, active, window.viewport]);
