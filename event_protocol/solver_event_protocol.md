@@ -22,7 +22,7 @@ Further, the Protocol is not really concerned with how the JSON is serialized, a
 - **Decision levels** positive integers, 0-based.
 - **Literals** are signed integers: positive = variable true, negative = variable false. Variables are numbered `1..N`.
 - **Clause IDs** are monotonically increasing `int64` values assigned at clause creation. `-1` means "no permanent clause object" (e.g. a learned clause).
-- Run the solver with preprocessing disabled for the cleanest stream. The`init` event captures the complete problem state before any clause is added or removed.
+- Run the solver with preprocessing disabled for the cleanest stream. This does not make `init` a copy of the input file — see below.
 
 ---
 
@@ -40,13 +40,25 @@ Fired once before the CDCL loop begins.
 | ------------------ | -------- | -------------------------------------------------- |
 | `protocol_version` | int      | Version of the protocol                            |
 | `variables`        | int      | Number of variables                                |
-| `clauses`          | int      | Number of initial clauses                          |
+| `clauses`          | int      | Number of clauses in `clause_list`                 |
 | `variable_ids`     | int[]    | All variable indices, `1` through `N`              |
 | `clause_list`      | object[] | Each entry has `id` (int64) and `literals` (int[]) |
 
 `protocol_version` is the current version of this document, `2`. It is
 the first field of the first event precisely so that a consumer can fail
  instead of misparsing the stream.
+
+#### `clause_list` is the solver's database, not the input file
+
+`clause_list` holds the clauses the solver actually allocated, which is not the
+same as the clauses the `.cnf` file contains. Solvers may simplify,
+so `init` may report fewer clauses than the dimacs, and a stored clause may differ
+from the line it came from. literals falsified at root stripped out, literals
+reordered, and the clause renumbered.
+
+`event_protocol/out/cadical_test_events.jsonl` is the minimal illustration. a
+single unit clause in, `clauses: 0` and an empty `clause_list` out, with the
+unit appearing as the root propagation it became.
 
 Adapters emit the version they were written against.
 
