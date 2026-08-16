@@ -1,11 +1,11 @@
+import { ClauseChips } from "@/components/ClauseChips";
 import { cn } from "@/lib/cn";
-import { clauseRef, litLabel } from "@/lib/format";
+import { clauseRef } from "@/lib/format";
 import type { DecideEvent } from "@/model/events";
 import type { ImplicationNode } from "@/model/implicationGraph";
+import type { Value } from "@/model/trail";
 import { useSource } from "@/state/context";
 import { assignmentText, kindOf } from "@/view/implicationNode";
-
-const maxReasonClauseChips = 5;
 
 interface Props {
     node: ImplicationNode;
@@ -13,20 +13,13 @@ interface Props {
     trailLength: number;
 }
 
-/** Tints a clause literal by the value the trail gave it. */
-const litValueClass = (lit: number, assigned: ReadonlySet<number>): string => {
-    if (assigned.has(lit)) {
-        return "text-setiv-true";
-    }
-    if (assigned.has(-lit)) {
-        return "text-setiv-false";
-    }
-    return "text-base-content/50";
-};
-
 export function NodeTooltip({ node: d, assigned, trailLength }: Props) {
     const source = useSource();
     const run = source.run.value;
+
+    /** The conflict-time trail is a literal set, not a full assignment. */
+    const valueOf = (lit: number): Value =>
+        assigned.has(lit) ? 1 : assigned.has(-lit) ? -1 : 0;
 
     return (
         <div class="flex min-w-40 flex-col gap-1">
@@ -84,29 +77,10 @@ export function NodeTooltip({ node: d, assigned, trailLength }: Props) {
                                 {clauseRef(d.reasonClauseId)}
                             </span>
                         </div>
-                        <div class="mt-1 flex flex-wrap gap-1 font-mono">
-                            {d.reasonLiterals
-                                .slice(0, maxReasonClauseChips)
-                                .map((lit, i) => (
-                                    <span
-                                        key={i}
-                                        class={cn(
-                                            "bg-base-200 rounded px-1",
-                                            litValueClass(lit, assigned),
-                                        )}
-                                    >
-                                        {litLabel(lit)}
-                                    </span>
-                                ))}
-
-                            {d.reasonLiterals.length > maxReasonClauseChips && (
-                                <span class="bg-base-200 text-base-content/50 rounded px-1">
-                                    +
-                                    {d.reasonLiterals.length -
-                                        maxReasonClauseChips}
-                                </span>
-                            )}
-                        </div>
+                        <ClauseChips
+                            literals={d.reasonLiterals}
+                            valueOf={valueOf}
+                        />
                     </>
                 )}
             </div>

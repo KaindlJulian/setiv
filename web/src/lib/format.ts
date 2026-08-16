@@ -98,7 +98,7 @@ export function treeNodeLabel(n: TreeNode): string {
             const branches = n.sources?.length ?? 0;
 
             return branches > 1
-                ? `${branches} branches · ${hidden} nodes`
+                ? `+${branches} branches`
                 : `+${hidden} nodes @${n.level}`;
         }
     }

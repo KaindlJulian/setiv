@@ -1,9 +1,9 @@
-import { compactCount } from "@/lib/format";
-import { type TreeScope } from "@/model/decisionTree";
-import { useSource, useTrees } from "@/state/context";
-import { DecisionTree } from "./DecisionTree";
 import { Panel } from "@/components/Panel";
 import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
+import { compactCount } from "@/lib/format";
+import { type TreeNode, type TreeScope } from "@/model/decisionTree";
+import { useSource, useTrees, useView } from "@/state/context";
+import { DecisionTree } from "./DecisionTree";
 
 const scopes: ScopeOption<TreeScope>[] = [
     {
@@ -25,10 +25,19 @@ const scopes: ScopeOption<TreeScope>[] = [
 
 export function DecisionTreePanel() {
     const trees = useTrees();
+    const view = useView();
     const run = useSource().run.value;
 
     const tree = trees.tree.value;
     const hidden = tree?.hiddenNodeCount ?? 0;
+
+    const select = (node: TreeNode) => {
+        if (node.kind === "conflict") {
+            view.revealConflict(node.id);
+        } else {
+            view.revealInTrail(node.id);
+        }
+    };
 
     return (
         <Panel
@@ -47,7 +56,7 @@ export function DecisionTreePanel() {
                             class="btn btn-xs"
                             onClick={trees.collapseAll}
                         >
-                            Collapse all
+                            Collapse All
                         </button>
                     )}
                     <ScopeToggle
@@ -58,7 +67,11 @@ export function DecisionTreePanel() {
                 </div>
             }
         >
-            <DecisionTree tree={tree} onExpand={trees.toggleExpanded} />
+            <DecisionTree
+                tree={tree}
+                onExpand={trees.toggleExpanded}
+                onSelect={select}
+            />
         </Panel>
     );
 }

@@ -3,21 +3,21 @@ import {
     type ClauseRecord,
     type ClauseSection,
 } from "@/model/clauseDatabase";
-import { useCursor, useProjections, useSource } from "@/state/context";
-import { useMemo, useState } from "preact/hooks";
+import { useCursor, useProjections, useSource, useView } from "@/state/context";
+import type { SidebarSection } from "@/state/viewStore";
+import { useMemo } from "preact/hooks";
 import { ClauseList } from "./ClauseList";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { StatsBar } from "./StatsBar";
 import { TrailList } from "./TrailList";
-
-type SectionId = "trail" | ClauseSection;
 
 const noRecords: ClauseRecord[] = [];
 
 export function Sidebar() {
     const projections = useProjections();
     const cursor = useCursor();
-    const [open, setOpen] = useState<SectionId | null>("trail");
+    const view = useView();
+    const open = view.sidebarSection.value;
     const run = useSource().run.value;
     const state = projections.solverState.value;
     const step = cursor.stepIndex.value;
@@ -30,10 +30,10 @@ export function Sidebar() {
         [run, open, step],
     );
 
-    /** One section at a time, so the open one can claim the leftover height. */
-    const section = (id: SectionId) => ({
+    /** one is open at a time */
+    const section = (id: SidebarSection) => ({
         open: open === id,
-        onToggle: () => setOpen(open === id ? null : id),
+        onToggle: () => view.toggleSection(id),
     });
 
     const listFor = (id: ClauseSection) => (open === id ? records : noRecords);

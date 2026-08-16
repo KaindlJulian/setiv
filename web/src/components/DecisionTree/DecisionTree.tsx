@@ -1,8 +1,12 @@
 import * as d3 from "d3";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { cn } from "@/lib/cn";
 import { treeNodeLabel } from "@/lib/format";
-import type { DecisionTree as Tree, TreeScope } from "@/model/decisionTree";
+import type {
+    DecisionTree as Tree,
+    TreeNode,
+    TreeScope,
+} from "@/model/decisionTree";
 import {
     layoutDecisionTree,
     type TreeLayoutEdge,
@@ -10,7 +14,10 @@ import {
 } from "@/view/layout/treeLayout";
 import { createSvgCanvas } from "@/view/svgCanvas";
 import { colors, treeChart } from "@/view/theme";
+import { HoverCard } from "@/components/HoverCard";
 import { Legend, type LegendItem } from "@/components/Legend";
+import { useElementSize } from "@/hooks/useElementSize";
+import { TreeNodeTooltip } from "./TreeNodeTooltip";
 
 const decisionEdge: LegendItem = {
     shape: "line",
@@ -37,20 +44,33 @@ function legendFor(scope: TreeScope): LegendItem[] {
         : [decisionEdge, propagationEdge, impliedNode];
 }
 
+interface Hover {
+    node: TreeNode;
+    x: number;
+    y: number;
+}
+
 interface Props {
     tree: Tree | null;
     onExpand(key: string): void;
+    onSelect(node: TreeNode): void;
 }
 
-export function DecisionTree({ tree, onExpand }: Props) {
+export function DecisionTree({ tree, onExpand, onSelect }: Props) {
     const ref = useRef<SVGSVGElement>(null);
+    const [box, size] = useElementSize<HTMLDivElement>();
+    const [hover, setHover] = useState<Hover | null>(null);
+
     const expand = useRef(onExpand);
     expand.current = onExpand;
+    const select = useRef(onSelect);
+    select.current = onSelect;
 
     useEffect(() => {
         const svgEl = ref.current;
+        const boxEl = box.current;
 
-        if (!svgEl || !tree) {
+        if (!svgEl || !boxEl || !tree) {
             return;
         }
 
@@ -99,15 +119,36 @@ export function DecisionTree({ tree, onExpand }: Props) {
                 d.node.isBacktracked ? 0.5 : 1,
             )
             .attr("class", (d: TreeLayoutNode) =>
-                d.node.kind === "collapsed" ? "cursor-pointer" : null,
+                d.node.kind === "root" ? null : "cursor-pointer",
             )
             .on("click", (event: Event, d: TreeLayoutNode) => {
-                if (d.node.kind !== "collapsed") {
+                if (d.node.kind === "root") {
                     return;
                 }
+
                 event.stopPropagation();
-                expand.current(d.node.key);
+
+                if (d.node.kind === "collapsed") {
+                    expand.current(d.node.key);
+                    return;
+                }
+
+                select.current(d.node);
             });
+
+        g.on(
+            "pointerenter",
+            function (this: SVGGElement, _: PointerEvent, d: TreeLayoutNode) {
+                const rect = this.getBoundingClientRect();
+                const container = boxEl.getBoundingClientRect();
+                
+                setHover({
+                    node: d.node,
+                    x: rect.left + rect.width / 2 - container.left,
+                    y: rect.top + rect.height / 2 - container.top,
+                });
+            },
+        ).on("pointerleave", () => setHover(null));
 
         g.each(function (this: SVGGElement, d: TreeLayoutNode) {
             const sel = d3.select(this);
@@ -152,6 +193,8 @@ export function DecisionTree({ tree, onExpand }: Props) {
                 cn(colors.treeLabel, d.node.isBacktracked && "opacity-50"),
             )
             .text((d: TreeLayoutNode) => treeNodeLabel(d.node));
+
+        return () => setHover(null);
     }, [tree]);
 
     if (!tree) {
@@ -160,10 +203,23 @@ export function DecisionTree({ tree, onExpand }: Props) {
 
     return (
         <div class="flex min-h-0 flex-1 flex-col">
-            <svg
-                ref={ref}
-                class="setiv-canvas bg-setiv-surface min-h-0 w-full flex-1 cursor-grab active:cursor-grabbing"
-            />
+            <div ref={box} class="relative min-h-0 flex-1">
+                <svg
+                    ref={ref}
+                    class="setiv-canvas bg-setiv-surface absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
+                />
+
+                {hover && (
+                    <HoverCard
+                        x={hover.x}
+                        y={hover.y}
+                        containerWidth={size.width}
+                    >
+                        <TreeNodeTooltip node={hover.node} />
+                    </HoverCard>
+                )}
+            </div>
+
             <Legend items={legendFor(tree.scope)} />
         </div>
     );

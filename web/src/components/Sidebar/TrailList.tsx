@@ -1,50 +1,116 @@
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
-import { trailReason } from "@/lib/format";
-import type { SolverState, TrailEntry } from "@/model/trail";
+import { cn } from "@/lib/cn";
+import { litLabel, trailReason } from "@/lib/format";
+import type { EventOf, SolverEvent } from "@/model/events";
+import type { SolverState } from "@/model/trail";
+import { useCursor, useSource, useView } from "@/state/context";
+import { buildTrailRows } from "@/view/trailRows";
+import { useEffect, useMemo, useRef } from "preact/hooks";
 
 const rowHeight = 20;
 
-type Row =
-    | { kind: "divider"; level: number; key: string }
-    | { kind: "entry"; entry: TrailEntry; key: string };
+type Assignment = EventOf<"decide"> | EventOf<"propagate">;
+
+/** The event `index` assigned with, or null when it assigned nothing. */
+function assignmentAt(
+    events: readonly SolverEvent[] | undefined,
+    index: number,
+): Assignment | null {
+    const ev = events?.[index];
+
+    if (!ev) {
+        return null;
+    }
+
+    return ev.event === "decide" || ev.event === "propagate" ? ev : null;
+}
 
 export function TrailList({ state }: { state: SolverState }) {
-    const rows: Row[] = [];
-    let previous: number | null = null;
+    const view = useView();
+    const cursor = useCursor();
+    const run = useSource().run.value;
+    const selected = view.selectedEvent.value;
 
-    state.trail.forEach((entry, i) => {
-        if (entry.level !== previous) {
-            rows.push({
-                kind: "divider",
-                level: entry.level,
-                key: `d${i}`,
-            });
-            previous = entry.level;
+    const { rows, rowOf } = useMemo(
+        () => buildTrailRows(state.trail),
+        [state.trail],
+    );
+
+    const virtualizer = useRowVirtualizer(rows.length, rowHeight);
+
+    // scrollToIndex on event selection
+    useEffect(() => {
+        const row = selected === null ? undefined : rowOf.get(selected);
+
+        if (row !== undefined) {
+            virtualizer.scrollToIndex(row, "center");
+        }
+    }, [selected]);
+
+    const offTrail =
+        selected !== null && !rowOf.has(selected)
+            ? assignmentAt(run?.events, selected)
+            : null;
+
+    const bannerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!offTrail) {
+            return;
         }
 
-        rows.push({ kind: "entry", entry, key: `e${i}` });
-    });
+        const dismiss = (e: PointerEvent) => {
+            if (!bannerRef.current?.contains(e.target as Node)) {
+                view.select(null);
+            }
+        };
 
-    const window = useRowVirtualizer(rows.length, rowHeight);
+        document.addEventListener("pointerdown", dismiss);
+        return () => document.removeEventListener("pointerdown", dismiss);
+    }, [offTrail, view]);
+
+    const banner = offTrail && selected !== null && (
+        <div
+            ref={bannerRef}
+            class="border-base-300 bg-base-100 flex shrink-0 items-center gap-2 border-b px-2 py-1 text-[11px]"
+        >
+            <span class="text-base-content font-mono font-semibold">
+                {litLabel(offTrail.literal)} @{offTrail.level}
+            </span>
+            <span class="text-base-content/60 flex-1 truncate">
+                not assigned at this step
+            </span>
+            <button
+                type="button"
+                onClick={() => cursor.jumpTo(selected)}
+                class="btn btn-xs font-mono"
+            >
+                jump to #{selected}
+            </button>
+        </div>
+    );
 
     if (rows.length === 0) {
         return (
-            <p class="text-base-content/40 px-2 py-2 text-xs">
-                Nothing assigned at this step.
-            </p>
+            <div class="flex h-full min-h-0 flex-col">
+                {banner}
+                <p class="text-base-content/40 px-2 py-2 text-xs">
+                    Nothing assigned at this step.
+                </p>
+            </div>
         );
     }
 
     const rendered = [];
 
-    for (const item of window.items) {
+    for (const item of virtualizer.items) {
         const row = rows[item.index];
 
         if (row.kind === "divider") {
             rendered.push(
                 <div
                     key={row.key}
-                    class="text-base-content/40 flex h-5 items-center gap-2 px-2 text-[11px]"
+                    class="text-base-content/40 flex h-5 items-center gap-2 border-l-2 border-transparent px-2 text-[11px]"
                 >
                     <span class="font-mono">@{row.level}</span>
                     <span class="bg-base-300 h-px flex-1" />
@@ -54,11 +120,18 @@ export function TrailList({ state }: { state: SolverState }) {
         }
 
         const { entry } = row;
+        const current = entry.eventIndex === selected;
 
         rendered.push(
             <div
                 key={row.key}
-                class="hover:bg-base-300 flex h-5 items-center gap-2 px-2 font-mono text-xs whitespace-nowrap"
+                //onClick={() => view.select(entry.eventIndex)}
+                class={cn(
+                    "flex h-5 cursor-pointer items-center gap-2 border-l-2 px-2 font-mono text-xs whitespace-nowrap",
+                    current
+                        ? "border-primary bg-primary/20"
+                        : "hover:bg-base-300 border-transparent",
+                )}
             >
                 <span class="text-setiv-true w-12 shrink-0 text-right">
                     {entry.lit}
@@ -80,10 +153,17 @@ export function TrailList({ state }: { state: SolverState }) {
     }
 
     return (
-        <div ref={window.ref} class="h-full overflow-x-auto overflow-y-auto">
-            <div style={{ height: window.topPad }} />
-            {rendered}
-            <div style={{ height: window.bottomPad }} />
+        <div class="flex h-full min-h-0 flex-col">
+            {banner}
+
+            <div
+                ref={virtualizer.ref}
+                class="min-h-0 flex-1 overflow-x-auto overflow-y-auto"
+            >
+                <div style={{ height: virtualizer.topPad }} />
+                {rendered}
+                <div style={{ height: virtualizer.bottomPad }} />
+            </div>
         </div>
     );
 }

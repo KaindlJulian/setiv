@@ -1,15 +1,13 @@
 import { DecisionTreePanel } from "@/components/DecisionTree/DecisionTreePanel";
 import { ImplicationPanel } from "@/components/ImplicationGraph/ImplicationPanel";
 import { cn } from "@/lib/cn";
-import { useProjections, useSource } from "@/state/context";
+import { useProjections, useSource, useView } from "@/state/context";
+import type { TabId } from "@/state/viewStore";
 import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
 import { EventLog } from "./EventLog";
 import { MonoTextArea } from "./MonoTextArea";
 import { Panel } from "./Panel";
 import { StepBar } from "./StepBar";
-
-type TabId = "graph" | "tree" | "formula" | "log";
 
 const tabs = [
     { id: "graph", label: "Implication Graph" },
@@ -21,25 +19,16 @@ const tabs = [
 export function Workspace() {
     const source = useSource();
     const projections = useProjections();
-    const [tab, setTab] = useState<TabId>("graph");
+    const view = useView();
 
-    const [visited, setVisited] = useState<ReadonlySet<TabId>>(
-        () => new Set<TabId>(["graph"]),
-    );
+    const tab = view.tab.value;
+    const visited = view.visitedTabs.value;
 
     const run = source.run.value;
 
     if (!run) {
         return null;
     }
-
-    const show = (id: TabId) => {
-        setTab(id);
-
-        if (!visited.has(id)) {
-            setVisited(new Set(visited).add(id));
-        }
-    };
 
     return (
         <div class="flex min-h-0 flex-1 flex-col gap-3 p-3">
@@ -53,7 +42,7 @@ export function Workspace() {
                         type="button"
                         role="tab"
                         aria-selected={tab === id}
-                        onClick={() => show(id)}
+                        onClick={() => view.showTab(id)}
                         class={cn("tab", tab === id && "tab-active")}
                     >
                         {label}

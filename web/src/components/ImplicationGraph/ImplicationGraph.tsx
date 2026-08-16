@@ -18,7 +18,6 @@ import { NodeTooltip } from "./NodeTooltip";
 
 interface Hover {
     node: PositionedNode;
-    /** anchor, relative to the container */
     x: number;
     y: number;
 }
@@ -27,7 +26,6 @@ interface Hover {
 const dimmed = 0.15;
 const edgeOpacity = 0.5;
 const edgeLabelOpacity = 0.75;
-/** how long the dim/undim takes; short enough to still feel like a hover */
 const fadeMs = 150;
 
 export function ImplicationGraph({ graph }: { graph: Graph | null }) {

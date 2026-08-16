@@ -10,6 +10,8 @@ export interface TrailEntry {
     /** null for decisions and for root-level units. */
     reasonClauseId: number | null;
     isDecision: boolean;
+    /** Index of the decide/propagate event that produced this assignment. */
+    eventIndex: number;
 }
 
 export interface SolverState {
@@ -107,6 +109,7 @@ export function createReplay(run: SolverRun): Replay {
         lv: number,
         reasonClauseId: number | null,
         isDecision: boolean,
+        eventIndex: number,
     ) => {
         const v = lit < 0 ? -lit : lit;
 
@@ -116,17 +119,23 @@ export function createReplay(run: SolverRun): Replay {
 
         value[v] = lit < 0 ? -1 : 1;
         level[v] = lv;
-        trail.push({ lit, level: lv, reasonClauseId, isDecision });
+        trail.push({ lit, level: lv, reasonClauseId, isDecision, eventIndex });
     };
 
-    const apply = (ev: SolverEvent) => {
+    const apply = (ev: SolverEvent, eventIndex: number) => {
         switch (ev.event) {
             case "decide":
-                assign(ev.literal, ev.level, null, true);
+                assign(ev.literal, ev.level, null, true, eventIndex);
                 decisionLevel = ev.level;
                 break;
             case "propagate":
-                assign(ev.literal, ev.level, ev.reason_clause_id, false);
+                assign(
+                    ev.literal,
+                    ev.level,
+                    ev.reason_clause_id,
+                    false,
+                    eventIndex,
+                );
                 break;
             case "backtrack":
                 unwindTo(ev.to_level);
@@ -195,7 +204,7 @@ export function createReplay(run: SolverRun): Replay {
 
             for (let i = cursor + 1; i <= last; i++) {
                 checkpointBefore(i);
-                apply(events[i]);
+                apply(events[i], i);
             }
 
             cursor = last;
