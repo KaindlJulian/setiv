@@ -1,4 +1,4 @@
-import { useDismissOnOutside } from "@/hooks/useDismissOnOutside";
+import { useDismiss } from "@/hooks/useDismiss";
 import { useRevealRow } from "@/hooks/useRevealRow";
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
 import { cn } from "@/lib/cn";
@@ -57,7 +57,7 @@ export function TrailList({ state }: { state: SolverState }) {
 
     const bannerRef = useRef<HTMLDivElement>(null);
 
-    useDismissOnOutside(bannerRef, offTrail !== null, () => view.select(null));
+    useDismiss(bannerRef, offTrail !== null, () => view.select(null));
 
     const banner = offTrail && selected !== null && (
         <div

@@ -2,9 +2,10 @@ import type { RefObject } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
 /**
- * Call `onDismiss` when a pointer goes down outside `ref`, while `active`.
+ * Call `onDismiss` while `active`, on click outside `ref` or
+ * Escape is pressed.
  */
-export function useDismissOnOutside(
+export function useDismiss(
     ref: RefObject<Node>,
     active: boolean,
     onDismiss: () => void,
@@ -23,8 +24,18 @@ export function useDismissOnOutside(
             }
         };
 
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                dismiss.current();
+            }
+        };
+
         document.addEventListener("pointerdown", onPointerDown, true);
-        return () =>
+        document.addEventListener("keydown", onKeyDown, true);
+
+        return () => {
             document.removeEventListener("pointerdown", onPointerDown, true);
+            document.removeEventListener("keydown", onKeyDown, true);
+        };
     }, [active]);
 }

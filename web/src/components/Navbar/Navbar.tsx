@@ -1,7 +1,7 @@
 import { FolderOpen } from "lucide-preact";
 import { useLocation } from "preact-iso";
 import { useRef, useState } from "preact/hooks";
-import { useDismissOnOutside } from "@/hooks/useDismissOnOutside";
+import { useDismiss } from "@/hooks/useDismiss";
 import { cn } from "@/lib/cn";
 import { FileInput } from "@/components/FileInput";
 import { ThemeToggle } from "./ThemeToggle";
@@ -63,7 +63,7 @@ function LogMenu() {
     const ref = useRef<HTMLDetailsElement>(null);
     const [open, setOpen] = useState(false);
 
-    useDismissOnOutside(ref, open, () => setOpen(false));
+    useDismiss(ref, open, () => setOpen(false));
 
     return (
         <details ref={ref} open={open} class="dropdown dropdown-end">
