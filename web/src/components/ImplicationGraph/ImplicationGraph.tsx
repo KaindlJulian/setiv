@@ -1,11 +1,9 @@
-import type { Point } from "@dagrejs/dagre";
-import * as d3 from "d3";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { HoverCard } from "@/components/HoverCard";
 import { Legend } from "@/components/Legend";
 import { useElementSize } from "@/hooks/useElementSize";
 import { cn } from "@/lib/cn";
 import type { ImplicationGraph as Graph } from "@/model/implicationGraph";
+import { drawImplicationNode, implicationLegend } from "@/view/implicationNode";
 import {
     layoutImplicationGraph,
     type PositionedNode,
@@ -13,7 +11,9 @@ import {
 } from "@/view/layout/implicationLayout";
 import { createSvgCanvas } from "@/view/svgCanvas";
 import { colors, implicationChart } from "@/view/theme";
-import { drawImplicationNode, implicationLegend } from "@/view/implicationNode";
+import type { Point } from "@dagrejs/dagre";
+import * as d3 from "d3";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { NodeTooltip } from "./NodeTooltip";
 
 interface Hover {
@@ -27,6 +27,8 @@ interface Hover {
 const dimmed = 0.15;
 const edgeOpacity = 0.5;
 const edgeLabelOpacity = 0.75;
+/** how long the dim/undim takes; short enough to still feel like a hover */
+const fadeMs = 150;
 
 export function ImplicationGraph({ graph }: { graph: Graph | null }) {
     const [box, size] = useElementSize<HTMLDivElement>();
@@ -121,11 +123,14 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             return near;
         };
 
+        const fade = (s: any) =>
+            s.transition("focus").duration(fadeMs).ease(d3.easeCubicInOut);
+
         const focus = (d: PositionedNode | null) => {
             if (!d) {
-                node.attr("opacity", 1);
-                edge.attr("opacity", edgeOpacity);
-                edgeLabel.attr("opacity", edgeLabelOpacity);
+                fade(node).attr("opacity", 1);
+                fade(edge).attr("opacity", edgeOpacity);
+                fade(edgeLabel).attr("opacity", edgeLabelOpacity);
                 return;
             }
 
@@ -133,11 +138,13 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             const incident = (e: RoutedEdge) =>
                 e.source === d.id || e.target === d.id;
 
-            node.attr("opacity", (n: PositionedNode) =>
+            fade(node).attr("opacity", (n: PositionedNode) =>
                 near.has(n.id) ? 1 : dimmed,
             );
-            edge.attr("opacity", (e: RoutedEdge) => (incident(e) ? 1 : dimmed));
-            edgeLabel.attr("opacity", (e: RoutedEdge) =>
+            fade(edge).attr("opacity", (e: RoutedEdge) =>
+                incident(e) ? 1 : dimmed,
+            );
+            fade(edgeLabel).attr("opacity", (e: RoutedEdge) =>
                 incident(e) ? 1 : dimmed,
             );
         };
