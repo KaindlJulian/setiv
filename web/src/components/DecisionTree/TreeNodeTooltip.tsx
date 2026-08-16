@@ -5,7 +5,7 @@ import { clauseById } from "@/model/clauseDatabase";
 import { ROOT, type TreeNode } from "@/model/decisionTree";
 import type { DecideEvent } from "@/model/events";
 import { litValue, type SolverState } from "@/model/trail";
-import { useProjections, useSource } from "@/state/context";
+import { useCursor, useProjections, useSource } from "@/state/context";
 
 function titleOf(node: TreeNode): string {
     switch (node.kind) {
@@ -32,6 +32,7 @@ function trailIndexOf(state: SolverState | null, node: TreeNode): number {
 export function TreeNodeTooltip({ node }: { node: TreeNode }) {
     const run = useSource().run.value;
     const state = useProjections().solverState.value;
+    const conflicts = useCursor().conflicts.value;
 
     if (!run) {
         return null;
@@ -43,6 +44,11 @@ export function TreeNodeTooltip({ node }: { node: TreeNode }) {
             ? run.events[node.id]
             : null;
     const clause = clauseById(run.clauseDb, node.reasonClauseId);
+
+    let conflictIndex = -1;
+    if (node.kind === "conflict") {
+        conflictIndex = conflicts.findIndex((c) => c.eventIndex === node.id);
+    }
 
     return (
         <div class="flex min-w-40 flex-col gap-1">
@@ -67,6 +73,15 @@ export function TreeNodeTooltip({ node }: { node: TreeNode }) {
                     <>
                         <dt>{node.kind === "collapsed" ? "from" : "event"}</dt>
                         <dd class="font-mono">#{node.id}</dd>
+                    </>
+                )}
+
+                {conflictIndex >= 0 && (
+                    <>
+                        <dt>conflict</dt>
+                        <dd class="font-mono">
+                            #{conflictIndex}/{conflicts.length - 1}
+                        </dd>
                     </>
                 )}
 

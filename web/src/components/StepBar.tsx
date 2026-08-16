@@ -148,7 +148,7 @@ export function StepBar() {
                 </span>
                 {conflictIndex >= 0 && (
                     <span class="badge badge-error badge-sm whitespace-nowrap">
-                        κ #{conflictIndex + 1}
+                        κ #{conflictIndex}
                     </span>
                 )}
             </div>
