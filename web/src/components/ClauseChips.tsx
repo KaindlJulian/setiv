@@ -19,13 +19,19 @@ interface Props {
     literals: readonly number[];
     valueOf(lit: number): Value;
     max?: number;
+    class?: string;
 }
 
-export function ClauseChips({ literals, valueOf, max = defaultMax }: Props) {
+export function ClauseChips({
+    literals,
+    valueOf,
+    max = defaultMax,
+    class: className,
+}: Props) {
     const shown = literals.slice(0, max);
 
     return (
-        <div class="mt-1 flex flex-wrap gap-1 font-mono">
+        <div class={cn("mt-1 flex flex-wrap gap-1 font-mono", className)}>
             {shown.map((lit, i) => (
                 <span
                     key={i}

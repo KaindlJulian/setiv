@@ -1,10 +1,9 @@
 import type { TreeNode } from "@/model/decisionTree";
-import type { EventOf, SolverEvent } from "@/model/events";
+import type { SolverEvent } from "@/model/events";
 import type { TrailEntry } from "@/model/trail";
 
 const neg = "-"; // ¬
 const lor = "∨";
-const land = "∧";
 
 export function litLabel(lit: number): string {
     return lit < 0 ? `${neg}${-lit}` : `${lit}`;
@@ -16,23 +15,6 @@ export function clauseText(literals: number[]): string {
 
 export function clauseRef(id: number | null): string {
     return id != null && id >= 0 ? `c${id}` : "unit";
-}
-
-export function formulaText(init: EventOf<"init"> | null): string {
-    if (!init) {
-        return "";
-    }
-
-    const { clause_list } = init;
-
-    return clause_list
-        .map((c, i) => {
-            if (i == clause_list.length - 1) {
-                return `(${clauseText(c.literals)})`;
-            }
-            return `(${clauseText(c.literals)}) ${land} `;
-        })
-        .join("\n");
 }
 
 export function trailReason(entry: TrailEntry): string {

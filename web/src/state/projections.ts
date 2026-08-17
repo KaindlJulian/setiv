@@ -1,5 +1,4 @@
 import { computed, type ReadonlySignal } from "@preact/signals";
-import { formulaText as renderFormula } from "@/lib/format";
 import { clauseCountsAt, type ClauseCounts } from "@/model/clauseDatabase";
 import { type SolverRun } from "@/model/run";
 import { buildTimeline, type Timeline } from "@/model/timeline";
@@ -12,7 +11,6 @@ export type { ClauseCounts };
  * over the `model/` layer
  */
 export interface RunProjections {
-    formulaText: ReadonlySignal<string>;
     timeline: ReadonlySignal<Timeline | null>;
     solverState: ReadonlySignal<SolverState | null>;
     clauseCounts: ReadonlySignal<ClauseCounts>;
@@ -22,8 +20,6 @@ export function createProjections(
     run: ReadonlySignal<SolverRun | null>,
     stepIndex: ReadonlySignal<number>,
 ): RunProjections {
-    const formulaText = computed(() => renderFormula(run.value?.init ?? null));
-
     const timeline = computed(() => {
         const r = run.value;
         return r ? buildTimeline(r) : null;
@@ -59,5 +55,5 @@ export function createProjections(
         return clauseCountsAt(r.clauseDb, stepIndex.value);
     });
 
-    return { formulaText, timeline, solverState, clauseCounts };
+    return { timeline, solverState, clauseCounts };
 }

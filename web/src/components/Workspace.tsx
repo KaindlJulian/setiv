@@ -1,11 +1,11 @@
 import { DecisionTreePanel } from "@/components/DecisionTree/DecisionTreePanel";
 import { ImplicationPanel } from "@/components/ImplicationGraph/ImplicationPanel";
 import { cn } from "@/lib/cn";
-import { useProjections, useSource, useView } from "@/state/context";
+import { useSource, useView } from "@/state/context";
 import type { TabId } from "@/state/viewStore";
 import type { ComponentChildren } from "preact";
 import { EventLog } from "./EventLog";
-import { MonoTextArea } from "./MonoTextArea";
+import { FormulaPanel } from "./FormulaPanel";
 import { Panel } from "./Panel";
 import { StepBar } from "./StepBar";
 
@@ -18,7 +18,6 @@ const tabs = [
 
 export function Workspace() {
     const source = useSource();
-    const projections = useProjections();
     const view = useView();
 
     const tab = view.tab.value;
@@ -61,9 +60,7 @@ export function Workspace() {
             </TabPanel>
 
             <TabPanel id="formula" tab={tab} visited={visited}>
-                <Panel fill title="Formula">
-                    <MonoTextArea fill value={projections.formulaText.value} />
-                </Panel>
+                <FormulaPanel />
             </TabPanel>
 
             <TabPanel id="log" tab={tab} visited={visited}>

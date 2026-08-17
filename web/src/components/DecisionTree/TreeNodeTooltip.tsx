@@ -85,7 +85,7 @@ export function TreeNodeTooltip({ node }: { node: TreeNode }) {
                     </>
                 )}
 
-                <dt>Level</dt>
+                <dt>level</dt>
                 <dd class="font-mono">@{node.level}</dd>
 
                 {trailIndex >= 0 && state && (

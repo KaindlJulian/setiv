@@ -49,6 +49,29 @@ export function litValue(lit: number, state: SolverState): Value {
     return (lit < 0 ? -value : value) as Value;
 }
 
+export type ClauseStatus = "satisfied" | "falsified" | "unit" | "open";
+
+export function clauseStatus(
+    literals: readonly number[],
+    state: SolverState,
+): ClauseStatus {
+    let open = 0;
+
+    for (const lit of literals) {
+        const value = litValue(lit, state);
+
+        if (value === 1) {
+            return "satisfied";
+        }
+
+        if (value === 0) {
+            open++;
+        }
+    }
+
+    return open === 0 ? "falsified" : open === 1 ? "unit" : "open";
+}
+
 interface Checkpoint {
     value: Int8Array;
     level: Int32Array;
