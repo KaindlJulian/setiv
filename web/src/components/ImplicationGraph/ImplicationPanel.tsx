@@ -1,7 +1,7 @@
 import { Panel } from "@/components/Panel";
 import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
 import { clauseRef } from "@/lib/format";
-import { useCursor, useGraphs } from "@/state/context";
+import { useGraphs, useProjections, useView } from "@/state/context";
 import { useState } from "preact/hooks";
 import { ConflictSelector } from "./ConflictSelector";
 import { ImplicationGraph } from "./ImplicationGraph";
@@ -20,68 +20,79 @@ const scopes: ScopeOption<boolean>[] = [
 ];
 
 export function ImplicationPanel() {
-    const cursor = useCursor();
     const graphs = useGraphs();
+    const projections = useProjections();
+    const view = useView();
 
     const [override, setOverride] = useState<{
         at: number;
         cone: boolean;
     } | null>(null);
 
-    const index = cursor.selectedConflictIndex.value;
-    const conflict = cursor.selectedConflict.value;
+    const state = projections.committedState.value;
+    const conflict = state?.conflict ?? null;
+
+    // The override belongs to the conflict it was made on, so moving to another
+    // one falls back to the default scope.
     const cone =
-        override?.at === index ? override.cone : graphs.coneDefault.value;
+        conflict && override?.at === conflict.eventIndex
+            ? override.cone
+            : graphs.coneDefault.value;
+
     const graph = cone ? graphs.coneGraph.value : graphs.fullGraph.value;
 
     return (
         <Panel
             fill
-            title={`Implication Graph${conflict ? ` conflict #${conflict.index}` : ""}`}
+            title="Implication Graph"
             actions={
                 <div class="flex flex-wrap items-center gap-2">
-                    <ScopeToggle
-                        scopes={scopes}
-                        value={cone}
-                        onChange={(value) =>
-                            setOverride({ at: index, cone: value })
-                        }
-                    />
+                    {conflict && (
+                        <ScopeToggle
+                            scopes={scopes}
+                            value={cone}
+                            onChange={(value) =>
+                                setOverride({
+                                    at: conflict.eventIndex,
+                                    cone: value,
+                                })
+                            }
+                        />
+                    )}
                     <ConflictSelector />
                 </div>
             }
         >
-            {conflict ? (
+            {state && graph && graph.nodes.length > 0 ? (
                 <>
-                    <div class="border-base-300 text-base-content/70 flex shrink-0 flex-wrap items-center gap-1.5 border-b px-3 py-1.5 text-xs">
-                        <span>
-                            in{" "}
-                            <code class="font-mono">
-                                {clauseRef(conflict.clauseId)}
-                            </code>{" "}
-                            @{conflict.level}
-                        </span>
-
-                        {conflict.learnedLiterals && (
-                            <span class="badge badge-warning badge-sm font-mono">
-                                learned: {conflict.learnedLiterals.join(", ")}
+                    {conflict && (
+                        <div class="border-base-300 text-base-content/70 flex shrink-0 flex-wrap items-center gap-1.5 border-b px-3 py-1.5 text-xs">
+                            <span>
+                                in{" "}
+                                <code class="font-mono">
+                                    {clauseRef(conflict.clauseId)}
+                                </code>{" "}
+                                @{conflict.level}
                             </span>
-                        )}
 
-                        {conflict.backtrackLevel != null && (
-                            <span class="badge badge-ghost badge-sm">
-                                backtrack to @{conflict.backtrackLevel}
-                            </span>
-                        )}
-                    </div>
+                            {conflict.learnedLiterals && (
+                                <span class="badge badge-warning badge-sm font-mono">
+                                    learned:{" "}
+                                    {conflict.learnedLiterals.join(", ")}
+                                </span>
+                            )}
+                        </div>
+                    )}
 
-                    <ImplicationGraph graph={graph} />
+                    <ImplicationGraph
+                        graph={graph}
+                        state={state}
+                        onSelect={view.revealInTrail}
+                    />
                 </>
             ) : (
                 <p class="text-base-content/40 flex min-h-0 flex-1 items-center justify-center p-6 text-center text-sm">
-                    {cursor.conflicts.value.length === 0
-                        ? "No conflicts in this log."
-                        : "No conflicts at this step."}
+                    Nothing assigned at this step.
                 </p>
             )}
         </Panel>

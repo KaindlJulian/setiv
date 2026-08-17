@@ -23,6 +23,9 @@ export function createSvgCanvas(
     const { scaleExtent = [0.1, 100], arrowMarker = false } = options;
 
     const svg = d3.select(svgEl);
+    // Charts are redrawn on every step, so the view has to survive the wipe.
+    const transform = d3.zoomTransform(svgEl);
+
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
@@ -50,7 +53,7 @@ export function createSvgCanvas(
             layer.attr("transform", event.transform),
         );
 
-    svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
+    svg.call(zoom).call(zoom.transform, transform);
 
     return layer;
 }

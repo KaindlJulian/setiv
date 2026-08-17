@@ -20,8 +20,12 @@ export interface SolverStore {
 export function createSolverStore(): SolverStore {
     const source = createSourceStore();
     const cursor = createCursorStore(source.run);
-    const projections = createProjections(source.run, cursor.stepIndex);
-    const graphs = createGraphStore(source.run, cursor.selectedConflictIndex);
+    const projections = createProjections(
+        source.run,
+        cursor.stepIndex,
+        cursor.committedStep,
+    );
+    const graphs = createGraphStore(source.run, projections.committedState);
     const trees = createTreeStore(source.run, cursor.committedStep);
     const view = createViewStore(source.run, cursor);
 

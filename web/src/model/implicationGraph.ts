@@ -1,13 +1,14 @@
 import { clauseById, type ClauseDatabase } from "./clauseDatabase";
 import type { EventOf, SolverEvent } from "./events";
-import type { ConflictRecord, SolverRun } from "./run";
+import type { SolverRun } from "./run";
+import type { ActiveConflict, SolverState } from "./trail";
 
 export const conflictNodeID = "conflict";
 export const coneNodeThreshold = 30;
 
 export interface ImplicationNode {
     id: string;
-    /** Index of the related event, -1 if unseen. */
+    /** The event that made this assignment, or reported the conflict. */
     eventIndex: number;
     /** signed literal, null for the fake conflict node */
     lit: number | null;
@@ -23,7 +24,7 @@ export interface ImplicationNode {
     reasonClauseId: number | null;
     /** Literals of the reason clause, null when neither the log nor the db has them. */
     reasonLiterals: readonly number[] | null;
-    /** Index in the conflict-time trail, -1 for the conflict node. */
+    /** Index in the trail, -1 for the conflict node. */
     trailIndex: number;
 }
 
@@ -36,68 +37,63 @@ export interface ImplicationEdge {
 }
 
 export interface ImplicationGraph {
-    conflict: ConflictRecord;
+    conflict: ActiveConflict | null;
     nodes: ImplicationNode[];
     edges: ImplicationEdge[];
 }
 
-/** Builds an implication graph for a given conflict. */
+/** Builds the implication graph of the trail as it stands at `state`. */
 export function buildImplicationGraph(
     run: SolverRun,
-    conflictIndex: number,
-): ImplicationGraph | null {
-    const conflict = run.conflicts[conflictIndex];
-
-    if (!conflict) {
-        return null;
-    }
-
-    const { trail, reasonEventIndex } = conflict;
-    const assigned = new Set(trail);
+    state: SolverState,
+): ImplicationGraph {
+    const { trail, conflict } = state;
+    const assigned = new Set(trail.map((entry) => entry.lit));
 
     const litsInLearnedClause = new Set(
-        (conflict.learnedLiterals ?? []).map((l) => -l),
+        (conflict?.learnedLiterals ?? []).map((l) => -l),
     );
 
     const nodes: ImplicationNode[] = [];
     const edges: ImplicationEdge[] = [];
 
     for (let k = 0; k < trail.length; k++) {
-        const lit = trail[k];
-        const reason = assignmentEvent(run.events, reasonEventIndex[k]);
+        const entry = trail[k];
+        const reason = assignmentEvent(run.events, entry.eventIndex);
         const antecedent =
             reason?.event === "propagate"
                 ? reasonLiterals(run.clauseDb, reason)
                 : [];
 
         nodes.push({
-            id: String(lit),
-            lit,
-            level: reason ? reason.level : conflict.level,
-            isDecision: reason?.event === "decide",
+            id: String(entry.lit),
+            lit: entry.lit,
+            level: entry.level,
+            isDecision: entry.isDecision,
             isConflict: false,
-            onLearnedClause: litsInLearnedClause.has(lit),
-            reasonClauseId:
-                reason?.event === "propagate" ? reason.reason_clause_id : null,
+            onLearnedClause: litsInLearnedClause.has(entry.lit),
+            reasonClauseId: entry.reasonClauseId,
             // an empty list means "we never learned the clause", not "no literals"
             reasonLiterals: antecedent.length > 0 ? antecedent : null,
-            eventIndex: reasonEventIndex[k],
+            eventIndex: entry.eventIndex,
             trailIndex: k,
         });
     }
 
-    nodes.push({
-        id: conflictNodeID,
-        lit: null,
-        level: conflict.level,
-        isConflict: true,
-        isDecision: false,
-        onLearnedClause: false,
-        reasonClauseId: conflict.clauseId,
-        reasonLiterals: conflict.conflictLiterals,
-        eventIndex: conflict.eventIndex,
-        trailIndex: -1,
-    });
+    if (conflict) {
+        nodes.push({
+            id: conflictNodeID,
+            lit: null,
+            level: conflict.level,
+            isConflict: true,
+            isDecision: false,
+            onLearnedClause: false,
+            reasonClauseId: conflict.clauseId,
+            reasonLiterals: conflict.literals,
+            eventIndex: conflict.eventIndex,
+            trailIndex: -1,
+        });
+    }
 
     const addEdge = (
         source: string,
@@ -109,7 +105,7 @@ export function buildImplicationGraph(
 
     // antecedent edges, from the reason clause each node already resolved
     for (let k = 0; k < trail.length; k++) {
-        const lit = trail[k];
+        const lit = trail[k].lit;
         const node = nodes[k];
 
         for (const other of node.reasonLiterals ?? []) {
@@ -121,10 +117,12 @@ export function buildImplicationGraph(
     }
 
     // edges into the conflict node from the negated literals of the falsified clause
-    for (const lit of conflict.conflictLiterals) {
-        const antecedent = -lit;
-        if (assigned.has(antecedent)) {
-            addEdge(String(antecedent), conflictNodeID, conflict.clauseId);
+    if (conflict) {
+        for (const lit of conflict.literals) {
+            const antecedent = -lit;
+            if (assigned.has(antecedent)) {
+                addEdge(String(antecedent), conflictNodeID, conflict.clauseId);
+            }
         }
     }
 
