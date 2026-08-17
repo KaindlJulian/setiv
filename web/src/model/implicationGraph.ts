@@ -4,7 +4,13 @@ import type { SolverRun } from "./run";
 import type { ActiveConflict, SolverState } from "./trail";
 
 export const conflictNodeID = "conflict";
-export const coneNodeThreshold = 30;
+
+export type GraphScope = "recent" | "cone" | "full";
+
+/** above this many nodes the graph is narrowed unless asked otherwise */
+export const narrowNodeThreshold = 30;
+/** how many trail entries "recent" keeps */
+export const recentTrailWindow = 30;
 
 export interface ImplicationNode {
     id: string;
@@ -129,6 +135,19 @@ export function buildImplicationGraph(
     return { conflict, nodes, edges };
 }
 
+function subgraph(
+    graph: ImplicationGraph,
+    keep: ReadonlySet<string>,
+): ImplicationGraph {
+    return {
+        conflict: graph.conflict,
+        nodes: graph.nodes.filter((n) => keep.has(n.id)),
+        edges: graph.edges.filter(
+            (e) => keep.has(e.source) && keep.has(e.target),
+        ),
+    };
+}
+
 /**
  * Narrows a graph to the conflict cone.
  */
@@ -157,13 +176,28 @@ export function coneOf(graph: ImplicationGraph): ImplicationGraph {
         }
     }
 
-    return {
-        conflict: graph.conflict,
-        nodes: graph.nodes.filter((n) => reachable.has(n.id)),
-        edges: graph.edges.filter(
-            (e) => reachable.has(e.target), // reachable.has(e.source), not needed assuming the graph is correct
-        ),
-    };
+    return subgraph(graph, reachable);
+}
+
+/**
+ * Narrows a graph to the tail of the trail, plus the assignments that directly
+ * forced it. The conflict node is built last, so it stays in the window.
+ */
+export function recentOf(
+    graph: ImplicationGraph,
+    window: number,
+): ImplicationGraph {
+    const seeds = new Set(graph.nodes.slice(-window).map((n) => n.id));
+    const keep = new Set(seeds);
+
+    // one hop only, so this must test against the frozen seeds
+    for (const e of graph.edges) {
+        if (seeds.has(e.target)) {
+            keep.add(e.source);
+        }
+    }
+
+    return subgraph(graph, keep);
 }
 
 function reasonLiterals(

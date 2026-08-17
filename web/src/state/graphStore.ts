@@ -1,23 +1,38 @@
-import { computed, type ReadonlySignal } from "@preact/signals";
 import {
     buildImplicationGraph,
-    coneNodeThreshold,
     coneOf,
+    narrowNodeThreshold,
+    recentOf,
+    recentTrailWindow,
+    type GraphScope,
     type ImplicationGraph,
 } from "@/model/implicationGraph";
 import { type SolverRun } from "@/model/run";
 import { type SolverState } from "@/model/trail";
+import { computed, effect, signal, type ReadonlySignal } from "@preact/signals";
 
 export interface GraphStore {
-    fullGraph: ReadonlySignal<ImplicationGraph | null>;
-    coneGraph: ReadonlySignal<ImplicationGraph | null>;
-    coneDefault: ReadonlySignal<boolean>;
+    /** what the panel draws, already narrowed to the current scope */
+    graph: ReadonlySignal<ImplicationGraph | null>;
+
+    scope: ReadonlySignal<GraphScope>;
+    setScope(scope: GraphScope): void;
+
+    /** whether there is a conflict to walk back from */
+    conflictActive: ReadonlySignal<boolean>;
 }
 
 export function createGraphStore(
     run: ReadonlySignal<SolverRun | null>,
     state: ReadonlySignal<SolverState | null>,
 ): GraphStore {
+    const scopeOverride = signal<GraphScope | null>(null);
+
+    effect(() => {
+        run.value;
+        scopeOverride.value = null;
+    });
+
     const fullGraph = computed(() => {
         const r = run.value;
         const s = state.value;
@@ -25,18 +40,45 @@ export function createGraphStore(
         return r && s ? buildImplicationGraph(r, s) : null;
     });
 
-    // Without a conflict there is nothing to walk back from, so the cone is the
-    // whole graph.
-    const coneGraph = computed(() => {
-        const full = fullGraph.value;
+    const conflictActive = computed(() => fullGraph.value?.conflict != null);
 
-        return full && full.conflict ? coneOf(full) : full;
+    const defaultScope = computed<GraphScope>(() => {
+        const g = fullGraph.value;
+
+        if (!g || g.nodes.length <= narrowNodeThreshold) {
+            return "full";
+        }
+
+        return g.conflict ? "cone" : "recent";
     });
 
-    /** which graph to draw first */
-    const coneDefault = computed(
-        () => (fullGraph.value?.nodes.length ?? 0) > coneNodeThreshold,
+    // Stepping off a conflict would leave a cone with nothing to walk back from.
+    const scope = computed(() =>
+        scopeOverride.value === "cone" && !conflictActive.value
+            ? "recent"
+            : (scopeOverride.value ?? defaultScope.value),
     );
 
-    return { fullGraph, coneGraph, coneDefault };
+    const graph = computed(() => {
+        const g = fullGraph.value;
+
+        if (!g) {
+            return null;
+        }
+
+        switch (scope.value) {
+            case "cone":
+                return coneOf(g);
+            case "recent":
+                return recentOf(g, recentTrailWindow);
+            case "full":
+                return g;
+        }
+    });
+
+    const setScope = (next: GraphScope) => {
+        scopeOverride.value = next;
+    };
+
+    return { graph, scope, setScope, conflictActive };
 }

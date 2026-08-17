@@ -1,21 +1,26 @@
 import { Panel } from "@/components/Panel";
 import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
 import { clauseRef } from "@/lib/format";
+import type { GraphScope } from "@/model/implicationGraph";
 import { useGraphs, useProjections, useView } from "@/state/context";
-import { useState } from "preact/hooks";
 import { ConflictSelector } from "./ConflictSelector";
 import { ImplicationGraph } from "./ImplicationGraph";
 
-const scopes: ScopeOption<boolean>[] = [
+const scopes: ScopeOption<GraphScope>[] = [
     {
-        value: false,
-        label: "Full",
-        title: "The whole implication graph (including nodes not relevant for conflict analysis)",
+        value: "recent",
+        label: "Recent",
+        title: "The newest assignments on the trail and what forced them",
     },
     {
-        value: true,
+        value: "cone",
         label: "Cone",
         title: "Only the predecessors of the current conflict",
+    },
+    {
+        value: "full",
+        label: "Full",
+        title: "The whole implication graph (including nodes not relevant for conflict analysis)",
     },
 ];
 
@@ -24,22 +29,13 @@ export function ImplicationPanel() {
     const projections = useProjections();
     const view = useView();
 
-    const [override, setOverride] = useState<{
-        at: number;
-        cone: boolean;
-    } | null>(null);
-
     const state = projections.committedState.value;
     const conflict = state?.conflict ?? null;
+    const graph = graphs.graph.value;
 
-    // The override belongs to the conflict it was made on, so moving to another
-    // one falls back to the default scope.
-    const cone =
-        conflict && override?.at === conflict.eventIndex
-            ? override.cone
-            : graphs.coneDefault.value;
-
-    const graph = cone ? graphs.coneGraph.value : graphs.fullGraph.value;
+    const available = graphs.conflictActive.value
+        ? scopes
+        : scopes.filter((s) => s.value !== "cone");
 
     return (
         <Panel
@@ -47,18 +43,11 @@ export function ImplicationPanel() {
             title="Implication Graph"
             actions={
                 <div class="flex flex-wrap items-center gap-2">
-                    {conflict && (
-                        <ScopeToggle
-                            scopes={scopes}
-                            value={cone}
-                            onChange={(value) =>
-                                setOverride({
-                                    at: conflict.eventIndex,
-                                    cone: value,
-                                })
-                            }
-                        />
-                    )}
+                    <ScopeToggle
+                        scopes={available}
+                        value={graphs.scope.value}
+                        onChange={graphs.setScope}
+                    />
                     <ConflictSelector />
                 </div>
             }
