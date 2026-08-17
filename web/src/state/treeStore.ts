@@ -1,9 +1,9 @@
 import {
     buildTreeSkeleton,
+    collectCollapsedKeys,
     materializeTree,
     treeNodeThreshold,
     type DecisionTree,
-    type TreeScope,
     type TreeSkeleton,
 } from "@/model/decisionTree";
 import { type SolverRun } from "@/model/run";
@@ -20,13 +20,14 @@ export interface TreeStore {
     /** what the panel draws */
     tree: ReadonlySignal<DecisionTree | null>;
 
-    scope: ReadonlySignal<TreeScope>;
-    defaultScope: ReadonlySignal<TreeScope>;
-    setScope(scope: TreeScope | null): void;
+    /** whether propagations are folded into the decision that caused them */
+    folded: ReadonlySignal<boolean>;
+    setFolded(folded: boolean): void;
 
     /** whether anything is collapsed open right now */
     hasExpansions: ReadonlySignal<boolean>;
     toggleExpanded(key: string): void;
+    expandAll(): void;
     collapseAll(): void;
 }
 
@@ -34,40 +35,29 @@ export function createTreeStore(
     run: ReadonlySignal<SolverRun | null>,
     committedStep: ReadonlySignal<number>,
 ): TreeStore {
-    const override = signal<TreeScope | null>(null);
+    const foldOverride = signal<boolean | null>(null);
+    const expandAllOverride = signal<boolean | null>(null);
     const expanded = signal<ReadonlySet<string>>(new Set());
 
     let skeletonFor: SolverRun | null = null;
     let skeletonCache: TreeSkeleton | null = null; // built once for a run. the structure of the full tree, everything needed to materialize the tree
 
-    // A new run invalidates both the chosen scope and every open branch.
+    // A new run invalidates both the chosen mode and every open branch.
     effect(() => {
         run.value;
 
         batch(() => {
-            override.value = null;
+            foldOverride.value = null;
+            expandAllOverride.value = null;
             expanded.value = new Set();
         });
     });
 
-    const defaultScope = computed<TreeScope>(() => {
-        const stats = run.value?.stats;
+    const defaultFolded = computed(
+        () => (run.value?.stats.events ?? 0) > treeNodeThreshold,
+    );
 
-        if (!stats) {
-            return "full";
-        }
-
-        if (stats.events <= treeNodeThreshold) {
-            return "full";
-        }
-
-        // What decisions-only would actually draw, against what d3 can take.
-        return stats.decisions + stats.conflicts <= treeChart.maxNodes
-            ? "decisions"
-            : "active";
-    });
-
-    const scope = computed(() => override.value ?? defaultScope.value);
+    const folded = computed(() => foldOverride.value ?? defaultFolded.value);
 
     /**
      * Built on first read, must not be touched after
@@ -87,6 +77,16 @@ export function createTreeStore(
         return skeletonCache;
     });
 
+    /** a tree that fits the render budget has nothing to gain from markers */
+    const defaultExpandAll = computed(() => {
+        const skelet = skeleton.value;
+        return skelet !== null && skelet.nodeCount <= treeChart.maxNodes;
+    });
+
+    const allExpanded = computed(
+        () => expandAllOverride.value ?? defaultExpandAll.value,
+    );
+
     const tree = computed(() => {
         const skelet = skeleton.value;
 
@@ -95,20 +95,20 @@ export function createTreeStore(
         }
 
         return materializeTree(skelet, {
-            scope: scope.value,
-            step:
-                scope.value === "active"
-                    ? committedStep.value
-                    : skelet.lastStep,
+            step: committedStep.value,
+            foldPropagations: folded.value,
             expanded: expanded.value,
+            expandAll: allExpanded.value,
             budget: treeChart.maxNodes,
         });
     });
 
-    const hasExpansions = computed(() => expanded.value.size > 0);
+    const hasExpansions = computed(
+        () => allExpanded.value || expanded.value.size > 0,
+    );
 
-    const setScope = (next: TreeScope | null) => {
-        override.value = next;
+    const setFolded = (next: boolean) => {
+        foldOverride.value = next;
     };
 
     const toggleExpanded = (key: string) => {
@@ -121,19 +121,33 @@ export function createTreeStore(
         expanded.value = next;
     };
 
-    const collapseAll = () => {
-        if (expanded.value.size > 0) {
-            expanded.value = new Set();
+    /** opens every marker the tree currently draws, deeper ones stay clickable */
+    const expandAll = () => {
+        const drawn = tree.peek();
+
+        if (!drawn) {
+            return;
         }
+
+        const next = new Set(expanded.peek());
+        collectCollapsedKeys(drawn.root, next);
+        expanded.value = next;
+    };
+
+    const collapseAll = () => {
+        batch(() => {
+            expandAllOverride.value = false;
+            expanded.value = new Set();
+        });
     };
 
     return {
         tree,
-        scope,
-        defaultScope,
-        setScope,
+        folded,
+        setFolded,
         hasExpansions,
         toggleExpanded,
+        expandAll,
         collapseAll,
     };
 }

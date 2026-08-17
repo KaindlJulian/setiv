@@ -3,13 +3,6 @@ import type { EventOf, SolverEvent } from "./events";
 export type TreeNodeKind =
     "root" | "decision" | "propagation" | "conflict" | "collapsed";
 
-/**
- * - `full` and `decisions` are whole-run views, bounded by the node budget.
- * - `active` is the trail at the cursor, with every abandoned branch hanging off
- *   it replaced by a single node.
- */
-export type TreeScope = "active" | "decisions" | "full";
-
 export interface TreeNode {
     /** Event index of the node. `ROOT` for the root, first source when collapsed. */
     id: number;
@@ -32,16 +25,12 @@ export interface TreeNode {
 
 export interface DecisionTree {
     root: TreeNode;
-    scope: TreeScope;
-    /** decisions actually drawn */
-    decisionCount: number;
-    /** nodes actually drawn, root and collapsed markers included */
-    nodeCount: number;
+    foldPropagations: boolean;
     /** nodes standing behind the collapsed markers */
     hiddenNodeCount: number;
 }
 
-/** trees smaller than this open in full mode */
+/** runs smaller than this draw every propagation */
 export const treeNodeThreshold = 400;
 
 /** `parent` of a node the root owns */
@@ -224,11 +213,14 @@ export const stubPageSize = 32;
 export const stubExpandBudget = 200;
 
 export interface MaterializeOptions {
-    scope: TreeScope;
-    /** the cursor, relevant for active mode only */
+    /** the cursor the trail is taken at */
     step: number;
+    /** draw a decision's propagations as a counter on it instead of as nodes */
+    foldPropagations: boolean;
     /** keys of the collapsed nodes the user has clicked open */
     expanded: ReadonlySet<string>;
+    /** treat every collapsed node as expanded, only safe when the whole tree fits the budget */
+    expandAll?: boolean;
     /** max number of nodes */
     budget: number;
     fanout?: number;
@@ -237,7 +229,7 @@ export interface MaterializeOptions {
 }
 
 /**
- * Grows the bounded d3 tree, renders out of the skeleton.
+ * Grows the bounded d3 tree of the trail at `step`, renders out of the skeleton.
  * Whatever it cannot draw becomes a collapsed node. drawing order is bfs
  *
  * 2 Budgets:
@@ -257,18 +249,9 @@ export function materializeTree(
     const pageSize = opts.pageSize ?? stubPageSize;
     const expandBudget = opts.expandBudget ?? stubExpandBudget;
 
-    /**
-     * Only `active` follows the cursor, for other scopes its the last step
-     */
-    const step =
-        opts.scope === "active"
-            ? Math.min(Math.max(opts.step, 0), skeleton.lastStep)
-            : skeleton.lastStep;
+    const step = Math.min(Math.max(opts.step, 0), skeleton.lastStep);
+    const foldPropagations = opts.foldPropagations;
 
-    const foldPropagations = opts.scope !== "full";
-
-    let nodeCount = 1;
-    let decisionCount = 0;
     let hiddenCount = 0;
 
     let capacity = opts.budget;
@@ -358,7 +341,7 @@ export function materializeTree(
         const key = single ? `x${sources[0]}` : `g${sources[0]}`;
 
         // marker is expanded, draw the branch isntead
-        if (opts.expanded.has(key)) {
+        if (opts.expandAll || opts.expanded.has(key)) {
             if (single) {
                 capacity += expandBudget;
                 grow(holder, sources, isBacktracked);
@@ -394,7 +377,6 @@ export function materializeTree(
         });
 
         markersCapacity--;
-        nodeCount++;
     };
 
     /** One marker per branch for the first page (up to pageSize), one aggregate for the rest. */
@@ -491,11 +473,6 @@ export function materializeTree(
             const node = makeNode(item.id, backtracked);
             item.keeper.children.push(node);
             capacity--;
-            nodeCount++;
-
-            if (node.kind === "decision") {
-                decisionCount++;
-            }
 
             enqueueChildren(queue, node, item.id, backtracked);
         }
@@ -528,8 +505,8 @@ export function materializeTree(
     }
 
     /**
-     * The active scope. Walks the live path from the root and is always drawn.
-     * It hangs the abandoned branches off it as markers.
+     * Walks the live path from the root, which is always drawn, and hangs the
+     * abandoned branches off it as markers.
      * A node is live at `step` when it exists and no backtrack has unwound it.
      */
     function growActiveSpine() {
@@ -574,10 +551,6 @@ export function materializeTree(
             } else {
                 const node = makeNode(next, false);
                 keeper.children.push(node);
-                nodeCount++;
-                if (node.kind === "decision") {
-                    decisionCount++;
-                }
                 keeper = node;
             }
 
@@ -585,24 +558,23 @@ export function materializeTree(
         }
     }
 
-    if (opts.scope === "active") {
-        growActiveSpine();
-    } else {
-        const bucket = skeleton.rootBucket;
-        const seeds: number[] = [];
-
-        for (let j = childStart[bucket]; j < childStart[bucket + 1]; j++) {
-            seeds.push(childList[j]);
-        }
-
-        grow(root, seeds, false);
-    }
+    growActiveSpine();
 
     return {
         root,
-        scope: opts.scope,
-        decisionCount,
-        nodeCount,
+        foldPropagations,
         hiddenNodeCount: hiddenCount,
     };
+}
+
+/** keys of every collapsed marker drawn under `node` */
+export function collectCollapsedKeys(node: TreeNode, into: Set<string>) {
+    if (node.kind === "collapsed") {
+        into.add(node.key);
+        return;
+    }
+
+    for (const child of node.children) {
+        collectCollapsedKeys(child, into);
+    }
 }

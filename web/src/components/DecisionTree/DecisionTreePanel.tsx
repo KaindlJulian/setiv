@@ -1,25 +1,20 @@
 import { Panel } from "@/components/Panel";
 import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
 import { compactCount } from "@/lib/format";
-import { type TreeNode, type TreeScope } from "@/model/decisionTree";
+import { type TreeNode } from "@/model/decisionTree";
 import { useSource, useTrees, useView } from "@/state/context";
 import { DecisionTree } from "./DecisionTree";
 
-const scopes: ScopeOption<TreeScope>[] = [
+const modes: ScopeOption<boolean>[] = [
     {
-        value: "active",
-        label: "Active",
-        title: "The trail at the current step, with backtracked branches collapsed",
-    },
-    {
-        value: "decisions",
+        value: true,
         label: "Decisions",
-        title: "The whole search, propagation chains collapsed into the decision that caused them",
+        title: "Propagation chains collapsed into the decision that caused them",
     },
     {
-        value: "full",
-        label: "Full",
-        title: "The complete decision tree",
+        value: false,
+        label: "Propagations",
+        title: "Every propagation drawn as its own node",
     },
 ];
 
@@ -30,6 +25,7 @@ export function DecisionTreePanel() {
 
     const tree = trees.tree.value;
     const hidden = tree?.hiddenNodeCount ?? 0;
+    const expanded = trees.hasExpansions.value;
 
     const select = (node: TreeNode) => {
         if (node.kind === "conflict") {
@@ -50,19 +46,18 @@ export function DecisionTreePanel() {
                             {compactCount(hidden)} nodes collapsed
                         </span>
                     )}
-                    {trees.hasExpansions.value && (
-                        <button
-                            type="button"
-                            class="btn btn-xs"
-                            onClick={trees.collapseAll}
-                        >
-                            Collapse All
-                        </button>
-                    )}
+                    <button
+                        type="button"
+                        class="btn btn-xs"
+                        disabled={!expanded && hidden === 0}
+                        onClick={expanded ? trees.collapseAll : trees.expandAll}
+                    >
+                        {expanded ? "Collapse All" : "Expand All"}
+                    </button>
                     <ScopeToggle
-                        scopes={scopes}
-                        value={trees.scope.value}
-                        onChange={trees.setScope}
+                        scopes={modes}
+                        value={trees.folded.value}
+                        onChange={trees.setFolded}
                     />
                 </div>
             }

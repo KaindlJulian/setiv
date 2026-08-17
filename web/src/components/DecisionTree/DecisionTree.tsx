@@ -2,11 +2,7 @@ import * as d3 from "d3";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { cn } from "@/lib/cn";
 import { treeNodeLabel } from "@/lib/format";
-import type {
-    DecisionTree as Tree,
-    TreeNode,
-    TreeScope,
-} from "@/model/decisionTree";
+import type { DecisionTree as Tree, TreeNode } from "@/model/decisionTree";
 import {
     layoutDecisionTree,
     type TreeLayoutEdge,
@@ -38,10 +34,10 @@ const impliedNode: LegendItem = {
     fill: colors.node,
 };
 
-function legendFor(scope: TreeScope): LegendItem[] {
-    return scope === "full"
-        ? [decisionEdge, propagationEdge]
-        : [decisionEdge, propagationEdge, impliedNode];
+function legendFor(folded: boolean): LegendItem[] {
+    return folded
+        ? [decisionEdge, propagationEdge, impliedNode]
+        : [decisionEdge, propagationEdge];
 }
 
 interface Hover {
@@ -220,7 +216,7 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
                 )}
             </div>
 
-            <Legend items={legendFor(tree.scope)} />
+            <Legend items={legendFor(tree.foldPropagations)} />
         </div>
     );
 }
