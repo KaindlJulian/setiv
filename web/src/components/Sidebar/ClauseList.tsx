@@ -1,7 +1,10 @@
+import { useRevealRow } from "@/hooks/useRevealRow";
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
+import { cn } from "@/lib/cn";
 import type { ClauseRecord } from "@/model/clauseDatabase";
 import { litValue, type SolverState } from "@/model/trail";
 import { colors } from "@/view/theme";
+import { useMemo } from "preact/hooks";
 
 const rowHeight = 20;
 
@@ -9,12 +12,29 @@ interface ClauseListProps {
     records: ClauseRecord[];
     state: SolverState;
     empty: string;
+    selectedId: number | null;
 }
 
-export function ClauseList({ records, state, empty }: ClauseListProps) {
+export function ClauseList({
+    records,
+    state,
+    empty,
+    selectedId,
+}: ClauseListProps) {
     const window = useRowVirtualizer(records.length, rowHeight, {
         follow: true,
     });
+
+    const revealed = useMemo(() => {
+        if (selectedId == null) {
+            return null;
+        }
+
+        const row = records.findIndex((r) => r.id === selectedId);
+        return row >= 0 ? row : null;
+    }, [records, selectedId]);
+
+    useRevealRow(window, revealed);
 
     if (records.length === 0) {
         return <p class="text-base-content/40 px-2 py-2 text-xs">{empty}</p>;
@@ -28,7 +48,12 @@ export function ClauseList({ records, state, empty }: ClauseListProps) {
         rows.push(
             <div
                 key={record.key}
-                class="hover:bg-base-300 flex h-5 items-center gap-2 px-2 font-mono text-xs whitespace-nowrap"
+                class={cn(
+                    "flex h-5 items-center gap-2 border-l-2 px-2 font-mono text-xs whitespace-nowrap",
+                    record.id === selectedId
+                        ? "border-primary bg-primary/20"
+                        : "hover:bg-base-300 border-transparent",
+                )}
             >
                 <span class="text-base-content/40 w-14 shrink-0 truncate">
                     {record.key}

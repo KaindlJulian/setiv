@@ -111,6 +111,7 @@ export function TrailList({ state }: { state: SolverState }) {
 
         const { entry } = row;
         const current = entry.eventIndex === selected;
+        const reasonId = entry.isDecision ? null : entry.reasonClauseId;
 
         rendered.push(
             <div
@@ -130,11 +131,19 @@ export function TrailList({ state }: { state: SolverState }) {
                     @{entry.level}
                 </span>
                 <span
-                    class={
+                    onClick={
+                        reasonId != null && reasonId >= 0
+                            ? () => view.revealClause(reasonId)
+                            : undefined
+                    }
+                    class={cn(
                         entry.isDecision
                             ? "text-setiv-decision font-semibold"
-                            : "text-base-content/50"
-                    }
+                            : "text-base-content/50",
+                        reasonId != null &&
+                            reasonId >= 0 &&
+                            "hover:text-base-content cursor-pointer hover:underline",
+                    )}
                 >
                     {trailReason(entry)}
                 </span>

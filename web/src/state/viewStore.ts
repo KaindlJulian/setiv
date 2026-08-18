@@ -1,4 +1,8 @@
-import { type ClauseSection } from "@/model/clauseDatabase";
+import {
+    clauseById,
+    isAliveAt,
+    type ClauseSection,
+} from "@/model/clauseDatabase";
 import { type SolverRun } from "@/model/run";
 import { batch, effect, signal, type ReadonlySignal } from "@preact/signals";
 import { type CursorStore } from "./cursorStore";
@@ -20,9 +24,11 @@ export interface ViewStore {
     openSection(id: SidebarSection): void;
 
     selectedEvent: ReadonlySignal<number | null>;
+    selectedClauseId: ReadonlySignal<number | null>;
     select(eventIndex: number | null): void;
 
     revealInTrail(eventIndex: number): void;
+    revealClause(clauseId: number): void;
     revealConflict(eventIndex: number): void;
 }
 
@@ -34,11 +40,15 @@ export function createViewStore(
     const visitedTabs = signal<ReadonlySet<TabId>>(new Set<TabId>(["graph"]));
     const sidebarSection = signal<SidebarSection | null>("trail");
     const selectedEvent = signal<number | null>(null);
+    const selectedClauseId = signal<number | null>(null);
 
     // A new run invalidates whatever was focused: the event indices are gone.
     effect(() => {
         run.value;
-        selectedEvent.value = null;
+        batch(() => {
+            selectedEvent.value = null;
+            selectedClauseId.value = null;
+        });
     });
 
     const showTab = (id: TabId) => {
@@ -60,20 +70,40 @@ export function createViewStore(
     };
 
     const select = (eventIndex: number | null) => {
-        selectedEvent.value = eventIndex;
+        batch(() => {
+            selectedEvent.value = eventIndex;
+            selectedClauseId.value = null;
+        });
     };
 
     const revealInTrail = (eventIndex: number) => {
         batch(() => {
-            selectedEvent.value = eventIndex;
+            select(eventIndex);
             sidebarSection.value = "trail";
+        });
+    };
+
+    const revealClause = (clauseId: number) => {
+        const db = run.value?.clauseDb;
+        const record = db ? clauseById(db, clauseId) : null;
+
+        if (!record) {
+            return;
+        }
+
+        batch(() => {
+            selectedEvent.value = null;
+            selectedClauseId.value = clauseId;
+            sidebarSection.value = isAliveAt(record, cursor.stepIndex.value)
+                ? record.origin
+                : "deleted";
         });
     };
 
     const revealConflict = (eventIndex: number) => {
         batch(() => {
             cursor.jumpTo(eventIndex);
-            selectedEvent.value = null;
+            select(null);
             showTab("graph");
         });
     };
@@ -86,8 +116,10 @@ export function createViewStore(
         toggleSection,
         openSection,
         selectedEvent,
+        selectedClauseId,
         select,
         revealInTrail,
+        revealClause,
         revealConflict,
     };
 }

@@ -11,7 +11,7 @@ import {
     type ClauseStatus,
     type SolverState,
 } from "@/model/trail";
-import { useProjections, useSource } from "@/state/context";
+import { useProjections, useSource, useView } from "@/state/context";
 import { useState } from "preact/hooks";
 
 const land = "∧";
@@ -98,6 +98,7 @@ interface ClausesProps {
 
 function ClauseLines({ clauses, count, state }: ClausesProps) {
     const window = useScaledRowWindow(count, rowHeight);
+    const view = useView();
     const rows = [];
 
     for (let i = window.start; i < window.end; i++) {
@@ -111,7 +112,10 @@ function ClauseLines({ clauses, count, state }: ClausesProps) {
                     lineBackgroundTint[clauseStatus(record.literals, state)],
                 )}
             >
-                <span class="text-base-content/40 w-14 shrink-0 truncate select-none">
+                <span
+                    onClick={() => view.revealClause(record.id)}
+                    class="text-base-content/40 hover:text-base-content w-14 shrink-0 cursor-pointer truncate select-none hover:underline"
+                >
                     {record.key}
                 </span>
                 <span class="text-base-content/40">(</span>

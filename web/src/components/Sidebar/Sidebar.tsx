@@ -18,6 +18,7 @@ export function Sidebar() {
     const cursor = useCursor();
     const view = useView();
     const open = view.sidebarSection.value;
+    const selectedClause = view.selectedClauseId.value;
     const run = useSource().run.value;
     const state = projections.solverState.value;
     const step = cursor.stepIndex.value;
@@ -65,6 +66,7 @@ export function Sidebar() {
                     records={listFor("original")}
                     state={state}
                     empty="No original clauses alive at this step."
+                    selectedId={selectedClause}
                 />
             </CollapsibleSection>
 
@@ -77,6 +79,7 @@ export function Sidebar() {
                     records={listFor("learned")}
                     state={state}
                     empty="Nothing learned at this step."
+                    selectedId={selectedClause}
                 />
             </CollapsibleSection>
 
@@ -89,6 +92,7 @@ export function Sidebar() {
                     records={listFor("deleted")}
                     state={state}
                     empty="No clauses deleted at this step."
+                    selectedId={selectedClause}
                 />
             </CollapsibleSection>
         </>
