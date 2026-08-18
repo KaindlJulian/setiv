@@ -9,6 +9,10 @@ export interface SvgCanvasOptions {
     arrowMarker?: boolean;
 }
 
+/** Within a factor of two: a step grows the layout, a scope change replaces it. */
+const comparable = (next: number, previous: number) =>
+    previous > 0 && next > previous / 2 && next < previous * 2;
+
 /**
  * Reset `svgEl` and return the zoomable `<g>` layer to draw into.
  *
@@ -23,8 +27,15 @@ export function createSvgCanvas(
     const { scaleExtent = [0.1, 100], arrowMarker = false } = options;
 
     const svg = d3.select(svgEl);
-    // Charts are redrawn on every step, so the view has to survive the wipe.
-    const transform = d3.zoomTransform(svgEl);
+
+    // Charts are redrawn on every step, so the view has to survive the wipe. A
+    // layout of a wildly different size is a different drawing though, and a pan
+    // carried over into it can leave the content off screen with no way back.
+    const last = svgEl.viewBox.baseVal;
+    const transform =
+        comparable(width, last.width) && comparable(height, last.height)
+            ? d3.zoomTransform(svgEl)
+            : d3.zoomIdentity;
 
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
