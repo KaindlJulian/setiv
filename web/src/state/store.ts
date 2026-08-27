@@ -24,8 +24,13 @@ export function createSolverStore(): SolverStore {
         source.run,
         cursor.stepIndex,
         cursor.committedStep,
+        cursor.conflictStep,
     );
-    const graphs = createGraphStore(source.run, projections.committedState);
+    const graphs = createGraphStore(
+        source.run,
+        projections.committedState,
+        projections.conflictState,
+    );
     const trees = createTreeStore(source.run, cursor.committedStep);
     const view = createViewStore(source.run, cursor);
 

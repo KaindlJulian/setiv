@@ -2,16 +2,11 @@ import { Panel } from "@/components/Panel";
 import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
 import { clauseRef } from "@/lib/format";
 import type { GraphScope } from "@/model/implicationGraph";
-import { useGraphs, useProjections, useView } from "@/state/context";
+import { useCursor, useGraphs, useView } from "@/state/context";
 import { ConflictSelector } from "./ConflictSelector";
 import { ImplicationGraph } from "./ImplicationGraph";
 
 const scopes: ScopeOption<GraphScope>[] = [
-    {
-        value: "recent",
-        label: "Recent",
-        title: "The newest assignments on the trail and what forced them",
-    },
     {
         value: "cone",
         label: "Cone",
@@ -20,16 +15,17 @@ const scopes: ScopeOption<GraphScope>[] = [
     {
         value: "full",
         label: "Full",
-        title: "The whole implication graph (including nodes not relevant for conflict analysis)",
+        title: "The whole implication graph of the trail (including nodes not relevant for conflict analysis)",
     },
 ];
 
 export function ImplicationPanel() {
+    const cursor = useCursor();
     const graphs = useGraphs();
-    const projections = useProjections();
     const view = useView();
 
-    const state = projections.committedState.value;
+    const live = graphs.live.value;
+    const state = graphs.state.value;
     const conflict = state?.conflict ?? null;
     const graph = graphs.graph.value;
 
@@ -37,10 +33,16 @@ export function ImplicationPanel() {
         ? scopes
         : scopes.filter((s) => s.value !== "cone");
 
+    const selected = cursor.selectedConflictIndex.value;
+    const title =
+        live || selected < 0
+            ? "Implication Graph"
+            : `Implication Graph conflict #${selected}`;
+
     return (
         <Panel
             fill
-            title="Implication Graph"
+            title={title}
             actions={
                 <div class="flex flex-wrap items-center gap-2">
                     <ScopeToggle
@@ -81,7 +83,11 @@ export function ImplicationPanel() {
                 </>
             ) : (
                 <p class="text-base-content/40 flex min-h-0 flex-1 items-center justify-center p-6 text-center text-sm">
-                    Nothing assigned at this step.
+                    {live
+                        ? "Nothing assigned at this step."
+                        : cursor.conflicts.value.length === 0
+                          ? "No conflicts in this log."
+                          : "No conflicts at this step."}
                 </p>
             )}
         </Panel>

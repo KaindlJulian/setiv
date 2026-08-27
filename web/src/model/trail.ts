@@ -183,15 +183,20 @@ export function createReplay(run: SolverRun): Replay {
                 decisionLevel = ev.to_level;
                 conflict = null;
                 break;
-            case "conflict":
+            case "conflict": {
+                // needed for the live implication graph, look ahead to get learned literals on the conflict cursor.
+                const next = events[eventIndex + 1];
+
                 conflict = {
                     eventIndex,
                     clauseId: ev.clause_id,
                     literals: ev.literals,
                     level: ev.level,
-                    learnedLiterals: null,
+                    learnedLiterals:
+                        next?.event === "learn" ? next.learned_literals : null,
                 };
                 break;
+            }
             case "learn":
                 if (conflict) {
                     conflict = {

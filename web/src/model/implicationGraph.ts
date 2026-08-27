@@ -5,12 +5,10 @@ import type { ActiveConflict, SolverState } from "./trail";
 
 export const conflictNodeID = "conflict";
 
-export type GraphScope = "recent" | "cone" | "full";
+export type GraphScope = "cone" | "full";
 
-/** above this many nodes the graph is narrowed unless asked otherwise */
+export const liveVariableThreshold = 100;
 export const narrowNodeThreshold = 30;
-/** how many trail entries "recent" keeps */
-export const recentTrailWindow = 30;
 
 export interface ImplicationNode {
     id: string;
@@ -177,27 +175,6 @@ export function coneOf(graph: ImplicationGraph): ImplicationGraph {
     }
 
     return subgraph(graph, reachable);
-}
-
-/**
- * Narrows a graph to the tail of the trail, plus the assignments that directly
- * forced it. The conflict node is built last, so it stays in the window.
- */
-export function recentOf(
-    graph: ImplicationGraph,
-    window: number,
-): ImplicationGraph {
-    const seeds = new Set(graph.nodes.slice(-window).map((n) => n.id));
-    const keep = new Set(seeds);
-
-    // one hop only, so this must test against the frozen seeds
-    for (const e of graph.edges) {
-        if (seeds.has(e.target)) {
-            keep.add(e.source);
-        }
-    }
-
-    return subgraph(graph, keep);
 }
 
 function reasonLiterals(

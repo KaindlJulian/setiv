@@ -15,6 +15,8 @@ export interface RunProjections {
     solverState: ReadonlySignal<SolverState | null>;
     /** At the committed step, for views too costly to rebuild on every drag tick. */
     committedState: ReadonlySignal<SolverState | null>;
+    /** At the selected conflict, for views that stay anchored there while the step moves. */
+    conflictState: ReadonlySignal<SolverState | null>;
     clauseCounts: ReadonlySignal<ClauseCounts>;
 }
 
@@ -22,6 +24,7 @@ export function createProjections(
     run: ReadonlySignal<SolverRun | null>,
     stepIndex: ReadonlySignal<number>,
     committedStep: ReadonlySignal<number>,
+    conflictStep: ReadonlySignal<number>,
 ): RunProjections {
     const timeline = computed(() => {
         const r = run.value;
@@ -55,6 +58,7 @@ export function createProjections(
 
     const solverState = stateAt(stepIndex);
     const committedState = stateAt(committedStep);
+    const conflictState = stateAt(conflictStep);
 
     // Runs on every tick of a drag, so it must not scan the clause DB.
     const clauseCounts = computed<ClauseCounts>(() => {
@@ -67,5 +71,11 @@ export function createProjections(
         return clauseCountsAt(r.clauseDb, stepIndex.value);
     });
 
-    return { timeline, solverState, committedState, clauseCounts };
+    return {
+        timeline,
+        solverState,
+        committedState,
+        conflictState,
+        clauseCounts,
+    };
 }

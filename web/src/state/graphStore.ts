@@ -1,9 +1,8 @@
 import {
     buildImplicationGraph,
     coneOf,
+    liveVariableThreshold,
     narrowNodeThreshold,
-    recentOf,
-    recentTrailWindow,
     type GraphScope,
     type ImplicationGraph,
 } from "@/model/implicationGraph";
@@ -15,6 +14,12 @@ export interface GraphStore {
     /** what the panel draws, already narrowed to the current scope */
     graph: ReadonlySignal<ImplicationGraph | null>;
 
+    /** the state the graph was built from, for tooltips and the conflict banner */
+    state: ReadonlySignal<SolverState | null>;
+
+    /** whether the graph follows the step, rather than show the current conflict as a snapshot */
+    live: ReadonlySignal<boolean>;
+
     scope: ReadonlySignal<GraphScope>;
     setScope(scope: GraphScope): void;
 
@@ -24,7 +29,8 @@ export interface GraphStore {
 
 export function createGraphStore(
     run: ReadonlySignal<SolverRun | null>,
-    state: ReadonlySignal<SolverState | null>,
+    liveState: ReadonlySignal<SolverState | null>,
+    conflictState: ReadonlySignal<SolverState | null>,
 ): GraphStore {
     const scopeOverride = signal<GraphScope | null>(null);
 
@@ -32,6 +38,14 @@ export function createGraphStore(
         run.value;
         scopeOverride.value = null;
     });
+
+    const live = computed(
+        () => (run.value?.stats.variables ?? 0) < liveVariableThreshold,
+    );
+
+    const state = computed(() =>
+        live.value ? liveState.value : conflictState.value,
+    );
 
     const fullGraph = computed(() => {
         const r = run.value;
@@ -45,19 +59,20 @@ export function createGraphStore(
     const defaultScope = computed<GraphScope>(() => {
         const g = fullGraph.value;
 
-        if (!g || g.nodes.length <= narrowNodeThreshold) {
-            return "full";
-        }
-
-        return g.conflict ? "cone" : "recent";
+        return g && g.conflict && g.nodes.length > narrowNodeThreshold
+            ? "cone"
+            : "full";
     });
 
-    // Stepping off a conflict would leave a cone with nothing to walk back from.
-    const scope = computed(() =>
-        scopeOverride.value === "cone" && !conflictActive.value
-            ? "recent"
-            : (scopeOverride.value ?? defaultScope.value),
-    );
+    // An override outlives the step it was picked at, and a cone needs a
+    // conflict to walk back from.
+    const scope = computed(() => {
+        const wanted = scopeOverride.value;
+
+        return !wanted || (wanted === "cone" && !conflictActive.value)
+            ? defaultScope.value
+            : wanted;
+    });
 
     const graph = computed(() => {
         const g = fullGraph.value;
@@ -69,8 +84,6 @@ export function createGraphStore(
         switch (scope.value) {
             case "cone":
                 return coneOf(g);
-            case "recent":
-                return recentOf(g, recentTrailWindow);
             case "full":
                 return g;
         }
@@ -80,5 +93,5 @@ export function createGraphStore(
         scopeOverride.value = next;
     };
 
-    return { graph, scope, setScope, conflictActive };
+    return { graph, state, live, scope, setScope, conflictActive };
 }
