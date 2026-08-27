@@ -8,6 +8,8 @@ const fileNames = Object.keys(logFiles).map((path) => {
     return path.split("/").pop() || "";
 });
 
+const solvers = ["CaDiCaL", "setiv-dpll"];
+
 interface FileInputProps {
     onSettled?: () => void;
 }
@@ -55,16 +57,30 @@ export function FileInput({ onSettled }: FileInputProps) {
 
     return (
         <div class="flex flex-col gap-3">
-            <label class="flex flex-col gap-1.5">
-                <span class="text-red text-sm font-medium">CNF Formula</span>
-                <input
-                    type="file"
-                    accept=".jsonl,.ndjson"
-                    onChange={() => alert("todo")}
-                    class="file-input file-input-sm w-full"
-                    disabled
-                />
-            </label>
+            <div class="flex items-end gap-2">
+                <label class="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <span class="text-red text-sm font-medium">
+                        CNF Formula
+                    </span>
+                    <input
+                        type="file"
+                        accept=".cnf,.dimacs"
+                        onChange={() => alert("todo")}
+                        class="file-input file-input-sm w-full"
+                        disabled
+                    />
+                </label>
+                <label class="flex w-32 shrink-0 flex-col gap-1.5">
+                    <span class="text-sm font-medium">Solver</span>
+                    <select class="select select-sm w-full">
+                        {solvers.map((s) => (
+                            <option key={s} value={s}>
+                                {s}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+            </div>
             <label class="flex flex-col gap-1.5">
                 <span class="text-sm font-medium">Solver event log</span>
                 <input
