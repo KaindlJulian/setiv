@@ -3,6 +3,7 @@ import { Legend } from "@/components/Legend";
 import { useElementSize } from "@/hooks/useElementSize";
 import { cn } from "@/lib/cn";
 import type { ImplicationGraph as Graph } from "@/model/implicationGraph";
+import type { SolverState } from "@/model/trail";
 import { drawImplicationNode, implicationLegend } from "@/view/implicationNode";
 import {
     layoutImplicationGraph,
@@ -13,7 +14,7 @@ import { createSvgCanvas } from "@/view/svgCanvas";
 import { colors, implicationChart } from "@/view/theme";
 import type { Point } from "@dagrejs/dagre";
 import * as d3 from "d3";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { NodeTooltip } from "./NodeTooltip";
 
 interface Hover {
@@ -28,16 +29,22 @@ const edgeOpacity = 0.5;
 const edgeLabelOpacity = 0.75;
 const fadeMs = 150;
 
-export function ImplicationGraph({ graph }: { graph: Graph | null }) {
+interface Props {
+    graph: Graph | null;
+    state: SolverState;
+    onSelect(eventIndex: number): void;
+}
+
+/** the conflict node is not an assignment, so there is nothing to select */
+const clickable = (d: PositionedNode) => !d.isConflict;
+
+export function ImplicationGraph({ graph, state, onSelect }: Props) {
     const [box, size] = useElementSize<HTMLDivElement>();
     const svgRef = useRef<SVGSVGElement>(null);
     const [hover, setHover] = useState<Hover | null>(null);
 
-    /** the literals the trail held when the conflict hit, for the tooltip */
-    const assigned = useMemo(
-        () => new Set(graph?.conflict.trail ?? []),
-        [graph],
-    );
+    const select = useRef(onSelect);
+    select.current = onSelect;
 
     useEffect(() => {
         const svgEl = svgRef.current;
@@ -96,11 +103,21 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
             .selectAll("g")
             .data(nodes)
             .join("g")
-            .attr("class", "cursor-pointer")
+            .attr("class", (d: PositionedNode) =>
+                clickable(d) ? "cursor-pointer" : null,
+            )
             .attr(
                 "transform",
                 (d: PositionedNode) => `translate(${d.x},${d.y})`,
-            );
+            )
+            .on("click", (event: Event, d: PositionedNode) => {
+                if (!clickable(d)) {
+                    return;
+                }
+
+                event.stopPropagation();
+                select.current(d.eventIndex);
+            });
 
         node.each(function (this: SVGGElement, d: PositionedNode) {
             drawImplicationNode(d3.select(this), d);
@@ -188,11 +205,7 @@ export function ImplicationGraph({ graph }: { graph: Graph | null }) {
                         y={hover.y}
                         containerWidth={size.width}
                     >
-                        <NodeTooltip
-                            node={hover.node}
-                            assigned={assigned}
-                            trailLength={graph.conflict.trail.length}
-                        />
+                        <NodeTooltip node={hover.node} state={state} />
                     </HoverCard>
                 )}
             </div>

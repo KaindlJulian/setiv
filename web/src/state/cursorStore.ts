@@ -23,6 +23,8 @@ export interface CursorStore {
     /** -1 until the first conflict is reached. */
     selectedConflictIndex: ReadonlySignal<number>;
     selectedConflict: ReadonlySignal<ConflictRecord | null>;
+    /** Step the conflict-anchored graph is taken at, -1 before the first conflict. */
+    conflictStep: ReadonlySignal<number>;
 
     selectConflict(index: number): void;
     setStep(step: number): void;
@@ -69,6 +71,10 @@ export function createCursorStore(
 
     const selectedConflict = computed(
         () => conflicts.value[selectedConflictIndex.value] ?? null,
+    );
+
+    const conflictStep = computed(
+        () => selectedConflict.value?.eventIndex ?? -1,
     );
 
     const currentEvent = computed(
@@ -138,6 +144,7 @@ export function createCursorStore(
         conflicts,
         selectedConflictIndex,
         selectedConflict,
+        conflictStep,
         selectConflict,
         setStep,
         jumpTo,

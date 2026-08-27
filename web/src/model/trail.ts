@@ -14,6 +14,19 @@ export interface TrailEntry {
     eventIndex: number;
 }
 
+/**
+ * The conflict the log last reported, for as long as the trail it was reported
+ * against is still intact. Any assignment or unwind retires it.
+ */
+export interface ActiveConflict {
+    eventIndex: number;
+    clauseId: number;
+    literals: readonly number[];
+    level: number;
+    /** null until the `learn` event that follows is reached. */
+    learnedLiterals: readonly number[] | null;
+}
+
 export interface SolverState {
     step: number;
     /** Indexed by variable; index 0 unused. */
@@ -22,6 +35,7 @@ export interface SolverState {
     level: Int32Array;
     trail: TrailEntry[];
     decisionLevel: number;
+    conflict: ActiveConflict | null;
 }
 
 /**
@@ -77,6 +91,7 @@ interface Checkpoint {
     level: Int32Array;
     trail: TrailEntry[];
     decisionLevel: number;
+    conflict: ActiveConflict | null;
 }
 
 /**
@@ -98,6 +113,7 @@ export function createReplay(run: SolverRun): Replay {
     const level = new Int32Array(size).fill(-1);
     let trail: TrailEntry[] = [];
     let decisionLevel = 0;
+    let conflict: ActiveConflict | null = null;
 
     /** Index of the last applied event */
     let cursor = -1;
@@ -150,6 +166,7 @@ export function createReplay(run: SolverRun): Replay {
             case "decide":
                 assign(ev.literal, ev.level, null, true, eventIndex);
                 decisionLevel = ev.level;
+                conflict = null;
                 break;
             case "propagate":
                 assign(
@@ -159,10 +176,34 @@ export function createReplay(run: SolverRun): Replay {
                     false,
                     eventIndex,
                 );
+                conflict = null;
                 break;
             case "backtrack":
                 unwindTo(ev.to_level);
                 decisionLevel = ev.to_level;
+                conflict = null;
+                break;
+            case "conflict": {
+                // needed for the live implication graph, look ahead to get learned literals on the conflict cursor.
+                const next = events[eventIndex + 1];
+
+                conflict = {
+                    eventIndex,
+                    clauseId: ev.clause_id,
+                    literals: ev.literals,
+                    level: ev.level,
+                    learnedLiterals:
+                        next?.event === "learn" ? next.learned_literals : null,
+                };
+                break;
+            }
+            case "learn":
+                if (conflict) {
+                    conflict = {
+                        ...conflict,
+                        learnedLiterals: ev.learned_literals,
+                    };
+                }
                 break;
             default:
                 break;
@@ -174,6 +215,7 @@ export function createReplay(run: SolverRun): Replay {
         level.fill(-1);
         trail = [];
         decisionLevel = 0;
+        conflict = null;
         cursor = -1;
     };
 
@@ -193,6 +235,7 @@ export function createReplay(run: SolverRun): Replay {
         level.set(checkpoint.level);
         trail = checkpoint.trail.slice();
         decisionLevel = checkpoint.decisionLevel;
+        conflict = checkpoint.conflict;
         cursor = (j + 1) * interval - 1;
     };
 
@@ -214,6 +257,7 @@ export function createReplay(run: SolverRun): Replay {
             level: level.slice(),
             trail: trail.slice(),
             decisionLevel,
+            conflict,
         });
     };
 
@@ -239,6 +283,7 @@ export function createReplay(run: SolverRun): Replay {
                 level: level.slice(),
                 trail: trail.slice(),
                 decisionLevel,
+                conflict,
             };
         },
     };
