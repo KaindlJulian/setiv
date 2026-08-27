@@ -1,4 +1,8 @@
+import { cn } from "@/lib/cn";
+import { solvers } from "@/model/solvers";
 import { useSource } from "@/state/context";
+import { selectedSolverId, solverInfoOpen } from "@/state/solverSelection";
+import { Info } from "lucide-preact";
 
 const logFiles = import.meta.glob("../../public/samples/*.jsonl", {
     query: "?url",
@@ -8,13 +12,12 @@ const fileNames = Object.keys(logFiles).map((path) => {
     return path.split("/").pop() || "";
 });
 
-const solvers = ["CaDiCaL", "setiv-dpll"];
-
 interface FileInputProps {
     onSettled?: () => void;
+    showInfoToggle?: boolean;
 }
 
-export function FileInput({ onSettled }: FileInputProps) {
+export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
     const source = useSource();
 
     const handleFile = async (file: File | undefined) => {
@@ -71,16 +74,47 @@ export function FileInput({ onSettled }: FileInputProps) {
                     />
                 </label>
                 <label class="flex w-32 shrink-0 flex-col gap-1.5">
-                    <span class="text-sm font-medium">Solver</span>
-                    <select class="select select-sm w-full">
+                    <span class="flex items-center justify-between gap-1 text-sm font-medium">
+                        Solver
+                        {showInfoToggle && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    solverInfoOpen.value =
+                                        !solverInfoOpen.value;
+                                }}
+                                aria-expanded={solverInfoOpen.value}
+                                aria-controls="solver-info"
+                                aria-label="Solver details"
+                                title="Solver details"
+                                class={cn(
+                                    "btn btn-ghost btn-xs px-1",
+                                    solverInfoOpen.value && "btn-active",
+                                )}
+                            >
+                                <Info size={13} />
+                            </button>
+                        )}
+                    </span>
+                    <select
+                        value={selectedSolverId.value}
+                        onChange={(e) => {
+                            selectedSolverId.value = (
+                                e.currentTarget as HTMLSelectElement
+                            ).value;
+                        }}
+                        class="select select-sm w-full"
+                    >
                         {solvers.map((s) => (
-                            <option key={s} value={s}>
-                                {s}
+                            <option key={s.id} value={s.id}>
+                                {s.name}
                             </option>
                         ))}
                     </select>
                 </label>
             </div>
+
             <label class="flex flex-col gap-1.5">
                 <span class="text-sm font-medium">Solver event log</span>
                 <input

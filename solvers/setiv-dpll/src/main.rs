@@ -10,7 +10,7 @@ use std::process::ExitCode;
 
 const USAGE: &str = "usage: setiv-dpll [--events FILE] <input.cnf>
 
-  --events FILE   write the NDJSON event log to FILE; without it, no log
+  --events FILE   write the NDJSON event log to FILE
   -h, --help      show this message
 ";
 
