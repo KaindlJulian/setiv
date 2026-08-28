@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "solver-event-schema",
+  "$id": "solver-event-protocol-schema",
   "title": "Solver Event",
-  "description": "Validates a single CDCL solver event object from a Solver Event Protocol NDJSON stream. E.g. a single line of the log, to validate the whole log, repeat validation for each line, or wrap it in an array and use `solver_log_schema.json`",
+  "description": "Validates a single CDCL solver event object from a Solver Event Protocol NDJSON stream. In other words, a single line of the log",
   "oneOf": [
     { "$ref": "#/definitions/init" },
     { "$ref": "#/definitions/decide" },

@@ -1,4 +1,4 @@
-export const SUPPORTED_PROTOCOL_VERSION = "2";
+export const SUPPORTED_PROTOCOL_VERSION = "1";
 
 export interface ClauseListEntry {
     id: number;

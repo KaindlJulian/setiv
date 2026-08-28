@@ -22,7 +22,7 @@ export const solvers: SolverInfo[] = [
     },
     {
         id: "cadical-plain",
-        name: "CaDiCaL (Plain)",
+        name: "CaDiCaL - Plain",
         algorithm: "CDCL",
         decisions: "VMTF queue",
         version: "3.0.0",

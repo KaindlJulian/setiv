@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """Check that an event log can be replayed as a pure forward fold.
 
-This is the acceptance test for the backtrack/learn split: it replays the
-stream using nothing but the three trail-affecting events, with no
-solver-specific inference, and checks the result against the oracle carried in
-the log itself.
-
     decide     -> append literal at event.level
     propagate  -> append literal at event.level
     backtrack  -> keep entries with level <= to_level (stable filter), drop rest
