@@ -1,4 +1,3 @@
-import { cn } from "@/lib/cn";
 import { solvers } from "@/model/solvers";
 import { useSource } from "@/state/context";
 import { selectedSolverId, solverInfoOpen } from "@/state/solverSelection";
@@ -73,9 +72,9 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                         disabled
                     />
                 </label>
-                <label class="flex w-32 shrink-0 flex-col gap-1.5">
+                <div class="flex w-32 shrink-0 flex-col gap-1.5">
                     <span class="flex items-center justify-between gap-1 text-sm font-medium">
-                        Solver
+                        <label for="solver-select">Solver</label>
                         {showInfoToggle && (
                             <button
                                 type="button"
@@ -84,20 +83,15 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                                     solverInfoOpen.value =
                                         !solverInfoOpen.value;
                                 }}
-                                aria-expanded={solverInfoOpen.value}
-                                aria-controls="solver-info"
-                                aria-label="Solver details"
                                 title="Solver details"
-                                class={cn(
-                                    "btn btn-ghost btn-xs px-1",
-                                    solverInfoOpen.value && "btn-active",
-                                )}
+                                class="btn btn-ghost btn-xs px-1"
                             >
                                 <Info size={13} />
                             </button>
                         )}
                     </span>
                     <select
+                        id="solver-select"
                         value={selectedSolverId.value}
                         onChange={(e) => {
                             selectedSolverId.value = (
@@ -112,7 +106,7 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                             </option>
                         ))}
                     </select>
-                </label>
+                </div>
             </div>
 
             <label class="flex flex-col gap-1.5">
