@@ -4,6 +4,7 @@ import { useRef, useState } from "preact/hooks";
 import { useDismiss } from "@/hooks/useDismiss";
 import { cn } from "@/lib/cn";
 import { FileInput } from "@/components/FileInput";
+import { RunStatus } from "@/components/RunStatus";
 import { ThemeToggle } from "./ThemeToggle";
 
 declare const __GIT_COMMIT__: string;
@@ -33,6 +34,7 @@ export function Navbar() {
             </div>
 
             <div class="flex shrink-0 items-center gap-1">
+                <RunStatus />
                 <LogMenu />
                 <ThemeToggle />
             </div>

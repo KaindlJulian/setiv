@@ -272,9 +272,6 @@ export function materializeTree(
     const isPropagation = (id: number) => events[id].event === "propagate";
     const levelOf = (id: number) => {
         const ev = events[id];
-        if (!("level" in ev)) {
-            console.log("event without level", ev);
-        }
         return "level" in ev ? ev.level : 0;
     };
 

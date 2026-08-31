@@ -18,21 +18,24 @@ interface FileInputProps {
 
 export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
     const source = useSource();
+    const status = source.status.value;
+    const busy = status !== "idle";
 
-    const handleFile = async (file: File | undefined) => {
+    const handleLog = async (file: File | undefined) => {
         if (!file) {
             return;
         }
 
-        try {
-            source.loadLog(await file.text(), file.name);
-        } catch (err) {
-            source.setLoadError(
-                `Could not read ${file.name}: ${err}`,
-                file.name,
-            );
+        await source.loadLogFile(file);
+        onSettled?.();
+    };
+
+    const handleFormula = async (file: File | undefined) => {
+        if (!file) {
+            return;
         }
 
+        await source.loadFormula(file, selectedSolverId.value);
         onSettled?.();
     };
 
@@ -48,7 +51,8 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                     name,
                 );
             } else {
-                source.loadLog(await res.text(), name);
+                const blob = await res.blob();
+                await source.loadLogFile(new File([blob], name));
             }
         } catch (err) {
             source.setLoadError(`Could not load sample ${name}: ${err}`, name);
@@ -61,15 +65,17 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
         <div class="flex flex-col gap-3">
             <div class="flex items-end gap-2">
                 <label class="flex min-w-0 flex-1 flex-col gap-1.5">
-                    <span class="text-red text-sm font-medium">
-                        CNF Formula
-                    </span>
+                    <span class="text-sm font-medium">CNF Formula</span>
                     <input
                         type="file"
                         accept=".cnf,.dimacs"
-                        onChange={() => alert("todo")}
+                        onChange={(e) => {
+                            const input = e.currentTarget as HTMLInputElement;
+                            void handleFormula(input.files?.[0]);
+                            input.value = "";
+                        }}
                         class="file-input file-input-sm w-full"
-                        disabled
+                        disabled={busy}
                     />
                 </label>
                 <div class="flex w-32 shrink-0 flex-col gap-1.5">
@@ -98,6 +104,7 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                                 e.currentTarget as HTMLSelectElement
                             ).value;
                         }}
+                        disabled={busy}
                         class="select select-sm w-full"
                     >
                         {solvers.map((s) => (
@@ -114,11 +121,12 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                 <input
                     type="file"
                     accept=".jsonl,.ndjson"
-                    onChange={(e) =>
-                        handleFile(
-                            (e.currentTarget as HTMLInputElement).files?.[0],
-                        )
-                    }
+                    onChange={(e) => {
+                        const input = e.currentTarget as HTMLInputElement;
+                        void handleLog(input.files?.[0]);
+                        input.value = "";
+                    }}
+                    disabled={busy}
                     class="file-input file-input-sm w-full"
                 />
             </label>
@@ -131,6 +139,7 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                             key={s}
                             type="button"
                             onClick={() => loadSample(s)}
+                            disabled={busy}
                             class="btn btn-xs font-mono font-normal"
                         >
                             {s.replace("cadical_", "")}

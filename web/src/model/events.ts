@@ -1,4 +1,4 @@
-export const SUPPORTED_PROTOCOL_VERSION = "1";
+export const SUPPORTED_PROTOCOL_VERSION = "2";
 
 export interface ClauseListEntry {
     id: number;
@@ -7,7 +7,7 @@ export interface ClauseListEntry {
 
 export interface InitEvent {
     event: "init";
-    protocol_version: String;
+    protocol_version: string;
     variables: number;
     clauses: number;
     variable_ids: number[];
@@ -26,7 +26,7 @@ export interface PropagateEvent {
     literal: number;
     level: number;
     reason_clause_id: number | null;
-    /** Optional: consumers resolve the antecedent through `reason_clause_id`. */
+    /** Optional: consumers resolve the antecedent through `reason_clause_id`. Todo: comp */
     reason_literals?: number[];
 }
 
@@ -93,22 +93,78 @@ export type SolverEvent =
 export type EventKind = SolverEvent["event"];
 export type EventOf<K extends EventKind> = Extract<SolverEvent, { event: K }>;
 
-const eventKinds: readonly string[] = [
-    "init",
-    "decide",
-    "propagate",
-    "conflict",
-    "learn",
-    "backtrack",
-    "restart",
-    "delete_clause",
-    "result",
-];
+type Check = (v: unknown) => boolean;
+
+const num: Check = (v) => typeof v === "number" && Number.isFinite(v);
+const str: Check = (v) => typeof v === "string";
+const numOrNull: Check = (v) => v === null || num(v);
+const nums: Check = (v) => Array.isArray(v) && v.every(num);
+const clauses: Check = (v) =>
+    Array.isArray(v) &&
+    v.every(
+        (c) =>
+            typeof c === "object" &&
+            c !== null &&
+            num((c as { id?: unknown }).id) &&
+            nums((c as { literals?: unknown }).literals),
+    );
+
+const required: Record<EventKind, Record<string, Check>> = {
+    init: {
+        protocol_version: str,
+        variables: num,
+        clauses: num,
+        variable_ids: nums,
+        clause_list: clauses,
+    },
+    decide: { literal: num, level: num },
+    propagate: { literal: num, level: num, reason_clause_id: numOrNull },
+    conflict: { clause_id: num, literals: nums, level: num, trail: nums },
+    learn: {
+        learned_literals: nums,
+        glue: num,
+        clause_id: num,
+        jump_level: num,
+    },
+    backtrack: { from_level: num, to_level: num, kind: str },
+    restart: { count: num },
+    delete_clause: { clause_id: num, literals: nums },
+    result: { result: str, model: nums },
+};
+
+/**
+ * per event validation of log events. Returns null if the event is valid
+ * TODO: make this more performant, it runs in the hot path of parsing, flame chart shows its a bottleneck
+ */
+export function eventProblem(value: unknown): string | null {
+    if (typeof value !== "object" || value === null) {
+        return "not a JSON object";
+    }
+
+    const record = value as Record<string, unknown>;
+    const kind = record.event;
+
+    if (kind === undefined) {
+        return "no `event` field";
+    }
+
+    if (typeof kind !== "string" || !(kind in required)) {
+        return `unknown event kind ${JSON.stringify(kind)}`;
+    }
+
+    for (const [field, ok] of Object.entries(required[kind as EventKind])) {
+        if (!(field in record)) {
+            return `${kind} is missing \`${field}\``;
+        }
+
+        if (!ok(record[field])) {
+            return `${kind} has an unusable \`${field}\``;
+        }
+    }
+
+    return null;
+}
 
 export function isSolverEvent(value: unknown): value is SolverEvent {
-    return (
-        typeof value === "object" &&
-        value !== null &&
-        eventKinds.includes((value as any).event)
-    );
+    return eventProblem(value) === null;
 }

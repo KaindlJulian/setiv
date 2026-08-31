@@ -32,13 +32,14 @@ npx run dev
 
 ### Produce a log
 
-Build the solvers, then run one of the wrapper scripts on a formula:
+Two ways. In the browser, select a dimacs file in the formula input and pick
+a solver. It runs as WebAssembly and generates the log. Or build a solver and run:
 
 ```bash
-bash solvers/build.sh
+python3 solvers/build.py
 
-bash event_protocol/run_cadical_eventlog.sh formulas/php_4_3.cnf
-bash event_protocol/run_setiv_dpll_eventlog.sh formulas/php_4_3.cnf
+python3 event_protocol/run_eventlog.py cadical formulas/php_4_3.cnf
+python3 event_protocol/run_eventlog.py setiv-dpll formulas/php_4_3.cnf
 ```
 
 Logs land in `event_protocol/out/`.
@@ -56,20 +57,20 @@ One JSON object per line, one line per event. A conflict from
 {"event":"backtrack","from_level":1,"to_level":0,"kind":"conflict","reason":"analyze"}
 ```
 
-An `init` event opens every log with the variable count and the clause database
-the solver is about to search with.
+An `init` event opens every log with the variable count and the clause database..
 
 Nine events cover the search: `init`, `decide`, `propagate`, `conflict`,
-`learn`, `backtrack`, `restart`, `delete_clause`, `result`. The current version
-is `2`, and the viewer rejects anything else.
+`learn`, `backtrack`, `restart`, `delete_clause`, `result`.
 
-The spec defines the shape of the stream. It does not tell an adapter author which internal sites to
-hook or how much of the solver's state to expose. Fields a consumer branches on are a closed set that every CDCL solver
+The specification defines the shape of the stream. It does not tell an adapter author which internal sites to
+hook or how much of the solver's state to expose. Fields a consumer branches on are a closed set that every solver
 can fill in. Everything solver specific, heuristic names or the internal phase
-that requested a backtrack, is optional and marked display only.
+that requested a backtrack, is optional and display only.
 
-Read [`event_protocol/solver_event_protocol.md`](event_protocol/solver_event_protocol.md)
-for the full specification.
+See 
+
+- [`event_protocol/solver_event_protocol.md`](event_protocol/solver_event_protocol.md) for the full specification and details on how to implement the protocol for a solver.
+- [`event_protocol/json_schemas/solver_event_schema.json`](event_protocol/json_schemas/solver_event_schema.json) for a json schema to validate against.
 
 ### Adding a solver
 
@@ -79,11 +80,9 @@ adapter" section covers the hook points that are easy to get wrong, above all
 `backtrack`, which belongs at the solver's internal unwind function and not at
 its call sites.
 
-Two implementations to copy from:
+Reference implementations:
 
-- [`solvers/setiv-dpll`](solvers/setiv-dpll), around 500 lines of Rust, the
-  smallest complete example. It skips `learn`, `restart` and `delete_clause`,
-  which a DPLL solver has nothing to say about, and still replays correctly.
+- [`solvers/setiv-dpll`](solvers/setiv-dpll), an around 500 lines textbook DPLL solver without optimizations. Does not emit all events, because either they are not relevant to pure DPLL (e.g. `learn`) or the solver does not implement this behavior (e.g. `restart`). 
 - [`solvers/cadical`](solvers/cadical), a fork with the hooks in `src/hooks.cpp`
   behind an abstract `SolverObserver`, so the hook code and the NDJSON writing
   stay separate.

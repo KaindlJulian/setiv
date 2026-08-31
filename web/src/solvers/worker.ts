@@ -1,0 +1,141 @@
+/// <reference lib="webworker" />
+import type { SolverEvent } from "@/model/events";
+import { createEventParser, EventLogError } from "@/model/parseStream";
+import { solverById } from "@/model/solvers";
+import { createLogStore } from "./logStore";
+import type { RunCommand, WorkerMessage } from "./protocol";
+import { wasiPaths, wasiRuntime } from "./runtimes/wasi";
+
+/**
+ * Batching thresholds for the worker to js
+ *
+ * The solver runs to completion inside one synchronous call, so these bound how
+ * much the main thread waits between updates, not how much work happens here.
+ */
+const batchEvents = 50_000;
+const batchMs = 50;
+
+function post(message: WorkerMessage, transfer: Transferable[] = []) {
+    (self as DedicatedWorkerGlobalScope).postMessage(message, transfer);
+}
+
+self.onmessage = async (e: MessageEvent<RunCommand>) => {
+    try {
+        await run(e.data);
+    } catch (err) {
+        // Thrown at the first line that is not a well formatted event
+        if (err instanceof EventLogError) {
+            post({
+                type: "error",
+                message: err.message,
+                line: { number: err.line, text: err.text },
+            });
+            return;
+        }
+
+        post({ type: "error", message: String(err) });
+    }
+};
+
+async function run({ solverId, cnfName, cnfBytes }: RunCommand) {
+    const solver = solverById(solverId);
+
+    if (!solver?.wasm) {
+        throw new Error(`solver "${solverId}" has no wasm build`);
+    }
+
+    const paths = wasiPaths(cnfName, solverId);
+    const argv = solver.wasm.argv(paths);
+    const entry = `${import.meta.env.BASE_URL}solvers/${solver.wasm.module}`;
+
+    const store = await createLogStore(`${solverId}-${cnfName}.jsonl`);
+    const parser = createEventParser();
+
+    let pending: SolverEvent[] = [];
+    let bytes = 0;
+    let lastPost = performance.now();
+
+    const flush = () => {
+        post({ type: "events", events: pending, bytes });
+        pending = [];
+        lastPost = performance.now();
+    };
+
+    const { exitCode, output } = await wasiRuntime.run({
+        wasmModuleUrl: entry,
+        argv,
+        cnf: { path: paths.cnf, bytes: cnfBytes },
+        logPath: paths.log,
+        onChunk: (chunk) => {
+            bytes += chunk.byteLength;
+            store.write(chunk);
+
+            const events = parser.pushBytes(chunk);
+
+            if (events.length > 0) {
+                for (const event of events) {
+                    pending.push(event);
+                }
+            }
+
+            if (
+                pending.length >= batchEvents ||
+                performance.now() - lastPost >= batchMs
+            ) {
+                flush();
+            }
+        },
+    });
+
+    // Nothing logged and a nonzero exit means the solver never got as far as
+    // solving: bad arguments, a formula it could not read. A run that did start
+    // logs its header first, so 10 (SAT) and 20 (UNSAT) take the path below.
+    if (exitCode !== 0 && parser.protocolVersion === null) {
+        await store.discard();
+        post({
+            type: "error",
+            message: solverReason(output, solverId, paths.cnf, exitCode),
+        });
+        return;
+    }
+
+    for (const event of parser.finish()) {
+        pending.push(event);
+    }
+
+    if (pending.length > 0) {
+        flush();
+    }
+
+    post({
+        type: "done",
+        exitCode,
+        output,
+        bytes,
+        protocolVersion: parser.protocolVersion,
+        log: await store.finish(),
+    });
+}
+
+/**
+ * Why a solver exited, from what it wrote to stderr.
+ *
+ * Solvers name themselves and the file they were handed. The caller says both
+ * already, so those prefixes are dropped and only the reason is kept.
+ */
+function solverReason(
+    output: string,
+    solverId: string,
+    cnfPath: string,
+    exitCode: number,
+): string {
+    let reason = output.trim();
+
+    for (const prefix of [`${solverId}:`, `${cnfPath}:`]) {
+        if (reason.startsWith(prefix)) {
+            reason = reason.slice(prefix.length).trim();
+        }
+    }
+
+    return reason || `exited with code ${exitCode}`;
+}

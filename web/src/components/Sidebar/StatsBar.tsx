@@ -1,6 +1,8 @@
 import { cn } from "@/lib/cn";
 import { useSource } from "@/state/context";
+import { selectedSolver } from "@/state/solverSelection";
 import { colors } from "@/view/theme";
+import { Download } from "lucide-preact";
 
 export function StatsBar() {
     const source = useSource();
@@ -31,6 +33,7 @@ export function StatsBar() {
                 >
                     {source.fileName.value}
                 </span>
+                <DownloadLog />
                 {result && (
                     <span
                         class={cn(
@@ -52,5 +55,41 @@ export function StatsBar() {
                 ))}
             </dl>
         </div>
+    );
+}
+
+/**
+ * Download a log generated in the browser.
+ */
+function DownloadLog() {
+    const solver = selectedSolver.value;
+    const source = useSource();
+    const log = source.generatedLog.value;
+    const name = source.fileName.value.replace(/\.(cnf|dimacs)$/i, "");
+
+    if (!log) {
+        return null;
+    }
+
+    const save = () => {
+        const url = URL.createObjectURL(log);
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = `${name}_${solver.id}_events.jsonl`;
+        a.click();
+
+        URL.revokeObjectURL(url);
+    };
+
+    return (
+        <button
+            type="button"
+            onClick={save}
+            class="btn btn-ghost btn-xs shrink-0 px-1"
+            title={`Download ${name}_${solver.id}_events.jsonl`}
+        >
+            <Download size={13} />
+        </button>
     );
 }

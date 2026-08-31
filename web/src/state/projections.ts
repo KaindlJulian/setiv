@@ -1,8 +1,9 @@
-import { computed, type ReadonlySignal } from "@preact/signals";
 import { clauseCountsAt, type ClauseCounts } from "@/model/clauseDatabase";
+import type { SolverEvent } from "@/model/events";
 import { type SolverRun } from "@/model/run";
 import { buildTimeline, type Timeline } from "@/model/timeline";
 import { createReplay, type Replay, type SolverState } from "@/model/trail";
+import { computed, type ReadonlySignal } from "@preact/signals";
 
 export type { ClauseCounts };
 
@@ -35,9 +36,16 @@ export function createProjections(
      * One replay cursor per run, so stepping forward never refolds from zero.
      * Each step signal needs its own: a single cursor asked for two different
      * steps in turn would rewind to the previous checkpoint every time.
+     *
+     * The cache keys on the events array rather than the run object. A live
+     * solver publishes a new run per batch over the same append-only array, and
+     * a replay only ever reads events at or below its cursor, so those stay
+     * valid. Keying on the run itself would throw the checkpoints away several
+     * times a second and refold the whole prefix each time.
      */
     const stateAt = (step: ReadonlySignal<number>) => {
-        let replayFor: SolverRun | null = null;
+        let replayEvents: readonly SolverEvent[] | null = null;
+        let replayVariables = -1;
         let replay: Replay | null = null;
 
         return computed(() => {
@@ -47,9 +55,16 @@ export function createProjections(
                 return null;
             }
 
-            if (replayFor !== r || !replay) {
+            const variables = r.init?.variables ?? 0;
+
+            if (
+                !replay ||
+                replayEvents !== r.events ||
+                replayVariables !== variables
+            ) {
                 replay = createReplay(r);
-                replayFor = r;
+                replayEvents = r.events;
+                replayVariables = variables;
             }
 
             return replay.stateAt(step.value);

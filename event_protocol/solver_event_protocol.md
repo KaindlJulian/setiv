@@ -1,5 +1,5 @@
 # Solver Event Protocol
-Version: 1
+Version: 2
 
 A solver agnostic NDJSON event stream for CDCL event extraction.
 

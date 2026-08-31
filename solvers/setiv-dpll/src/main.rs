@@ -8,6 +8,11 @@ use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::process::ExitCode;
 
+/// Event-log write buffer. Large on purpose: under WASI every buffer flush is a
+/// host `fd_write` call, and the browser shim streams whatever arrives, so a
+/// bigger buffer means fewer boundary crossings and larger chunks downstream.
+const EVENT_BUF_BYTES: usize = 256 * 1024;
+
 const USAGE: &str = "usage: setiv-dpll [--events FILE] <input.cnf>
 
   --events FILE   write the NDJSON event log to FILE
@@ -50,7 +55,7 @@ fn main() -> ExitCode {
 
     let solved = match &events_path {
         Some(path) => match File::create(path) {
-            Ok(file) => run(&formula, BufWriter::new(file)),
+            Ok(file) => run(&formula, BufWriter::with_capacity(EVENT_BUF_BYTES, file)),
             Err(e) => return fail(&format!("cannot write {path}: {e}")),
         },
         None => run(&formula, io::sink()),

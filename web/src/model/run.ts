@@ -33,8 +33,19 @@ export interface ConflictRecord {
     level: number;
 }
 
-// One pass over the event stream
-export function buildRun(events: SolverEvent[]): SolverRun {
+/**
+ * Accumulates a SolverRun as events arrive.
+ *
+ * A live solver appends a batch at a time and takes a snapshot after each append
+ */
+export interface RunBuilder {
+    append(batch: readonly SolverEvent[]): void;
+    snapshot(): SolverRun;
+    readonly eventCount: number;
+}
+
+export function createRunBuilder(): RunBuilder {
+    const events: SolverEvent[] = [];
     const conflicts: ConflictRecord[] = [];
     const clauseDbBuilder = createClauseDatabaseBuilder();
 
@@ -46,77 +57,94 @@ export function buildRun(events: SolverEvent[]): SolverRun {
     let learned = 0;
     let deleted = 0;
 
-    for (let i = 0; i < events.length; i++) {
-        const ev = events[i];
-
-        switch (ev.event) {
-            case "init": {
-                init = ev;
-                clauseDbBuilder.init(ev);
-                break;
-            }
-            case "decide": {
-                decisions++;
-                break;
-            }
-            case "propagate": {
-                break;
-            }
-            case "conflict": {
-                conflicts.push({
-                    index: conflicts.length,
-                    eventIndex: i,
-                    clauseId: ev.clause_id,
-                    level: ev.level,
-                });
-                break;
-            }
-            case "learn": {
-                learned++;
-                clauseDbBuilder.learn(ev, i);
-                break;
-            }
-            case "backtrack": {
-                backtracks++;
-                break;
-            }
-            case "restart": {
-                restarts++;
-                break;
-            }
-            case "delete_clause": {
-                deleted++;
-                clauseDbBuilder.remove(ev, i);
-                break;
-            }
-            case "result": {
-                result = ev;
-                break;
-            }
-            default: {
-                console.error("invalid state");
-                break;
-            }
-        }
-    }
-
     return {
-        events,
-        init,
-        result,
-        conflicts,
-        clauseDb: clauseDbBuilder.finish(),
-        stats: {
-            variables: init?.variables ?? 0,
-            clauses: init?.clauses ?? 0,
-            events: events.length,
-            decisions,
-            conflicts: conflicts.length,
-            backtracks,
-            restarts,
-            learned,
-            deleted,
+        append(batch) {
+            for (const ev of batch) {
+                const i = events.length;
+                events.push(ev);
+
+                switch (ev.event) {
+                    case "init": {
+                        init = ev;
+                        clauseDbBuilder.init(ev);
+                        break;
+                    }
+                    case "decide": {
+                        decisions++;
+                        break;
+                    }
+                    case "propagate": {
+                        break;
+                    }
+                    case "conflict": {
+                        conflicts.push({
+                            index: conflicts.length,
+                            eventIndex: i,
+                            clauseId: ev.clause_id,
+                            level: ev.level,
+                        });
+                        break;
+                    }
+                    case "learn": {
+                        learned++;
+                        clauseDbBuilder.learn(ev, i);
+                        break;
+                    }
+                    case "backtrack": {
+                        backtracks++;
+                        break;
+                    }
+                    case "restart": {
+                        restarts++;
+                        break;
+                    }
+                    case "delete_clause": {
+                        deleted++;
+                        clauseDbBuilder.remove(ev, i);
+                        break;
+                    }
+                    case "result": {
+                        result = ev;
+                        break;
+                    }
+                    default: {
+                        console.error("invalid state");
+                        break;
+                    }
+                }
+            }
+        },
+
+        snapshot() {
+            return {
+                events,
+                init,
+                result,
+                conflicts,
+                clauseDb: clauseDbBuilder.finish(),
+                stats: {
+                    variables: init?.variables ?? 0,
+                    clauses: init?.clauses ?? 0,
+                    events: events.length,
+                    decisions,
+                    conflicts: conflicts.length,
+                    backtracks,
+                    restarts,
+                    learned,
+                    deleted,
+                },
+            };
+        },
+
+        get eventCount() {
+            return events.length;
         },
     };
 }
 
+/** One pass over a complete event stream. */
+export function buildRun(events: SolverEvent[]): SolverRun {
+    const builder = createRunBuilder();
+    builder.append(events);
+    return builder.snapshot();
+}

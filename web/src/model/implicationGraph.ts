@@ -181,11 +181,13 @@ function reasonLiterals(
     clauseDb: ClauseDatabase,
     ev: EventOf<"propagate">,
 ): readonly number[] {
-    return (
-        clauseById(clauseDb, ev.reason_clause_id)?.literals ??
-        ev.reason_literals ??
-        []
-    );
+    const reasonClause = clauseById(clauseDb, ev.reason_clause_id);
+
+    if (reasonClause === null) {
+        return [];
+    }
+
+    return reasonClause.literals;
 }
 
 function assignmentEvent(
