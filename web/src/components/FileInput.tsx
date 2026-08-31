@@ -2,6 +2,7 @@ import { solvers } from "@/model/solvers";
 import { useSource } from "@/state/context";
 import { selectedSolverId, solverInfoOpen } from "@/state/solverSelection";
 import { Info } from "lucide-preact";
+import { useLocation } from "preact-iso";
 
 const logFiles = import.meta.glob("../../public/samples/*.jsonl", {
     query: "?url",
@@ -20,6 +21,7 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
     const source = useSource();
     const status = source.status.value;
     const busy = status !== "idle";
+    const location = useLocation();
 
     const handleLog = async (file: File | undefined) => {
         if (!file) {
@@ -35,8 +37,10 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
             return;
         }
 
+        location.route("/chart");
         await source.loadFormula(file, selectedSolverId.value);
         onSettled?.();
+        location.route("/");
     };
 
     const loadSample = async (name: string) => {

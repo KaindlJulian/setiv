@@ -1,8 +1,7 @@
 /**
- * How to run a solver in the browser.
+ * Information for how to run the solver.
  *
- * `argv` is where a solver's own flag names live and nowhere else. Callers pass
- * normalized `SolverOptions`; the picker never learns what `--plain` is.
+ * `argv` are the flags
  */
 export interface WasmSolver {
     runtime: "wasi" | "emscripten";
@@ -24,30 +23,6 @@ export interface SolverInfo {
 }
 
 export const solvers: SolverInfo[] = [
-    /*{
-        id: "cadical",
-        name: "CaDiCaL",
-        algorithm: "CDCL",
-        decisions: "VMTF queue",
-        version: "3.0.0",
-        source: "https://github.com/arminbiere/cadical",
-        description: "Default CaDiCal.",
-        command: "cadical formula.cnf",
-    },
-    {
-        id: "cadical-plain",
-        name: "CaDiCaL - Plain",
-        algorithm: "CDCL",
-        decisions: "VMTF queue",
-        version: "3.0.0",
-        source: "https://github.com/arminbiere/cadical",
-        description:
-            "CaDiCaL with most optimizations disabled, so a log follows plain CDCL as close as possible.",
-        command:
-            "cadical --plain --lucky=false --no-otfs --chrono=false" +
-            " --no-restartreusetrail --no-stabilize --no-rephase --no-walk" +
-            " --shrink=0 formula.cnf",
-    },*/
     {
         id: "setiv-dpll",
         name: "setiv-dpll",
@@ -61,6 +36,40 @@ export const solvers: SolverInfo[] = [
             runtime: "wasi",
             module: "setiv-dpll.wasm",
             argv: ({ cnf, log }) => ["setiv-dpll", "--events", log, cnf],
+        },
+    },
+    {
+        id: "cadical",
+        name: "[WIP] CaDiCaL",
+        algorithm: "CDCL",
+        decisions: "VMTF queue",
+        version: "3.0.0",
+        source: "https://github.com/arminbiere/cadical",
+        description: "Default CaDiCal.",
+        command: "cadical formula.cnf",
+        wasm: {
+            runtime: "emscripten",
+            module: "",
+            argv: () => ["", "", "", ""],
+        },
+    },
+    {
+        id: "cadical-plain",
+        name: "[WIP] CaDiCaL Simple",
+        algorithm: "CDCL",
+        decisions: "VMTF queue",
+        version: "3.0.0",
+        source: "https://github.com/arminbiere/cadical",
+        description:
+            "CaDiCaL with most optimizations disabled. Should follow the plain CDCL algorithm more closely.",
+        command:
+            "cadical --plain --lucky=false --no-otfs --chrono=false" +
+            " --no-restartreusetrail --no-stabilize --no-rephase --no-walk" +
+            " --shrink=0 formula.cnf",
+        wasm: {
+            runtime: "emscripten",
+            module: "",
+            argv: () => ["", "", "", ""],
         },
     },
 ];

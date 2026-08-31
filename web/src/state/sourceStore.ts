@@ -33,8 +33,8 @@ export interface SourceStore {
     setLoadError(message: string, name?: string): void;
 }
 
-// How often the view is refreshed while a log streams in
-const refreshMs = 200;
+// How often the view is refreshed / a snapshot is built
+const refreshMs = 150;
 
 /**
  * Abort reason for a load that a newer load replaced. The old load then leaves
@@ -107,7 +107,7 @@ export function createSourceStore(): SourceStore {
         let lastPublish = 0;
 
         return {
-            accept(events: readonly SolverEvent[], bytes: number) {
+            accept: (events: readonly SolverEvent[], bytes: number) => {
                 builder.append(events);
                 bytesRead.value = bytes;
 
@@ -117,7 +117,7 @@ export function createSourceStore(): SourceStore {
                 }
             },
 
-            finish() {
+            finish: () => {
                 current = null;
                 batch(() => {
                     run.value = builder.snapshot();
