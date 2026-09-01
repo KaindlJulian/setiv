@@ -28,6 +28,7 @@ export const colors = {
     sat: "badge-success",
     unsat: "badge-error",
     unknown: "badge-ghost",
+    aborted: "badge-warning",
     "1": "text-setiv-true",
     "-1": "text-setiv-false",
     "0": "text-base-content",

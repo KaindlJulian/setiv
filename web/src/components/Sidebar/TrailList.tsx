@@ -124,7 +124,7 @@ export function TrailList({ state }: { state: SolverState }) {
                         : "hover:bg-base-300 border-transparent",
                 )}
             >
-                <span class="text-setiv-true w-12 shrink-0 text-right">
+                <span class="text-base-content w-12 shrink-0 text-right">
                     {entry.lit}
                 </span>
                 <span class="text-base-content/40 w-8 shrink-0">

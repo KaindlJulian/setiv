@@ -1,13 +1,13 @@
+import { FileInput } from "@/components/FileInput";
+import { RunStatus } from "@/components/RunStatus";
+import { useDismiss } from "@/hooks/useDismiss";
+import { cn } from "@/lib/cn";
+import { useSource } from "@/state/context";
 import { FolderOpen } from "lucide-preact";
 import { useLocation } from "preact-iso";
 import { useRef, useState } from "preact/hooks";
-import { useDismiss } from "@/hooks/useDismiss";
-import { cn } from "@/lib/cn";
-import { FileInput } from "@/components/FileInput";
-import { RunStatus } from "@/components/RunStatus";
 import { ThemeToggle } from "./ThemeToggle";
 
-declare const __GIT_COMMIT__: string;
 declare const __GIT_SUBJECT__: string;
 declare const __GIT_DATE__: string;
 
@@ -18,18 +18,23 @@ const pages = [
 ] as const;
 
 export function Navbar() {
+    const source = useSource();
+
     return (
         <header class="navbar border-base-300 bg-base-100 min-h-0 shrink-0 gap-2 border-b px-3 py-1.5">
             <div class="flex min-w-0 flex-1 items-center gap-2">
                 <h1 class="shrink-0 text-base font-semibold">
-                    SAT Visualizer (master)
+                    SETIV
+                    <span class="text-base-content/50 hidden truncate text-center text-xs lg:inline">
+                        (<span class="font-mono">master </span>
+                        {__GIT_SUBJECT__} - {__GIT_DATE__})
+                    </span>
                 </h1>
 
                 <PageNav />
 
-                <span class="text-base-content/50 hidden w-full truncate text-center text-xs lg:inline">
-                    <span class="font-mono">{__GIT_COMMIT__} - </span>
-                    {__GIT_SUBJECT__} - {__GIT_DATE__}
+                <span class="text-base-content/50 absolute hidden w-full truncate text-center text-xs lg:inline">
+                    <span>{source.fileName}</span>
                 </span>
             </div>
 
@@ -77,7 +82,7 @@ function LogMenu() {
                 class="btn btn-ghost btn-sm gap-2"
             >
                 <FolderOpen size={15} />
-                Open log
+                Open
             </summary>
             <div class="dropdown-content rounded-box border-base-300 bg-base-100 z-20 mt-1 w-80 border p-4 shadow-lg">
                 <FileInput onSettled={() => setOpen(false)} />

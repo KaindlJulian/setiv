@@ -87,9 +87,6 @@ async function run({ solverId, cnfName, cnfBytes }: RunCommand) {
         },
     });
 
-    // Nothing logged and a nonzero exit means the solver never got as far as
-    // solving: bad arguments, a formula it could not read. A run that did start
-    // logs its header first, so 10 (SAT) and 20 (UNSAT) take the path below.
     if (exitCode !== 0 && parser.protocolVersion === null) {
         await store.discard();
         post({

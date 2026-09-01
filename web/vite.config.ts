@@ -17,7 +17,6 @@ function commitDate() {
     if (!iso) return "";
     return new Date(iso).toLocaleString("at", {
         dateStyle: "short",
-        timeStyle: "short",
     });
 }
 

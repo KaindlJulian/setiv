@@ -26,12 +26,12 @@ export function RunStatus() {
             {solving && (
                 <button
                     type="button"
-                    onClick={() => source.cancel()}
+                    onClick={() => source.terminateSolver()}
                     class="btn btn-xs btn-ghost gap-1"
-                    title="Stop the solver and keep what it has produced"
+                    title="Terminate the solver. The partial log will remain in the store."
                 >
                     <X size={13} />
-                    Stop
+                    Abort
                 </button>
             )}
         </div>

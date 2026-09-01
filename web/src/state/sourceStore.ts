@@ -19,7 +19,7 @@ export interface SourceStore {
 
     status: ReadonlySignal<SourceStatus>;
     bytesRead: ReadonlySignal<number>;
-    /** The generated log, once a solver run finishes. Null for uploaded logs. */
+    /** The generated log blob */
     generatedLog: ReadonlySignal<Blob | null>;
 
     /** Read an event log from a file */
@@ -28,8 +28,8 @@ export interface SourceStore {
     loadLog(text: string, name: string): void;
     /** Run a solver on a formula and stream its log in as it is generated */
     loadFormula(file: File, solverId: string): Promise<void>;
-    /** Stop a running solver. Keep the partial log in store */
-    cancel(): void;
+    /** Terminate a running solver. Keep the partial log in store */
+    terminateSolver(): void;
     setLoadError(message: string, name?: string): void;
 }
 
@@ -300,7 +300,7 @@ export function createSourceStore(): SourceStore {
         loadLogFile,
         loadLog,
         loadFormula,
-        cancel,
+        terminateSolver: cancel,
         setLoadError,
     };
 }
