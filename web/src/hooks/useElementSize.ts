@@ -1,5 +1,4 @@
-import type { RefObject } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 export interface Size {
     width: number;
@@ -9,18 +8,32 @@ export interface Size {
 /**
  * Observe an element's content box size for responsive viewboxes
  */
-export function useElementSize<T extends HTMLElement>(): [RefObject<T>, Size] {
-    const ref = useRef<T>(null);
+export function useElementSize<T extends HTMLElement>(): [
+    (el: T | null) => void,
+    Size,
+    T | null,
+] {
     const [size, setSize] = useState<Size>({ width: 0, height: 0 });
+    const [element, setElement] = useState<T | null>(null);
+    const observer = useRef<ResizeObserver | null>(null);
 
-    useEffect(() => {
-        const el = ref.current;
+    useEffect(() => () => observer.current?.disconnect(), []);
+
+    const ref = useCallback((el: T | null) => {
+        observer.current?.disconnect();
+        observer.current = null;
+        setElement(el);
 
         if (!el) {
+            setSize((prev) =>
+                prev.width === 0 && prev.height === 0
+                    ? prev
+                    : { width: 0, height: 0 },
+            );
             return;
         }
 
-        const observer = new ResizeObserver((entries) => {
+        const next = new ResizeObserver((entries) => {
             const box = entries[0]?.contentRect;
 
             if (!box) {
@@ -34,10 +47,9 @@ export function useElementSize<T extends HTMLElement>(): [RefObject<T>, Size] {
             );
         });
 
-        observer.observe(el);
-
-        return () => observer.disconnect();
+        next.observe(el);
+        observer.current = next;
     }, []);
 
-    return [ref, size];
+    return [ref, size, element];
 }

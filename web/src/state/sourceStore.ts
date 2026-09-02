@@ -111,6 +111,10 @@ export function createSourceStore(): SourceStore {
                 builder.append(events);
                 bytesRead.value = bytes;
 
+                if (builder.eventCount === 0) {
+                    return;
+                }
+
                 if (performance.now() - lastPublish >= refreshMs) {
                     lastPublish = performance.now();
                     run.value = builder.snapshot();

@@ -39,7 +39,7 @@ interface Props {
 const clickable = (d: PositionedNode) => !d.isConflict;
 
 export function ImplicationGraph({ graph, state, onSelect }: Props) {
-    const [box, size] = useElementSize<HTMLDivElement>();
+    const [box, size, boxEl] = useElementSize<HTMLDivElement>();
     const svgRef = useRef<SVGSVGElement>(null);
     const [hover, setHover] = useState<Hover | null>(null);
 
@@ -48,7 +48,6 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
 
     useEffect(() => {
         const svgEl = svgRef.current;
-        const boxEl = box.current;
 
         if (!svgEl || !boxEl || !graph) {
             return;
@@ -185,7 +184,7 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
         });
 
         return () => setHover(null);
-    }, [graph]);
+    }, [graph, boxEl]);
 
     if (!graph) {
         return null;

@@ -56,9 +56,14 @@ async function run({ solverId, cnfName, cnfBytes }: RunCommand) {
     let lastPost = performance.now();
 
     const flush = () => {
+        lastPost = performance.now();
+
+        if (pending.length === 0) {
+            return;
+        }
+
         post({ type: "events", events: pending, bytes });
         pending = [];
-        lastPost = performance.now();
     };
 
     const { exitCode, output } = await wasiRuntime.run({

@@ -54,7 +54,7 @@ interface Props {
 
 export function DecisionTree({ tree, onExpand, onSelect }: Props) {
     const ref = useRef<SVGSVGElement>(null);
-    const [box, size] = useElementSize<HTMLDivElement>();
+    const [box, size, boxEl] = useElementSize<HTMLDivElement>();
     const [hover, setHover] = useState<Hover | null>(null);
 
     const expand = useRef(onExpand);
@@ -64,7 +64,6 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
 
     useEffect(() => {
         const svgEl = ref.current;
-        const boxEl = box.current;
 
         if (!svgEl || !boxEl || !tree) {
             return;
@@ -191,7 +190,7 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
             .text((d: TreeLayoutNode) => treeNodeLabel(d.node));
 
         return () => setHover(null);
-    }, [tree]);
+    }, [tree, boxEl]);
 
     if (!tree) {
         return null;
