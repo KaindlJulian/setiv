@@ -91,7 +91,7 @@ async function run({ solverId, cnfName, cnfBytes }: RunCommand) {
         await store.discard();
         post({
             type: "error",
-            message: solverReason(output, solverId, paths.cnf, exitCode),
+            message: output.trimEnd() || `exited with code ${exitCode}`,
         });
         return;
     }
@@ -112,27 +112,4 @@ async function run({ solverId, cnfName, cnfBytes }: RunCommand) {
         protocolVersion: parser.protocolVersion,
         log: await store.finish(),
     });
-}
-
-/**
- * Why a solver exited, from what it wrote to stderr.
- *
- * Solvers name themselves and the file they were handed. The caller says both
- * already, so those prefixes are dropped and only the reason is kept.
- */
-function solverReason(
-    output: string,
-    solverId: string,
-    cnfPath: string,
-    exitCode: number,
-): string {
-    let reason = output.trim();
-
-    for (const prefix of [`${solverId}:`, `${cnfPath}:`]) {
-        if (reason.startsWith(prefix)) {
-            reason = reason.slice(prefix.length).trim();
-        }
-    }
-
-    return reason || `exited with code ${exitCode}`;
 }

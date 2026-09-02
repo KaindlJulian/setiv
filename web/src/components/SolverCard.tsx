@@ -1,3 +1,4 @@
+import { solverDisplayCommand } from "@/model/solvers";
 import { selectedSolver } from "@/state/solverSelection";
 
 export function SolverCard() {
@@ -44,8 +45,8 @@ export function SolverCard() {
 
             <p class="text-base-content/80">{solver.description}</p>
 
-            <pre class="border-base-300 bg-base-200 rounded border p-2 font-mono break-words whitespace-pre-wrap">
-                {solver.command}
+            <pre class="border-base-300 bg-base-200 rounded border p-2 font-mono wrap-break-word whitespace-pre-wrap">
+                {solverDisplayCommand(solver)}
             </pre>
         </div>
     );

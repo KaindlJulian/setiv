@@ -23,7 +23,7 @@ export function Navbar() {
     return (
         <header class="navbar border-base-300 bg-base-100 min-h-0 shrink-0 gap-2 border-b px-3 py-1.5">
             <div class="flex min-w-0 flex-1 items-center gap-2">
-                <h1 class="shrink-0 text-base font-semibold">
+                <h1 class="z-10 shrink-0 text-base font-semibold">
                     SETIV
                     <span class="text-base-content/50 hidden truncate text-center text-xs lg:inline">
                         (<span class="font-mono">master </span>
@@ -38,7 +38,7 @@ export function Navbar() {
                 </span>
             </div>
 
-            <div class="flex shrink-0 items-center gap-1">
+            <div class="z-10 flex shrink-0 items-center gap-1">
                 <RunStatus />
                 <LogMenu />
                 <ThemeToggle />
@@ -51,7 +51,7 @@ function PageNav() {
     const { path } = useLocation();
 
     return (
-        <nav class="flex shrink-0 items-center gap-1">
+        <nav class="z-10 flex shrink-0 items-center gap-1">
             {pages.map(({ href, label }) => (
                 <a
                     key={href}

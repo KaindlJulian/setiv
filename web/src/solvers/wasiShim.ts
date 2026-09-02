@@ -14,6 +14,9 @@ const ERRNO_NOTCAPABLE = 76;
 const FILETYPE_DIRECTORY = 3;
 const FILETYPE_REGULAR_FILE = 4;
 
+const CLOCKID_REALTIME = 0;
+const ALL_RIGHTS = 0xffffffffffffffffn;
+
 const PREOPEN_FD = 3; // the first preopened directory is fd 3
 const FIRST_FILE_FD = 4; // any subsequent file descriptors start at 4
 
@@ -118,6 +121,18 @@ export function createWasi(options: WasiOptions): Wasi {
         return ERRNO_SUCCESS;
     };
 
+    /** Decode a path argument. Paths are relative to the one preopen. */
+    const pathAt = (ptr: number, len: number): string =>
+        decoder.decode(heap().subarray(ptr, ptr + len));
+
+    /** The 64 byte `filestat` both stat calls return. */
+    const writeFilestat = (statPtr: number, filetype: number, size: number) => {
+        new Uint8Array(memory!.buffer, statPtr, 64).fill(0);
+        view().setUint8(statPtr + 16, filetype);
+        view().setBigUint64(statPtr + 24, 1n, true); // nlink
+        view().setBigUint64(statPtr + 32, BigInt(size), true);
+    };
+
     const wasiImport = {
         args_sizes_get(countPtr: number, bufSizePtr: number): number {
             const bytes = args.reduce((n, arg) => n + arg.byteLength + 1, 0);
@@ -192,11 +207,7 @@ export function createWasi(options: WasiOptions): Wasi {
                 return ERRNO_BADF;
             }
 
-            const name = decoder.decode(
-                heap().subarray(pathPtr, pathPtr + pathLen),
-            );
-
-            console.log(`path_open: "${name}"`);
+            const name = pathAt(pathPtr, pathLen);
 
             // Assume flat directory
             if (name.includes("/")) {
@@ -272,20 +283,101 @@ export function createWasi(options: WasiOptions): Wasi {
         },
 
         fd_filestat_get(fd: number, statPtr: number): number {
-            const isDir = fd === PREOPEN_FD;
+            if (fd === PREOPEN_FD) {
+                writeFilestat(statPtr, FILETYPE_DIRECTORY, 0);
+                return ERRNO_SUCCESS;
+            }
+
+            if (fd >= 0 && fd <= 2) {
+                writeFilestat(statPtr, FILETYPE_REGULAR_FILE, 0);
+                return ERRNO_SUCCESS;
+            }
+
             const entry = open.get(fd);
 
-            if (!isDir && !entry) {
+            if (!entry) {
                 return ERRNO_BADF;
             }
 
-            const size = entry?.file.bytes?.byteLength ?? 0;
-            const filetype = isDir ? FILETYPE_DIRECTORY : FILETYPE_REGULAR_FILE;
+            const size = entry.file.bytes?.byteLength ?? 0;
+            writeFilestat(statPtr, FILETYPE_REGULAR_FILE, size);
+            return ERRNO_SUCCESS;
+        },
 
-            new Uint8Array(memory!.buffer, statPtr, 64).fill(0);
-            view().setUint8(statPtr + 16, filetype);
-            view().setBigUint64(statPtr + 24, 1n, true);
-            view().setBigUint64(statPtr + 32, BigInt(size), true);
+        path_filestat_get(
+            dirFd: number,
+            _flags: number,
+            pathPtr: number,
+            pathLen: number,
+            statPtr: number,
+        ): number {
+            if (dirFd !== PREOPEN_FD) {
+                return ERRNO_BADF;
+            }
+
+            const name = pathAt(pathPtr, pathLen);
+
+            // wasi-libc rewrites the preopened dirs own path to "." or "".
+            if (name === "." || name === "") {
+                writeFilestat(statPtr, FILETYPE_DIRECTORY, 0);
+                return ERRNO_SUCCESS;
+            }
+
+            const file = options.files.get(name);
+
+            if (!file) {
+                return ERRNO_NOENT;
+            }
+
+            writeFilestat(
+                statPtr,
+                FILETYPE_REGULAR_FILE,
+                file.bytes?.byteLength ?? 0,
+            );
+            return ERRNO_SUCCESS;
+        },
+
+        fd_fdstat_get(fd: number, statPtr: number): number {
+            const known = fd === PREOPEN_FD || (fd >= 0 && fd <= 2);
+
+            if (!known && !open.has(fd)) {
+                return ERRNO_BADF;
+            }
+
+            const filetype =
+                fd === PREOPEN_FD ? FILETYPE_DIRECTORY : FILETYPE_REGULAR_FILE;
+
+            new Uint8Array(memory!.buffer, statPtr, 24).fill(0);
+            view().setUint8(statPtr, filetype);
+            view().setUint16(statPtr + 2, 0, true); // fs_flags
+            view().setBigUint64(statPtr + 8, ALL_RIGHTS, true);
+            view().setBigUint64(statPtr + 16, ALL_RIGHTS, true);
+            return ERRNO_SUCCESS;
+        },
+
+        fd_fdstat_set_flags(_fd: number, _flags: number): number {
+            return ERRNO_SUCCESS;
+        },
+
+        fd_seek(
+            fd: number,
+            _offset: bigint,
+            _whence: number,
+            newOffsetPtr: number,
+        ): number {
+            const pos = open.get(fd)?.pos ?? 0;
+            view().setBigUint64(newOffsetPtr, BigInt(pos), true);
+            return ERRNO_SUCCESS;
+        },
+
+        clock_time_get(
+            clockId: number,
+            _precision: bigint,
+            timePtr: number,
+        ): number {
+            const ms =
+                clockId === CLOCKID_REALTIME ? Date.now() : performance.now();
+            view().setBigUint64(timePtr, BigInt(Math.round(ms * 1e6)), true);
             return ERRNO_SUCCESS;
         },
 
