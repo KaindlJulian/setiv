@@ -1,9 +1,9 @@
-import { solvers } from "@/model/solvers";
+import { solverById } from "@/model/solvers";
 import { computed, signal } from "@preact/signals";
 
-export const selectedSolverId = signal(solvers[0].id);
-export const solverInfoOpen = signal(false);
+/** Empty until the user picks one: the dropdown starts on "None". */
+export const selectedSolverId = signal("");
 
 export const selectedSolver = computed(
-    () => solvers.find((s) => s.id === selectedSolverId.value) ?? solvers[0],
+    () => solverById(selectedSolverId.value) ?? null,
 );

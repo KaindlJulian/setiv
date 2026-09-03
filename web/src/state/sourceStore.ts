@@ -27,7 +27,7 @@ export interface SourceStore {
     /** Read an event log from string */
     loadLog(text: string, name: string): void;
     /** Run a solver on a formula and stream its log in as it is generated */
-    loadFormula(file: File, solverId: string): Promise<void>;
+    loadFormula(file: File, solverId: string, flags: string[]): Promise<void>;
     /** Terminate a running solver. Keep the partial log in store */
     terminateSolver(): void;
     setLoadError(message: string, name?: string): void;
@@ -215,7 +215,11 @@ export function createSourceStore(): SourceStore {
         }
     };
 
-    const loadFormula = async (file: File, solverId: string) => {
+    const loadFormula = async (
+        file: File,
+        solverId: string,
+        flags: string[],
+    ) => {
         const dimacsText = await file.text();
         const abort = claim();
 
@@ -247,6 +251,7 @@ export function createSourceStore(): SourceStore {
             runSolver(
                 {
                     solverId,
+                    flags,
                     cnfName: file.name,
                     cnfBytes: new TextEncoder().encode(dimacsText),
                 },

@@ -1,8 +1,8 @@
 import { solvers } from "@/model/solvers";
 import { useSource } from "@/state/context";
-import { selectedSolverId, solverInfoOpen } from "@/state/solverSelection";
-import { Info } from "lucide-preact";
-import { useLocation } from "preact-iso";
+import { selectedSolver, selectedSolverId } from "@/state/solverSelection";
+import { useState } from "preact/hooks";
+import { SolverCard } from "./SolverCard";
 
 const logFiles = import.meta.glob("../../public/samples/*.jsonl", {
     query: "?url",
@@ -14,14 +14,17 @@ const fileNames = Object.keys(logFiles).map((path) => {
 
 interface FileInputProps {
     onSettled?: () => void;
-    showInfoToggle?: boolean;
 }
 
-export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
+export function FileInput({ onSettled }: FileInputProps) {
     const source = useSource();
     const status = source.status.value;
     const busy = status !== "idle";
-    const location = useLocation();
+
+    const solver = selectedSolver.value;
+    const [formula, setFormula] = useState<File | null>(null);
+    /** Opened by picking a solver too, so the card doubles as the preset view. */
+    const [configOpen, setConfigOpen] = useState(false);
 
     const handleLog = async (file: File | undefined) => {
         if (!file) {
@@ -32,15 +35,13 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
         onSettled?.();
     };
 
-    const handleFormula = async (file: File | undefined) => {
+    const handleFormula = (file: File | undefined) => {
         if (!file) {
             return;
         }
 
-        location.route("/chart");
-        await source.loadFormula(file, selectedSolverId.value);
-        onSettled?.();
-        location.route("/");
+        setFormula(file);
+        setConfigOpen(true);
     };
 
     const loadSample = async (name: string) => {
@@ -75,42 +76,30 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                         accept=".cnf,.dimacs"
                         onChange={(e) => {
                             const input = e.currentTarget as HTMLInputElement;
-                            void handleFormula(input.files?.[0]);
-                            input.value = "";
+                            handleFormula(input.files?.[0]);
                         }}
                         class="file-input file-input-sm w-full"
                         disabled={busy}
                     />
                 </label>
                 <div class="flex w-32 shrink-0 flex-col gap-1.5">
-                    <span class="flex items-center justify-between gap-1 text-sm font-medium">
+                    <span class="text-sm font-medium">
                         <label for="solver-select">Solver</label>
-                        {showInfoToggle && (
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    solverInfoOpen.value =
-                                        !solverInfoOpen.value;
-                                }}
-                                title="Solver details"
-                                class="btn btn-ghost btn-xs px-1"
-                            >
-                                <Info size={13} />
-                            </button>
-                        )}
                     </span>
                     <select
                         id="solver-select"
                         value={selectedSolverId.value}
                         onChange={(e) => {
-                            selectedSolverId.value = (
-                                e.currentTarget as HTMLSelectElement
-                            ).value;
+                            const id = (e.currentTarget as HTMLSelectElement)
+                                .value;
+
+                            selectedSolverId.value = id;
+                            setConfigOpen(id !== "");
                         }}
                         disabled={busy}
                         class="select select-sm w-full"
                     >
+                        <option value="">None</option>
                         {solvers.map((s) => (
                             <option key={s.id} value={s.id}>
                                 {s.name}
@@ -119,6 +108,21 @@ export function FileInput({ onSettled, showInfoToggle }: FileInputProps) {
                     </select>
                 </div>
             </div>
+
+            {solver && (formula !== null || configOpen) && (
+                <SolverCard
+                    key={solver.id}
+                    solver={solver}
+                    file={formula}
+                    onRun={onSettled}
+                />
+            )}
+
+            {formula !== null && solver === null && (
+                <p class="text-base-content/60 text-xs">
+                    Pick a solver to configure the run.
+                </p>
+            )}
 
             <label class="flex flex-col gap-1.5">
                 <span class="text-sm font-medium">Solver event log</span>

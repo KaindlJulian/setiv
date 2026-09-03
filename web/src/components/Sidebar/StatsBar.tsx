@@ -65,12 +65,14 @@ function DownloadLog() {
         return null;
     }
 
+    const fileName = `${name}_${solver?.id ?? "solver"}_events.jsonl`;
+
     const save = () => {
         const url = URL.createObjectURL(log);
         const a = document.createElement("a");
 
         a.href = url;
-        a.download = `${name}_${solver.id}_events.jsonl`;
+        a.download = fileName;
         a.click();
 
         URL.revokeObjectURL(url);
@@ -81,7 +83,7 @@ function DownloadLog() {
             type="button"
             onClick={save}
             class="btn btn-ghost btn-xs shrink-0 px-1"
-            title={`Download ${name}_${solver.id}_events.jsonl`}
+            title={`Download ${fileName}`}
         >
             <Download size={13} />
         </button>

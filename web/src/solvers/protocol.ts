@@ -2,6 +2,8 @@ import type { SolverEvent } from "@/model/events";
 
 export interface RunCommand {
     solverId: string;
+    /** The user's flags, wrapped into argv by the solver's `argv`. */
+    flags: string[];
     cnfName: string;
     cnfBytes: Uint8Array;
 }

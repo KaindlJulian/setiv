@@ -37,7 +37,7 @@ self.onmessage = async (e: MessageEvent<RunCommand>) => {
     }
 };
 
-async function run({ solverId, cnfName, cnfBytes }: RunCommand) {
+async function run({ solverId, flags, cnfName, cnfBytes }: RunCommand) {
     const solver = solverById(solverId);
 
     if (!solver?.wasm) {
@@ -45,7 +45,7 @@ async function run({ solverId, cnfName, cnfBytes }: RunCommand) {
     }
 
     const paths = wasiPaths(cnfName, solverId);
-    const argv = solver.wasm.argv(paths);
+    const argv = solver.wasm.argv(flags, paths);
     const entry = `${import.meta.env.BASE_URL}solvers/${solver.wasm.module}`;
 
     const store = await createLogStore(`${solverId}-${cnfName}.jsonl`);

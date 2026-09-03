@@ -84,7 +84,7 @@ function LogMenu() {
                 <FolderOpen size={15} />
                 Open
             </summary>
-            <div class="dropdown-content rounded-box border-base-300 bg-base-100 z-20 mt-1 w-80 border p-4 shadow-lg">
+            <div class="dropdown-content rounded-box border-base-300 bg-base-100 z-20 mt-1 w-96 border p-4 shadow-lg">
                 <FileInput onSettled={() => setOpen(false)} />
             </div>
         </details>
