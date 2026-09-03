@@ -4,6 +4,7 @@ import { useElementSize } from "@/hooks/useElementSize";
 import { cn } from "@/lib/cn";
 import type { ImplicationGraph as Graph } from "@/model/implicationGraph";
 import type { SolverState } from "@/model/trail";
+import { useView } from "@/state/context";
 import { drawImplicationNode, implicationLegend } from "@/view/implicationNode";
 import {
     layoutImplicationGraph,
@@ -42,6 +43,7 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
     const [box, size, boxEl] = useElementSize<HTMLDivElement>();
     const svgRef = useRef<SVGSVGElement>(null);
     const [hover, setHover] = useState<Hover | null>(null);
+    const view = useView();
 
     const select = useRef(onSelect);
     select.current = onSelect;
@@ -81,7 +83,7 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
 
         const edgeLabel = layer
             .append("g")
-            .attr("class", colors.edgeLabel)
+            .attr("class", cn(colors.edgeLabel, "font-mono cursor-pointer"))
             .selectAll("text")
             .data(edges)
             .join("text")
@@ -89,13 +91,20 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             .attr("text-anchor", "middle")
             .attr("opacity", edgeLabelOpacity)
             .attr("x", (d: RoutedEdge) => midOf(d).x)
-            .attr("y", (d: RoutedEdge) => midOf(d).y)
+            .attr("y", (d: RoutedEdge) => midOf(d).y - 1)
             .text(
                 (d: RoutedEdge) =>
                     d.clauseId != null && d.clauseId >= 0
                         ? `c${d.clauseId}`
-                        : "", // an edge with no permanent clause behind it is unlabelled
-            );
+                        : "", // an edge with no permanent clause behind it is unlabelled, this should not happen
+            )
+            .on("click", (event: Event, d: RoutedEdge) => {
+                if (d.clauseId == null || d.clauseId < 0) {
+                    return;
+                }
+                event.stopPropagation();
+                view.revealClause(d.clauseId);
+            });
 
         const node = layer
             .append("g")
@@ -122,7 +131,6 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             drawImplicationNode(d3.select(this), d);
         });
 
-        /** the hovered node plus everything one edge away from it */
         const neighbourhood = (id: string) => {
             const near = new Set([id]);
 
@@ -163,11 +171,10 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             );
         };
 
+        // hover
         node.on(
             "pointerenter",
             function (this: SVGGElement, _: PointerEvent, d: PositionedNode) {
-                // The nodes is inside a zoomed layer under a viewBox, so the
-                // layout coordinates are not screen coordinates.
                 const rect = this.getBoundingClientRect();
                 const container = boxEl.getBoundingClientRect();
 
@@ -182,7 +189,6 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             focus(null);
             setHover(null);
         });
-
         return () => setHover(null);
     }, [graph, boxEl]);
 

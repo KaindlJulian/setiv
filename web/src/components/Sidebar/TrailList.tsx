@@ -111,7 +111,7 @@ export function TrailList({ state }: { state: SolverState }) {
 
         const { entry } = row;
         const current = entry.eventIndex === selected;
-        const reasonId = entry.isDecision ? null : entry.reasonClauseId;
+        const reasonId = entry.reasonClauseId;
 
         rendered.push(
             <div

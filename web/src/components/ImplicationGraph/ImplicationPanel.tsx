@@ -60,7 +60,12 @@ export function ImplicationPanel() {
                         <div class="border-base-300 text-base-content/70 flex shrink-0 flex-wrap items-center gap-1.5 border-b px-3 py-1.5 text-xs">
                             <span>
                                 in{" "}
-                                <code class="font-mono">
+                                <code
+                                    onClick={() => {
+                                        view.revealClause(conflict.clauseId);
+                                    }}
+                                    class="hover:text-base-content cursor-pointer font-mono hover:underline"
+                                >
                                     {clauseRef(conflict.clauseId)}
                                 </code>{" "}
                                 @{conflict.level}
