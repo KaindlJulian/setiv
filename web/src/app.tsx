@@ -1,8 +1,8 @@
-import { Route, Router } from "preact-iso";
 import { Navbar } from "@/components/Navbar/Navbar";
+import { AboutPage } from "@/pages/About";
 import { ChartPage } from "@/pages/ChartPage";
-import { HelpPage } from "@/pages/Help";
 import { SolverPage } from "@/pages/SolverPage";
+import { Route, Router } from "preact-iso";
 
 export function App() {
     return (
@@ -12,7 +12,7 @@ export function App() {
             <Router>
                 <Route path="/" component={SolverPage} />
                 <Route path="/chart" component={ChartPage} />
-                <Route path="/help" component={HelpPage} />
+                <Route path="/about" component={AboutPage} />
                 <Route default component={SolverPage} />
             </Router>
         </div>

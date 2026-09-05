@@ -1,10 +1,7 @@
 /**
- * Where the generated log is kept so it can be downloaded afterwards.
- *
- * Backed by OPFS through a `FileSystemSyncAccessHandle`, which is synchronous by
- * design and worker-only. That synchronicity is the point: the solver blocks on
- * each write, so it self-throttles to disk speed and no backpressure machinery
- * is needed.
+ * Where the generated log is kept
+ * 
+ **
  */
 export interface LogStore {
     write(bytes: Uint8Array): void;

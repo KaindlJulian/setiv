@@ -14,7 +14,7 @@ declare const __GIT_DATE__: string;
 const pages = [
     { href: "/", label: "Main" },
     { href: "/chart", label: "Chart" },
-    { href: "/help", label: "Help" },
+    { href: "/about", label: "About" },
 ] as const;
 
 export function Navbar() {
