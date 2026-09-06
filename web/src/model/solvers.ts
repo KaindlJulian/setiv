@@ -1,3 +1,6 @@
+import cadicalWasm from "@/solvers/wasm/cadical.wasm?url";
+import setivDpllWasm from "@/solvers/wasm/setiv-dpll.wasm?url";
+
 /** Paths the runtime hands the solver on argv. */
 export interface SolverPaths {
     cnf: string;
@@ -9,8 +12,7 @@ export interface SolverPaths {
  */
 export interface WasmSolver {
     runtime: "wasi";
-    /** Module filename under `${BASE_URL}/solvers/`. */
-    module: string;
+    moduleUrl: string;
     defaultFlags: string[];
     argv(flags: string[], paths: SolverPaths): string[];
 }
@@ -30,7 +32,7 @@ export const solvers: SolverInfo[] = [
         version: "3.0.0",
         wasm: {
             runtime: "wasi",
-            module: "cadical.wasm",
+            moduleUrl: cadicalWasm,
             /**
              * Most optimizations off, so the trace follows the plain CDCL
              * algorithm closely. Drop these to see what CaDiCaL actually does.
@@ -66,7 +68,7 @@ export const solvers: SolverInfo[] = [
         version: "0.1.0",
         wasm: {
             runtime: "wasi",
-            module: "setiv-dpll.wasm",
+            moduleUrl: setivDpllWasm,
             defaultFlags: [],
             argv: (flags, { cnf, log }) => [
                 "setiv-dpll",

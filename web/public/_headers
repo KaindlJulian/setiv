@@ -1,0 +1,5 @@
+# New build means new asset hashes means we can cache forever without worrying about stale clients
+# cloudflare pages parses this file: https://developers.cloudflare.com/pages/configuration/headers/
+
+/assets/*
+Cache-Control: public, max-age=31536000, immutable

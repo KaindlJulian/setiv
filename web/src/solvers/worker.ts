@@ -48,7 +48,6 @@ async function run({ solverId, flags, cnfName, cnfBytes }: RunCommand) {
 
     const paths = wasiPaths(cnfName, solverId);
     const argv = solver.wasm.argv(flags, paths);
-    const entry = `${import.meta.env.BASE_URL}solvers/${solver.wasm.module}`;
 
     const store = await createLogStore(`${solverId}-${cnfName}.jsonl`);
     const parser = createEventParser();
@@ -69,7 +68,7 @@ async function run({ solverId, flags, cnfName, cnfBytes }: RunCommand) {
     };
 
     const { exitCode, output } = await wasiRuntime.run({
-        wasmModuleUrl: entry,
+        wasmModuleUrl: solver.wasm.moduleUrl,
         argv,
         cnf: { path: paths.cnf, bytes: cnfBytes },
         logPath: paths.log,
