@@ -3,7 +3,7 @@
 @plugin "daisyui" {
     themes:
         light --default,
-        night --prefersdark;
+        dark --prefersdark;
     logs: false;
 }
 

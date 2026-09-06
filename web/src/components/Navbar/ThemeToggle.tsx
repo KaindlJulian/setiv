@@ -1,14 +1,12 @@
 import { Moon, Sun } from "lucide-preact";
 import { useState } from "preact/hooks";
 
-type Theme = "night" | "light";
+type Theme = "dark" | "light";
 
 const storageKey = "setiv-theme";
 
 function currentTheme(): Theme {
-    return document.documentElement.dataset.theme === "night"
-        ? "night"
-        : "light";
+    return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
 export function ThemeToggle() {
@@ -23,14 +21,14 @@ export function ThemeToggle() {
     return (
         <label
             class="btn btn-square btn-ghost btn-sm swap swap-rotate"
-            title={theme === "night" ? "Switch to light" : "Switch to night"}
+            title={theme === "dark" ? "Switch to light" : "Switch to dark"}
         >
             <input
                 type="checkbox"
                 aria-label="Toggle dark theme"
-                checked={theme === "night"}
+                checked={theme === "dark"}
                 onChange={(e) =>
-                    apply(e.currentTarget.checked ? "night" : "light")
+                    apply(e.currentTarget.checked ? "dark" : "light")
                 }
             />
             <Sun class="swap-off" size={16} />

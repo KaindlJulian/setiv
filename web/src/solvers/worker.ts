@@ -12,6 +12,8 @@ import { wasiPaths, wasiRuntime } from "./runtimes/wasi";
  * The solver runs to completion inside one synchronous call, so these bound how
  * much the main thread waits between updates, not how much work happens here.
  */
+
+//todo: kinda arbitrary, check whats optimal
 const batchEvents = 50_000;
 const batchMs = 50;
 

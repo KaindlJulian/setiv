@@ -1,10 +1,10 @@
-import dagre, { type Point } from "@dagrejs/dagre";
 import type {
     ImplicationEdge,
     ImplicationGraph,
     ImplicationNode,
 } from "@/model/implicationGraph";
 import { implicationChart } from "@/view/theme";
+import dagre, { type Point } from "@dagrejs/dagre";
 
 export interface PositionedNode extends ImplicationNode {
     x: number;
@@ -42,8 +42,6 @@ export interface LayoutOptions {
  *  - decisions and other sources on the left
  *  - propagation flowing right,
  *  - the conflict node on the far right
- *
- * That way the UIP cut is clearly noticable
  */
 const layoutCache = new WeakMap<ImplicationGraph, GraphLayout>();
 
