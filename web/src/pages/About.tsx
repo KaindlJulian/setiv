@@ -26,7 +26,7 @@ const referenceSolvers: Credit[] = [
     { name: "Satch", url: "https://github.com/arminbiere/satch" },
     { name: "Glucose", url: "https://github.com/audemard/glucose" },
     { name: "MiniSat", url: "https://github.com/niklasso/minisat" },
-    { name: "MapleSAT", url: "https://github.com/maplesat/MapleSAT" },
+    { name: "MapleSAT", url: "https://github.com/curtisbright/maplesat" },
 ];
 
 const relatedWork: Credit[] = [
