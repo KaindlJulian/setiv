@@ -44,32 +44,24 @@ const relatedWork: Credit[] = [
 
 const uiElements: { title: string; body: string }[] = [
     {
-        title: "Page nav",
-        body: "Switch between the main viewer, the standalone chart page, and this about page. Only shown once a run is loaded.",
-    },
-    {
         title: "Run status",
-        body: "Idle, running, or aborted state of an in-browser WASM solver run.",
+        body: "Idle, running, or aborted state of an the in-browser WASM solver.",
     },
     {
         title: "Open menu",
-        body: "Load a run. Either a CNF formula plus a solver to run it live as WASM, a pre-recorded .jsonl/.ndjson event log, or one of the bundled example logs.",
+        body: "Load a run. Either a CNF formula plus a solver to run it live as WASM, a pre-recorded .jsonl/.ndjson event log.",
     },
     {
-        title: "Stats bar",
-        body: "Live counters for the run: current step, decision level, trail size, conflict count, and similar aggregates, as of the cursor's position.",
+        title: "Event Log Statistics",
+        body: "Counters for the run. Total number of events, clauses, conflicts, etc.",
     },
     {
         title: "Trail",
-        body: "The current assignment trail: every assigned literal in order, its decision level, and whether it was a decision or a propagation, with its reason clause.",
+        body: "The current assignment trail. Every assigned literal in order, its decision level, and whether it was a decision or a propagation, with the reason clause.",
     },
     {
-        title: "Clause database sections",
-        body: "Original, learned, and deleted clauses, each collapsible, showing only the clauses alive in the respective category at the cursor's step. Clicking a clause referenced elsewhere (e.g. an edge in the implication graph) opens and scrolls to it here.",
-    },
-    {
-        title: "Workspace tabs",
-        body: "Switch the main panel between the implication graph, the decision tree, the live formula view, and the raw event log.",
+        title: "Clause database",
+        body: "Original, learned, and deleted clauses. Showing only the clauses alive in the respective category at the cursors step with color coded literals.",
     },
     {
         title: "Implication graph",
@@ -81,7 +73,7 @@ const uiElements: { title: string; body: string }[] = [
     },
     {
         title: "Formula view",
-        body: "The static CNF formula from the log's init event, rendered either one clause per line or as continuous flowing text, each clause and literal colored by its current status (satisfied, falsified, unit, open) under the assignment at the cursor.",
+        body: "The static CNF formula from the log's init event, rendered either one clause per line or as continuous flowing text. Each clause and literal colored by its current status (satisfied, falsified, unit, open) under the assignment at the cursor.",
     },
     {
         title: "Event log",
@@ -89,11 +81,11 @@ const uiElements: { title: string; body: string }[] = [
     },
     {
         title: "Conflict selector",
-        body: "Jump directly to a specific conflict by index, clause id, or decision level, instead of stepping through every event to reach it.",
+        body: "Jump directly to a specific conflict by index.",
     },
     {
         title: "Step bar",
-        body: "Scrub through the run. Transport buttons and the range slider move the cursor by one event or jump to the previous/next conflict; red tick marks along the track mark every conflict in the run (hidden above 200 conflicts).",
+        body: "Scrub through the run. Navigation buttons and the range slider move the cursor by one event or jump to the previous/next conflict.",
     },
 ];
 
@@ -107,33 +99,58 @@ export function AboutPage() {
 
                 <Section title="Background">
                     <p>
-                        A SAT solver decides whether a boolean formula in
-                        conjunctive normal form, a set of clauses, each a
-                        disjunction of literals, has a satisfying assignment.
-                        Modern solvers do this with CDCL: decide a literal,
-                        propagate its consequences, and on conflict analyze the
-                        implication graph to learn a new clause and backtrack.
-                        Repeated over the run, this produces a search tree of
-                        decisions and a growing clause database.
+                        A SAT solver decides whether a given propositional
+                        formula in conjunctive normal form has a satisfying
+                        assignment. Modern solvers utilize CDCL: decide a
+                        literal, propagate its consequences, and on conflict
+                        analyze the implication graph to learn a new clause and
+                        backtrack. Repeated over the run, this produces a search
+                        tree of decisions and a growing clause database.
                     </p>
                 </Section>
 
                 <Section title="This project">
-                    <p>
-                        Setiv is two things. First, a solver agnostic{" "}
-                        <strong>event protocol</strong>: an NDJSON stream of the
-                        nine events that make up a CDCL search (
-                        <code>init</code>, <code>decide</code>,{" "}
-                        <code>propagate</code>, <code>conflict</code>,{" "}
-                        <code>learn</code>, <code>backtrack</code>,{" "}
-                        <code>restart</code>, <code>delete_clause</code>,{" "}
-                        <code>result</code>), specified independently of any
-                        particular solver's internals so any solver can be made
-                        to emit it. Second, a <strong>web viewer</strong> that
-                        replays such a stream step by step, reconstructing the
-                        implication graph, the decision tree, the clause
-                        database, and the trail at every point in the run.
-                    </p>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="border-base-300 bg-base-100 rounded-box border p-4">
+                            <h3 class="mb-2 font-semibold">Event protocol</h3>
+                            <p>
+                                A solver agnostic NDJSON stream of the events
+                                that make up a CDCL search, specified
+                                independently of any particular solver's
+                                implementation. A solver then implements this by
+                                emitting the specified json events. See the{" "}
+                                <a
+                                    href={`${repoUrl}/blob/master/event_protocol/solver_event_protocol.md`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    class="link"
+                                >
+                                    spec
+                                </a>{" "}
+                                and the{" "}
+                                <a
+                                    href={`${repoUrl}/blob/master/event_protocol/json_schemas/solver_event_schema.json`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    class="link"
+                                >
+                                    JSON schema
+                                </a>
+                                .
+                            </p>
+                        </div>
+                        <div class="border-base-300 bg-base-100 rounded-box border p-4">
+                            <h3 class="mb-2 font-semibold">Web-based viewer</h3>
+                            <p>
+                                The webapp depends on the specification of the
+                                protocol and replays a log of events step by
+                                step. Reconstructing and visualizing the
+                                implication graph, the decision tree, the clause
+                                database, and the trail at every point in the
+                                event stream.
+                            </p>
+                        </div>
+                    </div>
                 </Section>
 
                 <Section title="Usage">
@@ -226,7 +243,7 @@ function Section({
 
 function CreditList({ items }: { items: Credit[] }) {
     return (
-        <ul class="flex flex-col gap-1.5">
+        <ul class="flex list-disc flex-col gap-1.5 pl-5">
             {items.map((c) => (
                 <li key={c.name}>
                     {c.url ? (
