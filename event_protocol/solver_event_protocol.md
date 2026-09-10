@@ -1,5 +1,5 @@
 # Solver Event Protocol
-Version: 2
+Version: 3
 
 A solver agnostic NDJSON event stream for CDCL event extraction.
 
@@ -42,7 +42,7 @@ Fire once, before the CDCL loop begins. This event establishes the variable and
 clause universe that later events refer to.
 
 ```json
-{"event":"init","protocol_version":"2","variables":N,"clauses":M,"variable_ids":[1,...,N],"clause_list":[{"id":CID,"literals":[...]}, ...]}
+{"event":"init","protocol_version":"3","variables":N,"clauses":M,"variable_ids":[1,...,N],"clause_list":[{"id":CID,"literals":[...]}, ...]}
 ```
 
 | Field              | Type     | Description                                        |
@@ -247,6 +247,100 @@ Fire before the solver removes a clause from its clause database.
 
 ---
 
+### `inspect`
+
+Fire for each clause BCP inspects. Optional, and off by default: inspections
+are the solver's hot inner loop, so an adapter emits them only when it is asked
+for BCP-level logging.
+
+```json
+{"event":"inspect","clause_id":CID,"outcome":"unresolved","watched":[L1,L2],"next_watched":[L2,L3]}
+```
+
+| Field       | Type   | Description                                              |
+| ----------- | ------ | -------------------------------------------------------- |
+| `clause_id` | int64  | The clause being inspected                               |
+| `outcome`   | string | Closed enum, see below                                   |
+| `watched`   | int[2] | *Optional.* The clause's watched literals on arrival      |
+| `next_watched` | int[2] | *Optional.* The pair it is left with, when one moved   |
+
+#### The `outcome` enum
+
+| Value        | Meaning                                                   |
+| ------------ | --------------------------------------------------------- |
+| `satisfied`  | The clause is true, no work to do                         |
+| `unit`       | One non-false literal is left, the clause propagates      |
+| `falsified`  | Every literal is false                                    |
+| `unresolved` | At least two literals are still non-false                 |
+
+Every BCP scheme ever built asks the same question about a clause, and these are
+the four answers. A two-watched-literal solver reaches them from its watch pair,
+a counter-based one from a false-literal count, a naive solver by scanning the
+clause. The set is closed, the same rule as `backtrack.kind`.
+
+**`outcome` is the verdict this solver's BCP reached, not a property of the
+clause.** Two solvers may legitimately report different outcomes for the same
+clause under the same assignment. A watched-literal solver reports `unresolved`
+for a clause that is in fact satisfied by some non-watched literal, because it
+never looked. A solver that scans every literal every time reports `satisfied`
+for that same clause. The divergence is not an inconsistency in the log. It is
+the laziness that makes watched literals fast, and it is the thing a BCP view
+exists to show.
+
+#### The `watched` field
+
+Present on every inspection, or on none of them. An adapter for a solver with
+no watch scheme omits it everywhere, and a consumer then has the inspection
+sequence alone, which is still the bulk of what a BCP view needs.
+
+The pair is what the clause watched **when BCP reached it**, before the
+inspection changes anything. One of the two is therefore the literal being
+propagated, and that literal is false. This is the pair that explains why the
+clause was looked at, which is the question a BCP view is answering.
+
+Reporting the pair the clause is left with instead would be actively confusing.
+An inspection that moves a watch would name two literals that have nothing to do
+with the watch list being walked, and the reader could not tell why the clause
+came up. What the watch moved to shows up when the clause is next inspected.
+
+Carrying the pair on every inspection rather than only when it changes means a
+consumer never has to fold watch state to know what a clause is watching.
+
+`next_watched` closes the gap. It appears only on the inspections that move a
+watch, and holds the pair the clause is left with, so the two fields together
+show the move: `watched` names the falsified literal BCP arrived on, and
+`next_watched` names the non-false literal that replaced it. The literal common
+to both is the watch that stayed put.
+
+Absence means no replacement was reported, which is not quite the same as no
+replacement happening: an adapter whose hook fires before it knows the
+destination omits the field rather than guessing.
+
+**Both** watched literals may be false, on any outcome. One always is, since
+that is why BCP is here. The other can be too: watch pairs are repaired lazily,
+so a watch falsified earlier in the same propagation round stays in place until
+its own list is walked. An arriving pair is a state that may need fixing, which
+is what the inspection is for.
+
+Blocking literals are not watches and have no place here. They are an
+optimisation in one solver family, and replacing one does not change which
+literals a clause watches.
+
+No other event carries watch information, and none needs to. A clause's pair is
+installed when it is created and only ever moves during propagation, so `inspect`
+sees every change. **Backtracking and restarts leave every watch list
+untouched**, which is the entire point of the scheme, and worth stating because
+a consumer might otherwise assume it has something to unwind.
+
+#### What an `inspect` does not do
+
+It does not change the trail. A `unit` inspection is followed by the `propagate`
+it caused, and a `falsified` one by the `conflict`, where the solver raises one.
+A consumer folds the `propagate`, never the `inspect`, and must not infer one
+from the other.
+
+---
+
 ### `result`
 
 Fire immediately after the CDCL loop returns. This is the last event of the
@@ -290,6 +384,11 @@ solver-specific value the adapter picks.
 A minimal adapter can omit or stub every informational field and still produce a
 log this protocol's consumers handle correctly.
 
+**Extra observation.** `inspect` and its `watched` field are neither. Nothing in a
+correct consumer's reconstruction depends on them, and no consumer can derive
+them from the rest of the stream either. They are present only if the adapter
+reports them, and if present they must be correct.
+
 ---
 
 ## Reconstructing the trail
@@ -305,6 +404,9 @@ stream is a plain forward fold with no lookahead:
 
 The decision level follows the same rule, `decide.level` going up and
 `backtrack.to_level` coming down.
+
+`inspect` in particular changes nothing. It reports what BCP concluded about a
+clause; the assignment that follows, if any, arrives as its own `propagate`.
 
 A consumer must not infer trail changes from any other event. Do not treat a
 `decide` at level `L` as evidence that the trail was first unwound to `L-1`, and
@@ -355,6 +457,7 @@ Where the hooks go is the adapter author's decision. The usual correspondence:
 | `restart`       | When the solver decides to restart                                                  |
 | `backtrack`     | Before every trail unwind, see below                                                |
 | `delete_clause` | Before the solver removes a clause from the database                                |
+| `inspect`       | At each outcome site of the propagation loop, see below                             |
 | `result`        | After the solver returns                                                            |
 
 Hook `backtrack` at the solver's internal unwind chokepoint, not at its call
@@ -370,3 +473,9 @@ belongs at the assignment function rather than at its callers.
 Fire the hook before anything modifies the trail, so the pre-unwind decision
 level is still readable, and place it after the solver's own no-op early return
 so `to_level < from_level` always holds.
+
+`inspect` has no single chokepoint. A propagation loop reaches its four outcomes
+from separate branches, so the hook goes on each of them, and every branch that
+leaves the loop without a verdict (a clause already marked garbage, say) emits
+nothing. Read `watched` before the branch does any swapping, so the pair
+reported is the one the clause arrived with.

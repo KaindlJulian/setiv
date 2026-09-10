@@ -12,6 +12,7 @@
     { "$ref": "#/definitions/backtrack" },
     { "$ref": "#/definitions/restart" },
     { "$ref": "#/definitions/delete_clause" },
+    { "$ref": "#/definitions/inspect" },
     { "$ref": "#/definitions/result" }
   ],
   "definitions": {
@@ -199,6 +200,36 @@
           "type": "array",
           "items": { "$ref": "#/definitions/literal" },
           "minItems": 1
+        }
+      }
+    },
+
+    "inspect": {
+      "type": "object",
+      "description": "One clause inspection during BCP. Extra observation: present only when the adapter is asked for BCP-level logging, and never affects the trail.",
+      "required": ["event", "clause_id", "outcome"],
+      "dependencies": { "next_watched": ["watched"] },
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "inspect" },
+        "clause_id": { "$ref": "#/definitions/clause_id" },
+        "outcome": {
+          "enum": ["satisfied", "unit", "falsified", "unresolved"],
+          "description": "The verdict this solver's BCP reached for the clause, not a property of the clause. A watched-literal solver reports 'unresolved' for a clause a scanning solver would call 'satisfied', because it never looked past its watches."
+        },
+        "watched": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/literal" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Optional. The clause's watched literals on arrival, before the inspection changes them. One of the two is the literal being propagated, which is why BCP reached this clause. Absent for solvers with no watch scheme."
+        },
+        "next_watched": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/literal" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Optional. The pair the clause is left watching, present only on inspections that replaced a watch. Shares exactly one literal with 'watched'; the other replaces the falsified literal BCP arrived on."
         }
       }
     },

@@ -1,4 +1,5 @@
-export const SUPPORTED_PROTOCOL_VERSION = "2";
+/** v3 only adds optional events and fields, so v2 logs still replay. */
+export const SUPPORTED_PROTOCOL_VERSIONS: readonly string[] = ["2", "3"];
 
 export interface ClauseListEntry {
     id: number;
@@ -73,6 +74,23 @@ export interface DeleteClauseEvent {
     literals: number[];
 }
 
+export type InspectOutcome = "satisfied" | "unit" | "falsified" | "unresolved";
+
+export const inspectOutcomes: readonly InspectOutcome[] = [
+    "satisfied",
+    "unit",
+    "falsified",
+    "unresolved",
+];
+
+export interface InspectEvent {
+    event: "inspect";
+    clause_id: number;
+    outcome: InspectOutcome;
+    watched?: [number, number];
+    next_watched?: [number, number];
+}
+
 export interface ResultEvent {
     event: "result";
     result: "sat" | "unsat" | "unknown";
@@ -88,6 +106,7 @@ export type SolverEvent =
     | BacktrackEvent
     | RestartEvent
     | DeleteClauseEvent
+    | InspectEvent
     | ResultEvent;
 
 export type EventKind = SolverEvent["event"];
@@ -129,6 +148,7 @@ const required: Record<EventKind, Record<string, Check>> = {
     backtrack: { from_level: num, to_level: num, kind: str },
     restart: { count: num },
     delete_clause: { clause_id: num, literals: nums },
+    inspect: { clause_id: num, outcome: str },
     result: { result: str, model: nums },
 };
 

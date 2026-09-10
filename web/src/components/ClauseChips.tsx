@@ -20,6 +20,8 @@ interface Props {
     valueOf(lit: number): Value;
     max?: number;
     class?: string;
+    watched?: readonly number[];
+    unwatched?: readonly number[];
 }
 
 export function ClauseChips({
@@ -27,6 +29,8 @@ export function ClauseChips({
     valueOf,
     max = defaultMax,
     class: className,
+    watched,
+    unwatched,
 }: Props) {
     const shown = literals.slice(0, max);
 
@@ -38,6 +42,10 @@ export function ClauseChips({
                     class={cn(
                         "bg-base-200 rounded px-1",
                         valueClass(valueOf(lit)),
+                        watched?.includes(lit) && "ring-primary ring-1",
+                        unwatched?.includes(lit) &&
+                            !watched?.includes(lit) &&
+                            "outline-primary/60 outline-1 outline-dashed",
                     )}
                 >
                     {litLabel(lit)}

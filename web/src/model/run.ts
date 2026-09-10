@@ -23,6 +23,7 @@ export interface RunStats {
     restarts: number;
     learned: number;
     deleted: number;
+    inspections: number;
 }
 
 /** Where a conflict sits in the run, for navigating to it. */
@@ -56,6 +57,7 @@ export function createRunBuilder(): RunBuilder {
     let restarts = 0;
     let learned = 0;
     let deleted = 0;
+    let inspections = 0;
 
     return {
         append(batch) {
@@ -103,6 +105,10 @@ export function createRunBuilder(): RunBuilder {
                         clauseDbBuilder.remove(ev, i);
                         break;
                     }
+                    case "inspect": {
+                        inspections++;
+                        break;
+                    }
                     case "result": {
                         result = ev;
                         break;
@@ -132,6 +138,7 @@ export function createRunBuilder(): RunBuilder {
                     restarts,
                     learned,
                     deleted,
+                    inspections,
                 },
             };
         },

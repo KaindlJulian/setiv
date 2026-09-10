@@ -16,6 +16,7 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
 
     const defaults = solver.wasm.defaultFlags.join(" ");
     const [flagText, setFlagText] = useState(defaults);
+    const [bcp, setBcp] = useState(false);
 
     const flags = flagText.split(/\s+/).filter((word) => word.length > 0);
     const busy = source.status.value !== "idle";
@@ -25,10 +26,13 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
             return;
         }
 
+        if (bcp) {
+            flags.push(solver.wasm.bcpFlag);
+        }
+
         onRun?.();
         location.route("/chart");
         await source.loadFormula(file, solver.id, flags);
-        location.route("/");
     };
 
     return (
@@ -64,13 +68,29 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
                 </span>
             </label>
 
+            <label class="flex cursor-pointer items-start gap-2">
+                <input
+                    type="checkbox"
+                    checked={bcp}
+                    onChange={(e) => setBcp(e.currentTarget.checked)}
+                    disabled={busy}
+                    class="toggle toggle-xs mt-0.5"
+                />
+                <div
+                    class="tooltip tooltip-right"
+                    data-tip="Adds additional events for each clause inspection during propagation to fill the BCP tab. Significantly increaseslog size!"
+                >
+                    <span class="flex flex-col gap-0.5">BCP-level logging</span>
+                </div>
+            </label>
+
             <pre class="border-base-300 bg-base-200 text-base-content/80 flex gap-2 rounded border p-2 font-mono wrap-break-word whitespace-pre-wrap">
                 <span class="text-base-content/40 select-none">$</span>
                 <code>
                     {solver.wasm
                         .argv(flags, {
-                            cnf: "[formula]",
-                            log: "events.jsonl",
+                            cnf: file ? file.name : "[formula.cnf]",
+                             log: "events.jsonl",
                         })
                         .join(" ")}
                 </code>

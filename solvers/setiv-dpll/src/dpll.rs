@@ -9,7 +9,7 @@
 //! return DPLL(φ ∧ {¬l})
 
 use crate::dimacs::{Clause, Formula};
-use crate::events::{BacktrackKind, EventWriter};
+use crate::events::{BacktrackKind, EventWriter, InspectOutcome};
 use std::io::{self, Result, Write};
 
 pub struct Solver<'a, W: Write> {
@@ -24,6 +24,17 @@ enum Status {
     Falsified,
     Unit(i32),
     Unresolved,
+}
+
+impl Status {
+    fn outcome(&self) -> InspectOutcome {
+        match self {
+            Status::Satisfied => InspectOutcome::Satisfied,
+            Status::Falsified => InspectOutcome::Falsified,
+            Status::Unit(_) => InspectOutcome::Unit,
+            Status::Unresolved => InspectOutcome::Unresolved,
+        }
+    }
 }
 
 impl<'a, W: Write> Solver<'a, W> {
@@ -90,7 +101,10 @@ impl<'a, W: Write> Solver<'a, W> {
         loop {
             let mut assigned_something = false;
             for clause in &formula.clauses {
-                match self.status(clause) {
+                let status = self.status(clause);
+                self.events.inspect(clause.id, status.outcome())?;
+
+                match status {
                     Status::Falsified => return Ok(Some(clause)),
                     Status::Unit(lit) => {
                         self.enqueue(lit);

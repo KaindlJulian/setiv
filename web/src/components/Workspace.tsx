@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { useSource, useView } from "@/state/context";
 import type { TabId } from "@/state/viewStore";
 import type { ComponentChildren } from "preact";
+import { BcpPanel } from "./BcpPanel";
 import { EventLog } from "./EventLog";
 import { FormulaPanel } from "./FormulaPanel";
 import { Panel } from "./Panel";
@@ -13,6 +14,7 @@ const tabs = [
     { id: "graph", label: "Implication Graph" },
     { id: "tree", label: "Decision Tree" },
     { id: "formula", label: "Formula" },
+    { id: "bcp", label: "BCP" },
     { id: "log", label: "Event Log" },
 ] as const;
 
@@ -20,7 +22,6 @@ export function Workspace() {
     const source = useSource();
     const view = useView();
 
-    const tab = view.tab.value;
     const visited = view.visitedTabs.value;
 
     const run = source.run.value;
@@ -29,27 +30,32 @@ export function Workspace() {
         return null;
     }
 
+    const hasBcp = run.stats.inspections > 0;
+    const tab = view.tab.value;
+
     return (
         <div class="flex min-h-0 flex-1 flex-col gap-3 p-3">
             <div
                 role="tablist"
                 class="tabs tabs-box tabs-sm shrink-0 shadow-none"
             >
-                {tabs.map(({ id, label }) => (
-                    <button
-                        key={id}
-                        type="button"
-                        role="tab"
-                        aria-selected={tab === id}
-                        onClick={() => view.showTab(id)}
-                        class={cn(
-                            "tab shadow-none",
-                            tab === id && "tab-active",
-                        )}
-                    >
-                        {label}
-                    </button>
-                ))}
+                {tabs
+                    .filter((t) => (t.id === "bcp" ? hasBcp : true))
+                    .map(({ id, label }) => (
+                        <button
+                            key={id}
+                            type="button"
+                            role="tab"
+                            aria-selected={tab === id}
+                            onClick={() => view.showTab(id)}
+                            class={cn(
+                                "tab shadow-none",
+                                tab === id && "tab-active",
+                            )}
+                        >
+                            {label}
+                        </button>
+                    ))}
             </div>
             <TabPanel id="graph" tab={tab} visited={visited}>
                 <ImplicationPanel />
@@ -62,6 +68,12 @@ export function Workspace() {
             <TabPanel id="formula" tab={tab} visited={visited}>
                 <FormulaPanel />
             </TabPanel>
+
+            {hasBcp && (
+                <TabPanel id="bcp" tab={tab} visited={visited}>
+                    <BcpPanel active={tab === "bcp"} />
+                </TabPanel>
+            )}
 
             <TabPanel id="log" tab={tab} visited={visited}>
                 <Panel fill title="Event Log">

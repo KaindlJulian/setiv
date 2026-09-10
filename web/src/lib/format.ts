@@ -46,6 +46,17 @@ export function eventStepBarText(ev: SolverEvent | null): string {
             return `restart #${ev.count}`;
         case "delete_clause":
             return `delete ${clauseRef(ev.clause_id)}`;
+        case "inspect": {
+            if (!ev.watched) {
+                return `inspect ${clauseRef(ev.clause_id)} ${ev.outcome}`;
+            }
+
+            const moved = ev.next_watched
+                ? ` -> ${ev.next_watched.map(litLabel).join(", ")}`
+                : "";
+
+            return `inspect ${clauseRef(ev.clause_id)} ${ev.outcome} (watching ${ev.watched.map(litLabel).join(", ")}${moved})`;
+        }
         case "result":
             return `result: ${ev.result.toUpperCase()}`;
     }

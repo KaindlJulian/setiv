@@ -33,12 +33,16 @@ function Swatch({ item }: { item: LegendItem }) {
                 class="shrink-0"
             >
                 <rect
-                    x="-9.5"
-                    y="-5.5"
-                    width="19"
-                    height="11"
-                    rx="2.5"
-                    class={item.fill}
+                    x="-9"
+                    y="-5"
+                    width="18"
+                    height="10"
+                    rx="2"
+                    class={cn(
+                        item.fill,
+                        item.stroke && "rounded-xs outline",
+                        item.stroke,
+                    )}
                 />
                 {item.accent && (
                     <rect

@@ -3,7 +3,7 @@
 use crate::dimacs::Clause;
 use std::io::{self, Write};
 
-pub const PROTOCOL_VERSION: &str = "2";
+pub const PROTOCOL_VERSION: &str = "3";
 
 #[allow(dead_code)]
 pub enum BacktrackKind {
@@ -22,17 +22,53 @@ impl BacktrackKind {
     }
 }
 
+pub enum InspectOutcome {
+    Satisfied,
+    Unit,
+    Falsified,
+    Unresolved,
+}
+
+impl InspectOutcome {
+    fn as_str(&self) -> &'static str {
+        match self {
+            InspectOutcome::Satisfied => "satisfied",
+            InspectOutcome::Unit => "unit",
+            InspectOutcome::Falsified => "falsified",
+            InspectOutcome::Unresolved => "unresolved",
+        }
+    }
+}
+
 pub struct EventWriter<W: Write> {
     out: W,
     buf: String,
+    /// 1 is the search events, 2 adds an inspect per clause BCP looks at.
+    log_level: u8,
 }
 
 impl<W: Write> EventWriter<W> {
-    pub fn new(out: W) -> Self {
+    pub fn new(out: W, log_level: u8) -> Self {
         EventWriter {
             out,
             buf: String::new(),
+            log_level,
         }
+    }
+
+    /// This solver scans every literal of every clause, no watches
+    pub fn inspect(&mut self, clause_id: u64, outcome: InspectOutcome) -> io::Result<()> {
+        if self.log_level < 2 {
+            return Ok(());
+        }
+
+        self.buf.clear();
+        self.buf.push_str(r#"{"event":"inspect","clause_id":"#);
+        push_int(&mut self.buf, clause_id as i64);
+        self.buf.push_str(r#","outcome":""#);
+        self.buf.push_str(outcome.as_str());
+        self.buf.push_str(r#""}"#);
+        self.flush_line()
     }
 
     pub fn init(&mut self, num_vars: usize, clauses: &[Clause]) -> io::Result<()> {

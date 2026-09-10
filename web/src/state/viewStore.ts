@@ -7,7 +7,7 @@ import { type SolverRun } from "@/model/run";
 import { batch, effect, signal, type ReadonlySignal } from "@preact/signals";
 import { type CursorStore } from "./cursorStore";
 
-export type TabId = "graph" | "tree" | "formula" | "log";
+export type TabId = "graph" | "tree" | "formula" | "bcp" | "log";
 export type SidebarSection = "trail" | ClauseSection;
 
 /**

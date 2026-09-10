@@ -1,7 +1,8 @@
 import {
     backtrackKinds,
     eventProblem,
-    SUPPORTED_PROTOCOL_VERSION,
+    SUPPORTED_PROTOCOL_VERSIONS,
+    inspectOutcomes,
     type SolverEvent,
 } from "./events";
 
@@ -77,10 +78,10 @@ export function createEventParser(): EventParser {
 
             protocolVersion = event.protocol_version;
 
-            if (protocolVersion !== SUPPORTED_PROTOCOL_VERSION) {
+            if (!SUPPORTED_PROTOCOL_VERSIONS.includes(protocolVersion)) {
                 fail(
                     `protocol version ${JSON.stringify(protocolVersion)},` +
-                        ` expected ${JSON.stringify(SUPPORTED_PROTOCOL_VERSION)}`,
+                        ` expected one of ${SUPPORTED_PROTOCOL_VERSIONS.join("/")}`,
                     line,
                 );
             }
@@ -94,6 +95,16 @@ export function createEventParser(): EventParser {
         ) {
             fail(
                 `backtrack kind ${JSON.stringify(event.kind)} is not one of ${backtrackKinds.join("/")}`,
+                line,
+            );
+        }
+
+        if (
+            event.event === "inspect" &&
+            !inspectOutcomes.includes(event.outcome)
+        ) {
+            fail(
+                `inspect outcome ${JSON.stringify(event.outcome)} is not one of ${inspectOutcomes.join("/")}`,
                 line,
             );
         }

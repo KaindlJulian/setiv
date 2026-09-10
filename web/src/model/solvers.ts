@@ -14,6 +14,8 @@ export interface WasmSolver {
     runtime: "wasi";
     moduleUrl: string;
     defaultFlags: string[];
+    /** flag to also log inspect events, leave empty if not supported */
+    bcpFlag: string;
     argv(flags: string[], paths: SolverPaths): string[];
 }
 
@@ -48,6 +50,7 @@ export const solvers: SolverInfo[] = [
                 "--chrono=0",
                 "--shrink=0",
             ],
+            bcpFlag: "--eventlog=2",
             argv: (flags: string[], { cnf, log }: SolverPaths) => {
                 return [
                     "cadical",
@@ -70,6 +73,7 @@ export const solvers: SolverInfo[] = [
             runtime: "wasi",
             moduleUrl: setivDpllWasm,
             defaultFlags: [],
+            bcpFlag: "--log-level=2",
             argv: (flags, { cnf, log }) => [
                 "setiv-dpll",
                 "--events",

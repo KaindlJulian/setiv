@@ -3,6 +3,7 @@
 Generate log to event_protocol/out/.
 
 python run_eventlog.py cadical php_4_3.cnf
+python run_eventlog.py cadical php_4_3.cnf --bcp   # adds BCP inspect events
 """
 
 import subprocess
@@ -29,20 +30,24 @@ CADICAL_FLAGS = [
 ]
 
 
-def command(solver, cnf, log):
+def command(solver, cnf, log, bcp):
     if solver == "cadical":
-        return [str(CADICAL), *CADICAL_FLAGS, "-j", log, cnf]
+        level = ["--eventlog=2"] if bcp else []
+        return [str(CADICAL), *CADICAL_FLAGS, *level, "-j", log, cnf]
     if solver == "setiv-dpll":
-        return [str(SETIV_DPLL), "--events", log, cnf]
+        level = ["--log-level=2"] if bcp else []
+        return [str(SETIV_DPLL), "--events", log, *level, cnf]
     sys.exit(f"unknown solver: {solver}")
 
 
 def main():
     solver, cnf = sys.argv[1], Path(sys.argv[2])
+    bcp = "--bcp" in sys.argv[3:]
     OUT.mkdir(exist_ok=True)
-    log = OUT.joinpath(f"{solver}_{cnf.stem}_events.jsonl")
+    suffix = "_bcp" if bcp else ""
+    log = OUT.joinpath(f"{solver}_{cnf.stem}{suffix}_events.jsonl")
 
-    cmd = command(solver, str(cnf), str(log))
+    cmd = command(solver, str(cnf), str(log), bcp)
     print(" ".join(cmd))
     status = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print(f"exit {status.returncode}, event log written to {log}")

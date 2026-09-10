@@ -11,6 +11,10 @@ Oracles:
   - on SAT, result.model must equal the final trail
   - backtrack.from_level must equal the replayed decision level (this is the
     one that catches a solver adapter missing an unwind site)
+  - inspect.watched, where an adapter reports it, must be two literals of the
+    clause, at least one of them false, and must agree with the outcome
+  - inspect.next_watched, where present, must share exactly one literal with
+    watched, and the literal it replaces must be false
 
 Usage:
     python3 event_protocol/replay_check.py out/*.jsonl
@@ -21,6 +25,64 @@ import sys
 from collections import Counter
 
 
+# outcome -> how many of the two watched literals may be false, given that
+# 'watched' is the pair the clause arrived with. A watched literal is false
+# exactly when its variable is assigned the opposite literal.
+#
+# At least one is always false: it is the literal being propagated, which is
+# why BCP reached this clause. Both can be, on any outcome except 'unit',
+# because pairs are repaired lazily and a watch falsified earlier in the same
+# round stays in place until its own list is walked.
+FALSE_WATCHES = {
+    "satisfied": (1, 2),
+    "unresolved": (1, 2),
+    "unit": (1, 1),
+    "falsified": (2, 2),
+}
+
+
+def inspect_errors(e, literals, assigned, n):
+    """An inspection's watched pair, checked against the clause and the outcome."""
+    watched = e.get("watched")
+    if watched is None:
+        return []  # the solver has no watch scheme, nothing to check
+
+    errs = []
+    cid = e["clause_id"]
+    lits = literals.get(cid)
+    if lits is not None and not set(watched) <= lits:
+        errs.append(f"line {n}: inspect c{cid} watches {watched}, "
+                    f"which are not all literals of the clause")
+
+    outcome = e["outcome"]
+    lo, hi = FALSE_WATCHES[outcome]
+    false = sum(1 for l in watched if assigned.get(abs(l), l) == -l)
+    if not lo <= false <= hi:
+        bound = f"{lo}" if lo == hi else f"{lo} to {hi}"
+        errs.append(f"line {n}: inspect c{cid} is {outcome} but {false} of its "
+                    f"watches {watched} are false, expected {bound}")
+
+    following = e.get("next_watched")
+    if following is None:
+        return errs
+
+    if lits is not None and not set(following) <= lits:
+        errs.append(f"line {n}: inspect c{cid} moves to {following}, "
+                    f"which are not all literals of the clause")
+
+    dropped = set(watched) - set(following)
+    if len(dropped) != 1:
+        errs.append(f"line {n}: inspect c{cid} goes from {watched} to "
+                    f"{following}, which replaces {len(dropped)} watches "
+                    f"instead of one")
+    else:
+        l = dropped.pop()
+        if assigned.get(abs(l), l) != -l:
+            errs.append(f"line {n}: inspect c{cid} unwatches {l}, "
+                        f"which is not false")
+    return errs
+
+
 def check(path, verbose=True):
     trail = []  # (literal, level), in assignment order
     level = 0
@@ -29,6 +91,7 @@ def check(path, verbose=True):
     stats = Counter()
     conflicts = 0
     result = model = None
+    literals = {}  # clause id -> set of literals, for checking inspect.watched
     n = 0
 
     for n, line in enumerate(open(path), 1):
@@ -39,7 +102,18 @@ def check(path, verbose=True):
         ev = e["event"]
         stats[ev] += 1
 
-        if ev in ("decide", "propagate"):
+        if ev == "init":
+            for c in e["clause_list"]:
+                literals[c["id"]] = set(c["literals"])
+
+        elif ev == "learn":
+            if e["clause_id"] >= 0:
+                literals[e["clause_id"]] = set(e["learned_literals"])
+
+        elif ev == "inspect":
+            errs += inspect_errors(e, literals, assigned, n)
+
+        elif ev in ("decide", "propagate"):
             lit = e["literal"]
             if ev == "decide":
                 if e["level"] != level + 1:
@@ -96,8 +170,9 @@ def check(path, verbose=True):
 
     ok = not errs
     name = path.replace("\\", "/").rsplit("/", 1)[-1]
+    seen = f"inspections={stats['inspect']:<8d} " if stats["inspect"] else ""
     print(f"{'PASS' if ok else 'FAIL'}  {name:34s} "
-          f"events={n:<7d} conflicts={conflicts:<5d} result={result}")
+          f"events={n:<7d} conflicts={conflicts:<5d} {seen}result={result}")
     if verbose:
         kinds = {k.strip()[5:]: v for k, v in sorted(stats.items())
                  if k.startswith("  kind:")}
