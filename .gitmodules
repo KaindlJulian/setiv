@@ -1,6 +1,7 @@
 [submodule "solvers/satch"]
 	path = solvers/satch
-	url = https://github.com/arminbiere/satch.git
+	url = https://github.com/KaindlJulian/satch.git
+	branch = event_logger_hooks
 [submodule "solvers/kissat"]
 	path = solvers/kissat
 	url = https://github.com/arminbiere/kissat.git
