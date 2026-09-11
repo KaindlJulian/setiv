@@ -16,7 +16,7 @@ The stream format is designed as a solver agnostic protocol and can be implement
 | Path                          | Contents                                                                                   |
 | ----------------------------- | ------------------------------------------------------------------------------------------ |
 | `event_protocol/`             | The protocol spec, JSON schemas, log generation scripts, and a replay checker               |
-| `solvers/`                    | Solvers. `cadical` and `setiv-dpll` implement the protocol, the rest are here for reference |
+| `solvers/`                    | Solvers. `cadical`, `satch` and `setiv-dpll` implement the protocol, the rest are here for reference |
 | `formulas/`                   | DIMACS instances used for testing              |
 | `web/`                        | The viewer, a preact+vite app                                                    |
 
@@ -40,6 +40,8 @@ python3 solvers/build.py
 
 python3 event_protocol/run_eventlog.py cadical formulas/php_4_3.cnf
 python3 event_protocol/run_eventlog.py setiv-dpll formulas/php_4_3.cnf
+python3 event_protocol/run_eventlog.py satch-cdcl formulas/php_4_3.cnf
+python3 event_protocol/run_eventlog.py satch-dpll formulas/php_4_3.cnf
 ```
 
 Logs land in `event_protocol/out/`.
@@ -86,3 +88,9 @@ Reference implementations:
 - [`solvers/cadical`](solvers/cadical), a fork with the hooks in `src/hooks.cpp`
   behind an abstract `SolverObserver`, so the hook code and the NDJSON writing
   stay separate.
+- [`solvers/satch`](solvers/satch), a fork with the hooks in `satch.c` and the
+  buffered NDJSON writer in `events.h`. satch turns features off at compile
+  time, so one source tree gives two solvers: `satch-cdcl` is CDCL stripped to
+  roughly what the protocol describes, and `satch-dpll` is `--no-cdcl`, a pure
+  DPLL that resolves a conflict by flipping the last decision instead of
+  learning. Both configurations are in `solvers/build.py`.

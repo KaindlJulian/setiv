@@ -5,12 +5,35 @@ Binaries stay in each solver's build directory
 """
 
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 SOLVERS = Path(__file__).resolve().parent
 JOBS = str(os.cpu_count())
+
+# satch picks its feature set at compile time, these are two builds of one source
+SATCH_CONFIGS = {
+    "satch-cdcl": [
+        "--events",
+        "--no-block",
+        "--no-chrono",
+        "--no-stable",
+        "--no-rephase",
+        "--no-reuse",
+        "--no-shrink",
+        "--no-simplification",
+        "--no-vivification",
+    ],
+    "satch-dpll": [
+        "--events",
+        "--no-cdcl",
+        "--no-block",
+        "--no-simplification",
+        "--no-vivification",
+    ],
+}
 
 
 def build_cadical():
@@ -28,6 +51,22 @@ def build_cadical():
     subprocess.run(["make", "-j", JOBS], cwd=opt, check=True)
 
     return opt.joinpath("cadical")
+
+
+def build_satch():
+    crate = SOLVERS.joinpath("satch")
+    binaries = []
+
+    for name, flags in SATCH_CONFIGS.items():
+        subprocess.run(["make", "clean"], cwd=crate, check=False)
+        subprocess.run(["./configure", *flags], cwd=crate, check=True)
+        subprocess.run(["make", "-j", JOBS], cwd=crate, check=True)
+
+        binary = crate.joinpath(name)
+        shutil.copy2(crate.joinpath("satch"), binary)
+        binaries.append(binary)
+
+    return binaries
 
 
 def build_setiv_dpll():
@@ -51,6 +90,7 @@ def main():
     try:
         build_cadical()
         build_setiv_dpll()
+        build_satch()
     except Exception as e:
         sys.exit(f"failed: {e}")
 
