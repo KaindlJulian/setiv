@@ -10,6 +10,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from build import SATCH_CONFIGS
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT.joinpath("web", "src", "solvers", "wasm")
 IMAGE = "setiv-wasm"
@@ -22,8 +24,9 @@ def build_image():
     )
 
 
-def build(solver):
-    print(f"building {solver}...")
+def build(script, args=(), artifact=None):
+    artifact = artifact or script
+    print(f"building {artifact}...")
     subprocess.run(
         [
             "docker",
@@ -35,12 +38,13 @@ def build(solver):
             f"{OUT}:/out",
             IMAGE,
             "sh",
-            f"/src/solvers/wasm/build-{solver}.sh",
+            f"/src/solvers/wasm/build-{script}.sh",
+            *args,
         ],
         check=True,
     )
 
-    dest = OUT.joinpath(f"{solver}.wasm")
+    dest = OUT.joinpath(f"{artifact}.wasm")
     print(f"{dest} ({dest.stat().st_size} bytes)")
 
 
@@ -55,6 +59,8 @@ def main():
     try:
         build("setiv-dpll")
         build("cadical")
+        for name, flags in SATCH_CONFIGS.items():
+            build("satch", [name, *flags], artifact=name)
     except Exception as e:
         sys.exit(f"could not build solvers: {e}")
 
