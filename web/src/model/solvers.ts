@@ -1,4 +1,6 @@
 import cadicalWasm from "@/solvers/wasm/cadical.wasm?url";
+import satchCdclWasm from "@/solvers/wasm/satch-cdcl.wasm?url";
+import satchDpllWasm from "@/solvers/wasm/satch-dpll.wasm?url";
 import setivDpllWasm from "@/solvers/wasm/setiv-dpll.wasm?url";
 
 /** Paths the runtime hands the solver on argv. */
@@ -78,6 +80,44 @@ export const solvers: SolverInfo[] = [
                 "setiv-dpll",
                 "--events",
                 log,
+                ...flags,
+                cnf,
+            ],
+        },
+    },
+    {
+        id: "satch-cdcl",
+        name: "Satch CDCL",
+        version: "0.5.5",
+        wasm: {
+            runtime: "wasi",
+            moduleUrl: satchCdclWasm,
+            defaultFlags: [],
+            bcpFlag: "--events-level=2",
+            argv: (flags, { cnf, log }) => [
+                "satch",
+                "-q",
+                "-n",
+                `--events=${log}`,
+                ...flags,
+                cnf,
+            ],
+        },
+    },
+    {
+        id: "satch-dpll",
+        name: "Satch DPLL",
+        version: "0.5.5",
+        wasm: {
+            runtime: "wasi",
+            moduleUrl: satchDpllWasm,
+            defaultFlags: [],
+            bcpFlag: "--events-level=2",
+            argv: (flags, { cnf, log }) => [
+                "satch",
+                "-q",
+                "-n",
+                `--events=${log}`,
                 ...flags,
                 cnf,
             ],
