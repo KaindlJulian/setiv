@@ -11,8 +11,8 @@ import { Panel } from "./Panel";
 import { StepBar } from "./StepBar";
 
 const tabs = [
-    { id: "graph", label: "Implication Graph" },
     { id: "tree", label: "Decision Tree" },
+    { id: "graph", label: "Implication Graph" },
     { id: "formula", label: "Formula" },
     { id: "bcp", label: "BCP" },
     { id: "log", label: "Event Log" },
@@ -57,12 +57,12 @@ export function Workspace() {
                         </button>
                     ))}
             </div>
-            <TabPanel id="graph" tab={tab} visited={visited}>
-                <ImplicationPanel />
-            </TabPanel>
-
             <TabPanel id="tree" tab={tab} visited={visited}>
                 <DecisionTreePanel />
+            </TabPanel>
+
+            <TabPanel id="graph" tab={tab} visited={visited}>
+                <ImplicationPanel />
             </TabPanel>
 
             <TabPanel id="formula" tab={tab} visited={visited}>

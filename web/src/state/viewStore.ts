@@ -39,6 +39,7 @@ export interface ViewStore {
     revealTrailEnd(): void;
 
     revealInTrail(eventIndex: number): void;
+    revealGraphNode(eventIndex: number, anchorStep: number): void;
     revealClause(clauseId: number): void;
     revealConflict(eventIndex: number): void;
 }
@@ -47,8 +48,8 @@ export function createViewStore(
     run: ReadonlySignal<SolverRun | null>,
     cursor: CursorStore,
 ): ViewStore {
-    const tab = signal<TabId>("graph");
-    const visitedTabs = signal<ReadonlySet<TabId>>(new Set<TabId>(["graph"]));
+    const tab = signal<TabId>("tree");
+    const visitedTabs = signal<ReadonlySet<TabId>>(new Set<TabId>(["tree"]));
     const sidebarSection = signal<SidebarSection | null>("trail");
     const selectedEvent = signal<number | null>(null);
     const selectedClauseId = signal<number | null>(null);
@@ -116,6 +117,19 @@ export function createViewStore(
         });
     };
 
+    const revealGraphNode = (eventIndex: number, anchorStep: number) => {
+        batch(() => {
+            // for snapshot graphs its important to jump to the conflict event
+            if (anchorStep >= 0) {
+                cursor.jumpTo(anchorStep);
+            }
+
+            select(eventIndex);
+            sidebarSection.value = "trail";
+            trailScroll.value = { to: "event", event: eventIndex };
+        });
+    };
+
     const revealClause = (clauseId: number) => {
         const db = run.value?.clauseDb;
         const record = db ? clauseById(db, clauseId) : null;
@@ -157,6 +171,7 @@ export function createViewStore(
         clauseScroll,
         revealTrailEnd,
         revealInTrail,
+        revealGraphNode,
         revealClause,
         revealConflict,
     };

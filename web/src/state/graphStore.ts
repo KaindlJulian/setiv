@@ -14,7 +14,9 @@ export interface GraphStore {
     /** what the panel draws, already narrowed to the current scope */
     graph: ReadonlySignal<ImplicationGraph | null>;
 
-    /** the state the graph was built from, for tooltips and the conflict banner */
+    /**
+     * The state the graph was built from
+     */
     state: ReadonlySignal<SolverState | null>;
 
     /** whether the graph follows the step, rather than show the current conflict as a snapshot */

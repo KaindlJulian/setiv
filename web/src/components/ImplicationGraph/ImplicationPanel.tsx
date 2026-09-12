@@ -34,10 +34,43 @@ export function ImplicationPanel() {
         : scopes.filter((s) => s.value !== "cone");
 
     const selected = cursor.selectedConflictIndex.value;
-    const title =
-        live || selected < 0
-            ? "Implication Graph"
-            : `Implication Graph conflict #${selected}`;
+
+    const anchor = state?.step ?? -1;
+    const step = cursor.stepIndex.value;
+    const detached = !live && anchor >= 0 && step !== anchor;
+
+    const title = (
+        <span class="flex flex-wrap items-center gap-2">
+            {live ? (
+                <span
+                    class="badge badge-sm badge-ghost font-mono font-normal"
+                    title="Follows the cursor: the trail as it stands at the current step."
+                >
+                    live
+                </span>
+            ) : (
+                anchor >= 0 && (
+                    <span
+                        class="badge badge-sm badge-ghost font-mono font-normal"
+                        title={`The trail as it stood at conflict #${selected} (event #${anchor}). It does not follow the cursor.`}
+                    >
+                        snapshot #{selected}
+                    </span>
+                )
+            )}
+
+            {detached && (
+                <button
+                    type="button"
+                    onClick={() => cursor.jumpTo(anchor)}
+                    title={`The cursor is ${step - anchor} events past this snapshot. Click to jump back to #${anchor}, the conflict event.`}
+                    class="badge badge-sm badge-warning cursor-pointer font-mono font-normal"
+                >
+                    {step - anchor} behind
+                </button>
+            )}
+        </span>
+    );
 
     return (
         <Panel
@@ -83,7 +116,9 @@ export function ImplicationPanel() {
                     <ImplicationGraph
                         graph={graph}
                         state={state}
-                        onSelect={view.revealInTrail}
+                        onSelect={(eventIndex) =>
+                            view.revealGraphNode(eventIndex, anchor)
+                        }
                     />
                 </>
             ) : (
