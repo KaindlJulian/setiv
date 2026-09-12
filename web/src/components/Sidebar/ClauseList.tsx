@@ -1,5 +1,6 @@
 import { useRevealRow } from "@/hooks/useRevealRow";
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
+import { useView } from "@/state/context";
 import { cn } from "@/lib/cn";
 import type { ClauseRecord } from "@/model/clauseDatabase";
 import { litValue, type SolverState } from "@/model/trail";
@@ -21,6 +22,8 @@ export function ClauseList({
     empty,
     selectedId,
 }: ClauseListProps) {
+    const view = useView();
+
     const window = useRowVirtualizer(records.length, rowHeight, {
         follow: true,
     });
@@ -34,7 +37,7 @@ export function ClauseList({
         return row >= 0 ? row : null;
     }, [records, selectedId]);
 
-    useRevealRow(window, revealed);
+    useRevealRow(window, revealed, view.clauseScroll.value);
 
     if (records.length === 0) {
         return <p class="text-base-content/40 px-2 py-2 text-xs">{empty}</p>;

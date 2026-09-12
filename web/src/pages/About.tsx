@@ -46,10 +46,10 @@ const relatedWork: Credit[] = [
     },
 ];
 
-const uiElements: { title: string; body: string }[] = [
+const usageDescriptions: { title: string; body: string }[] = [
     {
         title: "Run status",
-        body: "Idle, running, or aborted state of an the in-browser WASM solver.",
+        body: "Idle, running, or aborted state of the solver.",
     },
     {
         title: "Open menu",
@@ -160,7 +160,7 @@ export function AboutPage() {
                 <Section title="Usage">
                     <p class="text-base-content/70 mb-3">Todo: screenshot</p>
                     <ol class="flex flex-col gap-3">
-                        {uiElements.map((el, i) => (
+                        {usageDescriptions.map((el, i) => (
                             <li key={el.title} class="flex gap-3">
                                 <span class="badge badge-neutral badge-sm mt-0.5 shrink-0 font-mono">
                                     {i + 1}

@@ -1,7 +1,7 @@
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
 import { cn } from "@/lib/cn";
 import type { ConflictRecord } from "@/model/run";
-import { useCursor } from "@/state/context";
+import { useCursor, useView } from "@/state/context";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-preact";
 import type { RefObject } from "preact";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
@@ -15,6 +15,7 @@ const conflictLabel = (c: ConflictRecord) =>
 
 export function ConflictSelector() {
     const cursor = useCursor();
+    const view = useView();
     const conflicts = cursor.conflicts.value;
     const selected = cursor.selectedConflictIndex.value;
 
@@ -25,8 +26,13 @@ export function ConflictSelector() {
         return null;
     }
 
-    const pick = (index: number) => {
+    const goTo = (index: number) => {
         cursor.selectConflict(index);
+        view.revealTrailEnd();
+    };
+
+    const pick = (index: number) => {
+        goTo(index);
         setOpen(false);
         triggerRef.current?.focus();
     };
@@ -39,7 +45,7 @@ export function ConflictSelector() {
                     title="Previous conflict"
                     aria-label="Previous conflict"
                     disabled={selected <= 0}
-                    onClick={() => cursor.selectConflict(selected - 1)}
+                    onClick={() => goTo(selected - 1)}
                     class="btn join-item btn-square btn-xs"
                 >
                     <ChevronLeft size={13} />
@@ -67,7 +73,7 @@ export function ConflictSelector() {
                     title="Next conflict"
                     aria-label="Next conflict"
                     disabled={selected >= conflicts.length - 1}
-                    onClick={() => cursor.selectConflict(selected + 1)}
+                    onClick={() => goTo(selected + 1)}
                     class="btn join-item btn-square btn-xs"
                 >
                     <ChevronRight size={13} />

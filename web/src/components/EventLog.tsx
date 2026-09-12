@@ -1,7 +1,7 @@
 import { useScaledRowWindow } from "@/hooks/useScaledRowWindow";
 import { cn } from "@/lib/cn";
 import type { SolverEvent } from "@/model/events";
-import { useCursor, useSource } from "@/state/context";
+import { useCursor, useSource, useView } from "@/state/context";
 import { useEffect, useRef } from "preact/hooks";
 
 const rowHeight = 20;
@@ -13,6 +13,7 @@ const noEvents: readonly SolverEvent[] = [];
  */
 export function EventLog({ active }: { active: boolean }) {
     const cursor = useCursor();
+    const view = useView();
     const events = useSource().run.value?.events ?? noEvents;
     const step = cursor.stepIndex.value;
 
@@ -53,7 +54,10 @@ export function EventLog({ active }: { active: boolean }) {
         rows.push(
             <div
                 key={i}
-                onClick={() => cursor.jumpTo(i)}
+                onClick={() => {
+                    cursor.jumpTo(i);
+                    view.revealTrailEnd();
+                }}
                 class={cn(
                     "flex h-5 cursor-pointer items-center gap-3 border-l-2 px-2 font-mono text-xs whitespace-nowrap",
                     current

@@ -42,13 +42,17 @@ export function TrailList({ state }: { state: SolverState }) {
         follow: true,
     });
 
-    // Revealing an event also opens this section, which takes a moment to
-    // expand: nothing to scroll to until then, and nothing while it is closed.
-    const open = view.sidebarSection.value === "trail";
-    const revealed =
-        (open && selected !== null ? rowOf.get(selected) : undefined) ?? null;
 
-    useRevealRow(virtualizer, revealed);
+    const scroll = view.trailScroll.value;
+    const target =
+        scroll.to === "end" ? rows.length - 1 : (rowOf.get(scroll.event) ?? -1);
+
+    useRevealRow(
+        virtualizer,
+        target < 0 ? null : target,
+        scroll,
+        scroll.to === "end" ? "end" : "center",
+    );
 
     const offTrail =
         selected !== null && !rowOf.has(selected)

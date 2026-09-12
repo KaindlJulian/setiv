@@ -8,6 +8,12 @@ import { batch, effect, signal, type ReadonlySignal } from "@preact/signals";
 import { type CursorStore } from "./cursorStore";
 
 export type TabId = "graph" | "tree" | "formula" | "bcp" | "log";
+
+/**
+ * Where the trail should scroll. Every request is a fresh object: asking for
+ * the row that is already selected has to scroll to it again.
+ */
+export type TrailScroll = { to: "end" } | { to: "event"; event: number };
 export type SidebarSection = "trail" | ClauseSection;
 
 /**
@@ -27,6 +33,11 @@ export interface ViewStore {
     selectedClauseId: ReadonlySignal<number | null>;
     select(eventIndex: number | null): void;
 
+    trailScroll: ReadonlySignal<TrailScroll>;
+    /** Fresh on every clause reveal, for the same reason as `trailScroll`. */
+    clauseScroll: ReadonlySignal<object>;
+    revealTrailEnd(): void;
+
     revealInTrail(eventIndex: number): void;
     revealClause(clauseId: number): void;
     revealConflict(eventIndex: number): void;
@@ -41,6 +52,8 @@ export function createViewStore(
     const sidebarSection = signal<SidebarSection | null>("trail");
     const selectedEvent = signal<number | null>(null);
     const selectedClauseId = signal<number | null>(null);
+    const trailScroll = signal<TrailScroll>({ to: "end" });
+    const clauseScroll = signal<object>({});
 
     // A new run invalidates whatever was focused: the event indices are gone.
     effect(() => {
@@ -48,6 +61,7 @@ export function createViewStore(
         batch(() => {
             selectedEvent.value = null;
             selectedClauseId.value = null;
+            trailScroll.value = { to: "end" };
         });
     });
 
@@ -61,12 +75,26 @@ export function createViewStore(
         });
     };
 
+    const showSection = (id: SidebarSection | null) => {
+        batch(() => {
+            sidebarSection.value = id;
+
+            if (id !== "trail") {
+                return;
+            }
+
+            const event = selectedEvent.value;
+            trailScroll.value =
+                event === null ? { to: "end" } : { to: "event", event };
+        });
+    };
+
     const openSection = (id: SidebarSection) => {
-        sidebarSection.value = id;
+        showSection(id);
     };
 
     const toggleSection = (id: SidebarSection) => {
-        sidebarSection.value = sidebarSection.value === id ? null : id;
+        showSection(sidebarSection.value === id ? null : id);
     };
 
     const select = (eventIndex: number | null) => {
@@ -76,10 +104,15 @@ export function createViewStore(
         });
     };
 
+    const revealTrailEnd = () => {
+        trailScroll.value = { to: "end" };
+    };
+
     const revealInTrail = (eventIndex: number) => {
         batch(() => {
             select(eventIndex);
             sidebarSection.value = "trail";
+            trailScroll.value = { to: "event", event: eventIndex };
         });
     };
 
@@ -97,6 +130,7 @@ export function createViewStore(
             sidebarSection.value = isAliveAt(record, cursor.stepIndex.value)
                 ? record.origin
                 : "deleted";
+            clauseScroll.value = {};
         });
     };
 
@@ -105,6 +139,7 @@ export function createViewStore(
             cursor.jumpTo(eventIndex);
             select(null);
             showTab("graph");
+            trailScroll.value = { to: "end" };
         });
     };
 
@@ -118,6 +153,9 @@ export function createViewStore(
         selectedEvent,
         selectedClauseId,
         select,
+        trailScroll,
+        clauseScroll,
+        revealTrailEnd,
         revealInTrail,
         revealClause,
         revealConflict,

@@ -1,5 +1,5 @@
 import { eventStepBarText } from "@/lib/format";
-import { useCursor, useSource } from "@/state/context";
+import { useCursor, useSource, useView } from "@/state/context";
 import { tickPath } from "@/view/layout/chartLayout";
 import type { LucideIcon } from "lucide-preact";
 import {
@@ -14,7 +14,23 @@ const debounce_ms = 150;
 
 export function StepBar() {
     const cursor = useCursor();
+    const view = useView();
     const run = useSource().run.value;
+
+    const stepBy = (delta: number) => {
+        cursor.stepBy(delta);
+        view.revealTrailEnd();
+    };
+
+    const stepToConflict = (direction: 1 | -1) => {
+        cursor.stepToConflict(direction);
+        view.revealTrailEnd();
+    };
+
+    const scrubTo = (step: number) => {
+        cursor.setStep(step);
+        view.revealTrailEnd();
+    };
 
     const dragging = useRef(false);
     const commitTimer = useRef<number | undefined>(undefined);
@@ -54,10 +70,10 @@ export function StepBar() {
         const onKeyDown = (e: KeyboardEvent) => {
             switch (e.key) {
                 case "ArrowLeft":
-                    e.ctrlKey ? cursor.stepToConflict(-1) : cursor.stepBy(-1);
+                    e.ctrlKey ? stepToConflict(-1) : stepBy(-1);
                     break;
                 case "ArrowRight":
-                    e.ctrlKey ? cursor.stepToConflict(1) : cursor.stepBy(1);
+                    e.ctrlKey ? stepToConflict(1) : stepBy(1);
                     break;
                 default:
                     return;
@@ -68,7 +84,7 @@ export function StepBar() {
 
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [cursor]);
+    }, [cursor, view]);
 
     if (!run || run.events.length === 0) {
         return null;
@@ -84,22 +100,22 @@ export function StepBar() {
                 <Transport
                     Icon={ChevronsLeft}
                     title="Previous conflict (Ctrl + right arrow)"
-                    onClick={() => cursor.stepToConflict(-1)}
+                    onClick={() => stepToConflict(-1)}
                 />
                 <Transport
                     Icon={ChevronLeft}
                     title="Previous event (right arrow)"
-                    onClick={() => cursor.stepBy(-1)}
+                    onClick={() => stepBy(-1)}
                 />
                 <Transport
                     Icon={ChevronRight}
                     title="Next event (right arrow)"
-                    onClick={() => cursor.stepBy(1)}
+                    onClick={() => stepBy(1)}
                 />
                 <Transport
                     Icon={ChevronsRight}
                     title="Next conflict (Ctrl + right arrow)"
-                    onClick={() => cursor.stepToConflict(1)}
+                    onClick={() => stepToConflict(1)}
                 />
             </div>
 
@@ -117,9 +133,9 @@ export function StepBar() {
                         cancelPending();
                     }}
                     onInput={(e) => {
-                        cursor.setStep(Number(e.currentTarget.value));
+                        scrubTo(Number(e.currentTarget.value));
 
-                        // A drag commits on release, never mid-gesture.
+                        // A drag commits on release
                         if (dragging.current) {
                             return;
                         }
