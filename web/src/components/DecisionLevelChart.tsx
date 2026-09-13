@@ -1,11 +1,12 @@
-import * as d3 from "d3";
-import { useEffect, useRef, useState } from "preact/hooks";
 import { useElementSize } from "@/hooks/useElementSize";
 import { cn } from "@/lib/cn";
 import { eventStepBarText } from "@/lib/format";
-import { useProjections, useSource } from "@/state/context";
+import { useProjections, useSource, useView } from "@/state/context";
 import { decimateLevels, type LevelColumn } from "@/view/layout/chartLayout";
 import { colors, levelChart } from "@/view/theme";
+import * as d3 from "d3";
+import { useLocation } from "preact-iso";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 const tooltipWidth = 256;
 const tooltipFlip = 60;
@@ -29,9 +30,18 @@ export function DecisionLevelChart() {
     const timeline = useProjections().timeline.value;
     const run = useSource().run.value;
 
+    const view = useView();
+    const location = useLocation();
+
     const [box, size] = useElementSize<HTMLDivElement>();
     const svgRef = useRef<SVGSVGElement>(null);
     const [hover, setHover] = useState<Hover | null>(null);
+
+    const open = useRef<(step: number) => void>(() => {});
+    open.current = (step: number) => {
+        view.openEvent(step);
+        location.route("/");
+    };
 
     const { width, height } = size;
 
@@ -207,13 +217,14 @@ export function DecisionLevelChart() {
                 .attr("y2", innerH);
         };
 
+        const stepAt = (px: number) => {
+            return Math.max(0, Math.min(count - 1, Math.round(zx.invert(px))));
+        };
+
         const showHover = (px: number) => {
             pointerX = px;
 
-            const step = Math.max(
-                0,
-                Math.min(count - 1, Math.round(zx.invert(px))),
-            );
+            const step = stepAt(px);
             const value = level[step];
             const cx = zx(step);
             const cy = y(value);
@@ -244,12 +255,16 @@ export function DecisionLevelChart() {
             .on("pointermove", (event: PointerEvent) =>
                 showHover(d3.pointer(event, plot.node())[0]),
             )
-            .on("pointerleave", hideHover);
+            .on("pointerleave", hideHover)
+            .on("click", (event: PointerEvent) =>
+                open.current(stepAt(d3.pointer(event, plot.node())[0])),
+            );
 
         svg.call(
             d3
                 .zoom()
                 .scaleExtent(levelChart.scaleExtent)
+                .clickDistance(levelChart.clickDistance)
                 .extent([
                     [0, 0],
                     [innerW, innerH],
@@ -270,7 +285,7 @@ export function DecisionLevelChart() {
                         }
                     },
                 ),
-        );
+        ).on("dblclick.zoom", null);
 
         redraw();
 

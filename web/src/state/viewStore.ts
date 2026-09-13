@@ -42,6 +42,8 @@ export interface ViewStore {
     revealGraphNode(eventIndex: number, anchorStep: number): void;
     revealClause(clauseId: number): void;
     revealConflict(eventIndex: number): void;
+
+    openEvent(eventIndex: number): void;
 }
 
 export function createViewStore(
@@ -157,6 +159,37 @@ export function createViewStore(
         });
     };
 
+    const openEvent = (eventIndex: number) => {
+        const event = run.value?.events[eventIndex];
+
+        if (!event) {
+            return;
+        }
+
+        switch (event.event) {
+            case "decide":
+            case "propagate":
+            case "backtrack":
+                batch(() => {
+                    cursor.jumpTo(eventIndex);
+                    showTab("tree");
+                    revealInTrail(eventIndex);
+                });
+                return;
+            case "conflict":
+            case "learn":
+                revealConflict(eventIndex);
+                return;
+            default:
+                batch(() => {
+                    cursor.jumpTo(eventIndex);
+                    showTab(event.event === "inspect" ? "bcp" : "log");
+                    select(null);
+                    revealTrailEnd();
+                });
+        }
+    };
+
     return {
         tab,
         visitedTabs,
@@ -174,5 +207,6 @@ export function createViewStore(
         revealGraphNode,
         revealClause,
         revealConflict,
+        openEvent,
     };
 }

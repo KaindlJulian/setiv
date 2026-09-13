@@ -70,4 +70,6 @@ export const levelChart = {
     markerRadius: 4,
     scaleExtent: [1, 5000] as [number, number],
     maxRestartMarks: 100,
+    /** How far the pointer can move during a drag and still count as a click. */
+    clickDistance: 4,
 } as const;

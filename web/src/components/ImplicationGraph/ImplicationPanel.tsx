@@ -47,16 +47,13 @@ export function ImplicationPanel() {
     const title = (
         <span class="flex flex-wrap items-center gap-2">
             {live ? (
-                <span
-                    class="badge badge-sm badge-ghost font-mono font-normal"
-                    title="Follows the cursor: the trail as it stands at the current step."
-                >
+                <span class="badge badge-sm badge-ghost font-mono font-normal">
                     live
                 </span>
             ) : (
                 <span
                     class="badge badge-sm badge-ghost font-mono font-normal"
-                    title={`The trail as it stood at conflict #${selected} (event #${anchor}). It does not follow the cursor.`}
+                    title={`For performance reasons showing a static snapshot at conflict #${selected} (event #${anchor}).`}
                 >
                     snapshot #{selected}
                 </span>
@@ -65,7 +62,10 @@ export function ImplicationPanel() {
             {detached && (
                 <button
                     type="button"
-                    onClick={() => cursor.jumpTo(anchor)}
+                    onClick={() => {
+                        view.select(null);
+                        cursor.jumpTo(anchor);
+                    }}
                     title={`The cursor is ${step - anchor} events past this snapshot. Click to jump back to #${anchor}, the conflict event.`}
                     class="badge badge-sm badge-warning cursor-pointer font-mono font-normal"
                 >
