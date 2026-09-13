@@ -26,7 +26,12 @@ export function ImplicationPanel() {
 
     const live = graphs.live.value;
     const state = graphs.state.value;
-    const conflict = state?.conflict ?? null;
+
+    if (!state) {
+        return;
+    }
+
+    const conflict = state.conflict;
     const graph = graphs.graph.value;
 
     const available = graphs.conflictActive.value
@@ -35,9 +40,9 @@ export function ImplicationPanel() {
 
     const selected = cursor.selectedConflictIndex.value;
 
-    const anchor = state?.step ?? -1;
+    const anchor = state.step;
     const step = cursor.stepIndex.value;
-    const detached = !live && anchor >= 0 && step !== anchor;
+    const detached = !live && step !== anchor;
 
     const title = (
         <span class="flex flex-wrap items-center gap-2">
@@ -49,14 +54,12 @@ export function ImplicationPanel() {
                     live
                 </span>
             ) : (
-                anchor >= 0 && (
-                    <span
-                        class="badge badge-sm badge-ghost font-mono font-normal"
-                        title={`The trail as it stood at conflict #${selected} (event #${anchor}). It does not follow the cursor.`}
-                    >
-                        snapshot #{selected}
-                    </span>
-                )
+                <span
+                    class="badge badge-sm badge-ghost font-mono font-normal"
+                    title={`The trail as it stood at conflict #${selected} (event #${anchor}). It does not follow the cursor.`}
+                >
+                    snapshot #{selected}
+                </span>
             )}
 
             {detached && (
