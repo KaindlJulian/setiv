@@ -1,6 +1,6 @@
 import { type SolverInfo } from "@/model/solvers";
 import { useSource } from "@/state/context";
-import { Play, RotateCcw } from "lucide-preact";
+import { Eraser, Play, RotateCcw } from "lucide-preact";
 import { useLocation } from "preact-iso";
 import { useState } from "preact/hooks";
 
@@ -20,6 +20,14 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
 
     const flags = flagText.split(/\s+/).filter((word) => word.length > 0);
     const busy = source.status.value !== "idle";
+
+    const shape = solver.wasm.argv(["!MARK!"], {
+        cnf: file ? file.name : "[formula.cnf]",
+        log: "events.jsonl",
+    });
+    const seam = shape.indexOf("!MARK!");
+    const head = seam < 0 ? shape : shape.slice(0, seam);
+    const tail = seam < 0 ? [] : shape.slice(seam + 1);
 
     const run = async () => {
         if (!file || busy) {
@@ -53,6 +61,17 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
                     class="textarea textarea-sm w-full resize-y font-mono text-xs"
                 />
                 <span class="flex items-center justify-end gap-2">
+                    {flagText === defaults && flagText !== "" && (
+                        <button
+                            type="button"
+                            onClick={() => setFlagText("")}
+                            title="Clear flags"
+                            class="btn btn-ghost btn-xs gap-1 font-normal"
+                        >
+                            <Eraser size={12} />
+                            Clear
+                        </button>
+                    )}
                     {flagText !== defaults && (
                         <button
                             type="button"
@@ -87,12 +106,9 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
             <pre class="border-base-300 bg-base-200 text-base-content/80 flex gap-2 rounded border p-2 font-mono wrap-break-word whitespace-pre-wrap">
                 <span class="text-base-content/40 select-none">$</span>
                 <code>
-                    {solver.wasm
-                        .argv(flags, {
-                            cnf: file ? file.name : "[formula.cnf]",
-                             log: "events.jsonl",
-                        })
-                        .join(" ")}
+                    <span class="text-base-content/40">{head.join(" ")}</span>
+                    {flags.length > 0 && ` ${flags.join(" ")}`}{" "}
+                    <span class="text-base-content/40">{tail.join(" ")}</span>
                 </code>
             </pre>
 

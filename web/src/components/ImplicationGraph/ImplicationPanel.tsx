@@ -46,19 +46,19 @@ export function ImplicationPanel() {
 
     const title = (
         <span class="flex flex-wrap items-center gap-2">
+            Conflict {selected}
             {live ? (
-                <span class="badge badge-sm badge-ghost font-mono font-normal">
+                <span class="badge badge-sm badge-primary font-mono font-normal">
                     live
                 </span>
             ) : (
                 <span
-                    class="badge badge-sm badge-ghost font-mono font-normal"
+                    class="badge badge-sm badge-primary font-mono font-normal"
                     title={`For performance reasons showing a static snapshot at conflict #${selected} (event #${anchor}).`}
                 >
-                    snapshot #{selected}
+                    snapshot
                 </span>
             )}
-
             {detached && (
                 <button
                     type="button"
@@ -67,7 +67,7 @@ export function ImplicationPanel() {
                         cursor.jumpTo(anchor);
                     }}
                     title={`The cursor is ${step - anchor} events past this snapshot. Click to jump back to #${anchor}, the conflict event.`}
-                    class="badge badge-sm badge-warning cursor-pointer font-mono font-normal"
+                    class="badge badge-sm badge-outline cursor-pointer font-mono font-normal"
                 >
                     {step - anchor} behind
                 </button>
@@ -78,7 +78,7 @@ export function ImplicationPanel() {
     return (
         <Panel
             fill
-            title={title}
+            title={conflict !== null ? title : ""}
             actions={
                 <div class="flex flex-wrap items-center gap-2">
                     <ScopeToggle
@@ -90,7 +90,7 @@ export function ImplicationPanel() {
                 </div>
             }
         >
-            {state && graph && graph.nodes.length > 0 ? (
+            {graph && graph.nodes.length > 0 ? (
                 <>
                     {conflict && (
                         <div class="border-base-300 text-base-content/70 flex shrink-0 flex-wrap items-center gap-1.5 border-b px-3 py-1.5 text-xs">
