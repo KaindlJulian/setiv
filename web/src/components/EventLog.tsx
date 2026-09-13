@@ -42,8 +42,8 @@ export function EventLog({ active }: { active: boolean }) {
         }
     }, [step, active, window.viewport]);
 
-    if (events.length === 0) {
-        return;
+    if (events.length === 0 || window.viewport === 0) {
+        return <div ref={window.ref} class="h-full overflow-auto" />;
     }
 
     const rows = [];
@@ -73,7 +73,7 @@ export function EventLog({ active }: { active: boolean }) {
                         current ? "text-base-content" : "text-base-content/80"
                     }
                 >
-                    {JSON.stringify(events[i])}
+                    {rowText(events[i])}
                 </span>
             </div>,
         );
@@ -91,4 +91,20 @@ export function EventLog({ active }: { active: boolean }) {
             </div>
         </div>
     );
+}
+
+function rowText(ev: SolverEvent): string {
+    switch (ev.event) {
+        case "init":
+            return JSON.stringify({
+                event: ev.event,
+                protocol_version: ev.protocol_version,
+                variables: ev.variables,
+                clauses: ev.clauses,
+            });
+        case "result":
+            return JSON.stringify({ event: ev.event, result: ev.result });
+        default:
+            return JSON.stringify(ev);
+    }
 }
