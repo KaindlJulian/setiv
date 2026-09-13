@@ -10,7 +10,7 @@
 	url = https://github.com/audemard/glucose.git
 [submodule "solvers/minisat"]
 	path = solvers/minisat
-	url = https://github.com/niklasso/minisat.git
+	url = https://github.com/KaindlJulian/minisat #https://github.com/stp/minisat.git
 [submodule "solvers/cadical"]
 	path = solvers/cadical
 	url = https://github.com/KaindlJulian/cadical.git
