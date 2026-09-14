@@ -6,6 +6,11 @@ import { SolverCard } from "./SolverCard";
 
 const sampleFormulas = [
     {
+        name: "kcolor_2_3.cnf",
+        description:
+            "K coloring problem, with 2 colors and a 3 vertex complete graph (triangle).",
+    },
+    {
         name: "adder_miter_4bit.cnf",
         description:
             "Miter circuit comparing two 4-bit adder implementations. Satisfiable only by an assignment where the two adders disagree.",
@@ -160,7 +165,7 @@ export function FileInput({ onSettled }: { onSettled?: () => void }) {
             )}
 
             {formula !== null && solver === null && (
-                <p class="text-base-content/60 text-xs">
+                <p class="text-warning text-xs">
                     Pick a solver to configure the run.
                 </p>
             )}
