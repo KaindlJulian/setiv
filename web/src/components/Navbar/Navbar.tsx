@@ -12,18 +12,22 @@ declare const __GIT_SUBJECT__: string;
 declare const __GIT_DATE__: string;
 
 const pages = [
-    { href: "/", label: "Main" },
-    { href: "/chart", label: "Chart" },
-    { href: "/about", label: "About" },
+    { href: "/main", label: "Main", needsRun: true },
+    { href: "/chart", label: "Chart", needsRun: true },
+    { href: "/about", label: "About", needsRun: false },
 ] as const;
 
 export function Navbar() {
     const source = useSource();
+    const location = useLocation();
 
     return (
         <header class="navbar border-base-300 bg-base-100 min-h-0 shrink-0 gap-2 border-b px-3 py-1.5">
             <div class="flex min-w-0 flex-1 items-center gap-2">
-                <h1 class="z-10 shrink-0 text-lg font-semibold">
+                <h1
+                    class="z-10 shrink-0 cursor-pointer text-lg font-semibold"
+                    onClick={() => location.route("/")}
+                >
                     SETIV
                     <span class="text-base-content/50 hidden truncate text-center text-xs lg:inline">
                         (<span class="font-mono">master </span>
@@ -31,7 +35,7 @@ export function Navbar() {
                     </span>
                 </h1>
 
-                {source.run.value && <PageNav />}
+                <PageNav />
 
                 <span class="text-base-content/50 absolute hidden w-full truncate text-center text-xs lg:inline">
                     <span>{source.fileName}</span>
@@ -49,19 +53,22 @@ export function Navbar() {
 
 function PageNav() {
     const { path } = useLocation();
+    const source = useSource();
 
     return (
         <nav class="z-10 flex shrink-0 items-center gap-1">
-            {pages.map(({ href, label }) => (
-                <a
-                    key={href}
-                    href={href}
-                    aria-current={path === href ? "page" : undefined}
-                    class={cn("btn btn-xs", path === href && "btn-active")}
-                >
-                    {label}
-                </a>
-            ))}
+            {pages
+                .filter((p) => source.run.value || !p.needsRun)
+                .map(({ href, label }) => (
+                    <a
+                        key={href}
+                        href={href}
+                        aria-current={path === href ? "page" : undefined}
+                        class={cn("btn btn-xs", path === href && "btn-active")}
+                    >
+                        {label}
+                    </a>
+                ))}
         </nav>
     );
 }

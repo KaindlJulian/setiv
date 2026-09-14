@@ -2,21 +2,15 @@
 
 **S**AT **E**vent **T**racer and **I**nteractive **V**iewer
 
-A solver emits one JSON object per
-search event, and a web app replays that stream step by step: the implication
-graph as it grows toward a conflict, the decision tree, the clause database, the
-trail, etc.
-
-The stream format is designed as a solver agnostic protocol and can be implemented for any solver.
-
 [setiv.pages.dev](https://setiv.pages.dev/)
+
 
 ## Overview
 
 | Path                          | Contents                                                                                   |
 | ----------------------------- | ------------------------------------------------------------------------------------------ |
-| `event_protocol/`             | The protocol spec, JSON schemas, log generation scripts, and a replay checker               |
-| `solvers/`                    | Solvers. `cadical`, `minisat`, `satch` and `setiv-dpll` implement the protocol, the rest are here for reference |
+| `event_protocol/`             | The protocol spec, JSON schemas, log generation scripts              |
+| `solvers/`                    | `cadical`, `minisat`, `satch` and `setiv-dpll` all patched and written to implement the protocol |
 | `formulas/`                   | DIMACS instances used for testing              |
 | `web/`                        | The viewer, a preact+vite app                                                    |
 

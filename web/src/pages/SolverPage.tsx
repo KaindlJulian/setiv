@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { Workspace } from "@/components/Workspace";
 import { useSource } from "@/state/context";
 
-export function SolverPage() {
+export function     SolverPage() {
     const source = useSource();
 
     const run = source.run.value;

@@ -2,4 +2,7 @@
 # cloudflare pages parses this file: https://developers.cloudflare.com/pages/configuration/headers/
 
 /assets/*
-Cache-Control: public, max-age=31536000, immutable
+    Cache-Control: public, max-age=31536000, immutable
+
+/public/samples/*
+    Cache-Control: public, max-age=31536000, immutable

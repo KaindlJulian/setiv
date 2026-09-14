@@ -1,6 +1,9 @@
 notes/
 references_and_slides/
 
+solvers/__pycache__
+solvers/maplesat
+
 event_protocol/out/
 
 .env

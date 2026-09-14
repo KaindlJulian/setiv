@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/EmptyState";
 import { Navbar } from "@/components/Navbar/Navbar";
 import { AboutPage } from "@/pages/About";
 import { ChartPage } from "@/pages/ChartPage";
@@ -10,7 +11,8 @@ export function App() {
             <Navbar />
 
             <Router>
-                <Route path="/" component={SolverPage} />
+                <Route path="/" component={EmptyState} />
+                <Route path="/main" component={SolverPage} />
                 <Route path="/chart" component={ChartPage} />
                 <Route path="/about" component={AboutPage} />
                 <Route default component={SolverPage} />

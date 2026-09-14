@@ -40,7 +40,7 @@ export function DecisionLevelChart() {
     const open = useRef<(step: number) => void>(() => {});
     open.current = (step: number) => {
         view.openEvent(step);
-        location.route("/");
+        location.route("/main");
     };
 
     const { width, height } = size;

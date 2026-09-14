@@ -21,7 +21,7 @@ const USAGE: &str = "usage: setiv-dpll [--events FILE] [--log-level N] <input.cn
 ";
 
 fn main() -> ExitCode {
-    let input: Option<String> = None;
+    let mut input: Option<String> = None;
     let mut events_path: Option<String> = None;
     let mut log_level: u8 = 1;
 
@@ -41,6 +41,7 @@ fn main() -> ExitCode {
                 Some(Ok(level)) => log_level = level,
                 _ => return fail("--log-level needs a number"),
             },
+            _ if input.is_none() => input = Some(arg),
             _ => return fail(&format!("unexpected argument '{arg}'")),
         }
     }
