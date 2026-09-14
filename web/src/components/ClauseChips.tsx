@@ -4,6 +4,17 @@ import type { Value } from "@/model/trail";
 
 const defaultMax = 5;
 
+const valueBackground = (value: Value): string => {
+    switch (value) {
+        case 1:
+            return "bg-setiv-true/20";
+        case -1:
+            return "bg-setiv-false/20";
+        case 0:
+            return "bg-base-200";
+    }
+};
+
 const valueClass = (value: Value): string => {
     switch (value) {
         case 1:
@@ -22,6 +33,8 @@ interface Props {
     class?: string;
     watched?: readonly number[];
     unwatched?: readonly number[];
+    /** Tint each chip's background by its value instead of a flat surface. */
+    tint?: boolean;
 }
 
 export function ClauseChips({
@@ -31,6 +44,7 @@ export function ClauseChips({
     class: className,
     watched,
     unwatched,
+    tint = false,
 }: Props) {
     const shown = literals.slice(0, max);
 
@@ -40,7 +54,8 @@ export function ClauseChips({
                 <span
                     key={i}
                     class={cn(
-                        "bg-base-200 rounded px-1",
+                        "rounded px-1",
+                        tint ? valueBackground(valueOf(lit)) : "bg-base-200",
                         valueClass(valueOf(lit)),
                         watched?.includes(lit) && "ring-primary ring-1",
                         unwatched?.includes(lit) &&

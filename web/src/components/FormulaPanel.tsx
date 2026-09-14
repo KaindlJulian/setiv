@@ -18,17 +18,18 @@ const land = "∧";
 const rowHeight = 20;
 
 type Mode = "lines" | "flow";
+type Highlight = "clauses" | "literals";
 
 const modes: ScopeOption<Mode>[] = [
     {
         value: "lines",
-        label: "One per line",
+        label: "Lines",
         title: "One clause per line, with its id in the gutter",
     },
     {
         value: "flow",
         label: "Continuous",
-        title: "The formula as flowing text",
+        title: "The formula as 'flowing text'",
     },
 ];
 
@@ -39,10 +40,16 @@ const lineBackgroundTint: Record<ClauseStatus, string> = {
     open: "",
 };
 
-const legend: LegendItem[] = [
+const clauseLegend: LegendItem[] = [
     { shape: "chip", label: "satisfied", fill: "fill-setiv-true/30" },
     { shape: "chip", label: "falsified", fill: "fill-setiv-false/30" },
     { shape: "chip", label: "unit", fill: "fill-warning/40" },
+];
+
+const literalLegend: LegendItem[] = [
+    { shape: "chip", label: "true", fill: "fill-setiv-true/20" },
+    { shape: "chip", label: "false", fill: "fill-setiv-false/20" },
+    { shape: "chip", label: "unassigned", fill: "fill-base-200" },
 ];
 
 /**
@@ -52,6 +59,7 @@ export function FormulaPanel() {
     const run = useSource().run.value;
     const state = useProjections().solverState.value;
     const [mode, setMode] = useState<Mode>("lines");
+    const [highlight, setHighlight] = useState<Highlight>("clauses");
 
     const clauses = run?.clauseDb.clauses ?? [];
     const count = run?.clauseDb.firstLearnedIndex ?? 0;
@@ -61,7 +69,28 @@ export function FormulaPanel() {
             fill
             title={`Formula (${count} clauses)`}
             actions={
-                <ScopeToggle scopes={modes} value={mode} onChange={setMode} />
+                <div class="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setHighlight(
+                                highlight === "clauses"
+                                    ? "literals"
+                                    : "clauses",
+                            )
+                        }
+                        class="btn btn-xs"
+                    >
+                        {highlight === "clauses"
+                            ? "Highlight literals"
+                            : "Highlight clauses"}
+                    </button>
+                    <ScopeToggle
+                        scopes={modes}
+                        value={mode}
+                        onChange={setMode}
+                    />
+                </div>
             }
         >
             {count === 0 || !state ? (
@@ -75,15 +104,23 @@ export function FormulaPanel() {
                             clauses={clauses}
                             count={count}
                             state={state}
+                            highlight={highlight}
                         />
                     ) : (
                         <ClauseFlow
                             clauses={clauses}
                             count={count}
                             state={state}
+                            highlight={highlight}
                         />
                     )}
-                    <Legend items={legend} />
+                    <Legend
+                        items={
+                            highlight === "clauses"
+                                ? clauseLegend
+                                : literalLegend
+                        }
+                    />
                 </div>
             )}
         </Panel>
@@ -94,9 +131,10 @@ interface ClausesProps {
     clauses: ClauseRecord[];
     count: number;
     state: SolverState;
+    highlight: Highlight;
 }
 
-function ClauseLines({ clauses, count, state }: ClausesProps) {
+function ClauseLines({ clauses, count, state, highlight }: ClausesProps) {
     const window = useScaledRowWindow(count, rowHeight);
     const view = useView();
     const rows = [];
@@ -109,7 +147,10 @@ function ClauseLines({ clauses, count, state }: ClausesProps) {
                 key={record.key}
                 class={cn(
                     "flex h-5 items-center gap-2 px-2 font-mono text-xs whitespace-nowrap",
-                    lineBackgroundTint[clauseStatus(record.literals, state)],
+                    highlight === "clauses" &&
+                        lineBackgroundTint[
+                            clauseStatus(record.literals, state)
+                        ],
                 )}
             >
                 <span
@@ -123,6 +164,7 @@ function ClauseLines({ clauses, count, state }: ClausesProps) {
                     literals={record.literals}
                     valueOf={(lit) => litValue(lit, state)}
                     max={Infinity}
+                    tint={highlight === "literals"}
                     class="mt-0 flex-nowrap"
                 />
                 <span class="text-base-content/40">)</span>
@@ -147,7 +189,7 @@ function ClauseLines({ clauses, count, state }: ClausesProps) {
     );
 }
 
-function ClauseFlow({ clauses, count, state }: ClausesProps) {
+function ClauseFlow({ clauses, count, state, highlight }: ClausesProps) {
     const groups = [];
 
     if (count > 500) {
@@ -167,15 +209,17 @@ function ClauseFlow({ clauses, count, state }: ClausesProps) {
                     title={record.key}
                     class={cn(
                         "border-base-300 rounded border p-1",
-                        lineBackgroundTint[
-                            clauseStatus(record.literals, state)
-                        ],
+                        highlight === "clauses" &&
+                            lineBackgroundTint[
+                                clauseStatus(record.literals, state)
+                            ],
                     )}
                 >
                     <ClauseChips
                         literals={record.literals}
                         valueOf={(lit) => litValue(lit, state)}
                         max={Infinity}
+                        tint={highlight === "literals"}
                         class="mt-0"
                     />
                 </div>
