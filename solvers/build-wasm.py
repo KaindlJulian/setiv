@@ -59,6 +59,7 @@ def main():
     try:
         build("setiv-dpll")
         build("cadical")
+        build("minisat")
         for name, flags in SATCH_CONFIGS.items():
             build("satch", [name, *flags], artifact=name)
     except Exception as e:

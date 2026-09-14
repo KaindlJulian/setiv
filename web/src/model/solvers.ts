@@ -1,4 +1,5 @@
 import cadicalWasm from "@/solvers/wasm/cadical.wasm?url";
+import minisatWasm from "@/solvers/wasm/minisat.wasm?url";
 import satchCdclWasm from "@/solvers/wasm/satch-cdcl.wasm?url";
 import satchDpllWasm from "@/solvers/wasm/satch-dpll.wasm?url";
 import setivDpllWasm from "@/solvers/wasm/setiv-dpll.wasm?url";
@@ -65,6 +66,29 @@ export const solvers: SolverInfo[] = [
                     cnf,
                 ];
             },
+        },
+    },
+    {
+        id: "minisat",
+        name: "MiniSat",
+        version: "2.2.0",
+        wasm: {
+            runtime: "wasi",
+            moduleUrl: minisatWasm,
+            /**
+             * Nothing to turn off. MiniSat has no inprocessing, no chronological
+             * backtracking and no on-the-fly subsumption, so the trace follows
+             * plain CDCL as it is.
+             */
+            defaultFlags: [],
+            bcpFlag: "-events-level=2",
+            argv: (flags, { cnf, log }) => [
+                "minisat",
+                "-verb=0",
+                `-events=${log}`,
+                ...flags,
+                cnf,
+            ],
         },
     },
     {

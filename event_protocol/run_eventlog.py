@@ -5,7 +5,7 @@ Generate log to event_protocol/out/.
 python run_eventlog.py cadical php_4_3.cnf
 python run_eventlog.py cadical php_4_3.cnf --bcp   # adds BCP inspect events
 
-Solvers: cadical, setiv-dpll, satch-cdcl, satch-dpll
+Solvers: cadical, minisat, setiv-dpll, satch-cdcl, satch-dpll
 """
 
 import subprocess
@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT.joinpath("event_protocol", "out")
 CADICAL = ROOT.joinpath("solvers", "cadical", "build-opt", "cadical")
+MINISAT = ROOT.joinpath("solvers", "minisat", "build-native", "minisat")
 SETIV_DPLL = ROOT.joinpath("solvers", "setiv-dpll", "target", "release", "setiv-dpll")
 SATCH = ROOT.joinpath("solvers", "satch")
 
@@ -37,6 +38,9 @@ def command(solver, cnf, log, bcp):
     if solver == "cadical":
         level = ["--eventlog=2"] if bcp else []
         return [str(CADICAL), *CADICAL_FLAGS, *level, "-j", log, cnf]
+    if solver == "minisat":
+        level = ["-events-level=2"] if bcp else []
+        return [str(MINISAT), "-verb=0", f"-events={log}", *level, cnf]
     if solver == "setiv-dpll":
         level = ["--log-level=2"] if bcp else []
         return [str(SETIV_DPLL), "--events", log, *level, cnf]

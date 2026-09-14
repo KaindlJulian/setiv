@@ -94,7 +94,7 @@ export function createClauseDatabaseBuilder(): ClauseDatabaseBuilder {
                 origin: "learned",
                 addedAt: eventIndex,
                 deletedAt: -1,
-                glue: ev.glue,
+                glue: ev.glue ?? null,
             });
         },
 

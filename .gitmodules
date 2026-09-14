@@ -11,6 +11,7 @@
 [submodule "solvers/minisat"]
 	path = solvers/minisat
 	url = https://github.com/KaindlJulian/minisat #https://github.com/stp/minisat.git
+	branch = event_logger_hooks
 [submodule "solvers/cadical"]
 	path = solvers/cadical
 	url = https://github.com/KaindlJulian/cadical.git

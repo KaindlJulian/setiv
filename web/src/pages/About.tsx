@@ -20,6 +20,11 @@ const wasmSolvers: Credit[] = [
         note: "we patched satch with event protocol hooks, built once as plain CDCL and once with '--no-cdcl' as pure DPLL",
     },
     {
+        name: "MiniSat",
+        url: "https://github.com/niklasso/minisat",
+        note: "we patched minisat with event protocol hooks, the core solver without the simp preprocessor",
+    },
+    {
         name: "setiv-dpll",
         url: "",
         note: "this project's own reference DPLL implementation",
@@ -29,7 +34,6 @@ const wasmSolvers: Credit[] = [
 const referenceSolvers: Credit[] = [
     { name: "Kissat", url: "https://github.com/arminbiere/kissat" },
     { name: "Glucose", url: "https://github.com/audemard/glucose" },
-    { name: "MiniSat", url: "https://github.com/niklasso/minisat" },
     { name: "MapleSAT", url: "https://github.com/curtisbright/maplesat" },
 ];
 
@@ -198,7 +202,7 @@ export function AboutPage() {
 
                 <Section title="Solvers">
                     <p class="text-base-content/70 mb-3">
-                        Two solvers implement the protocol and run directly in
+                        These solvers implement the protocol and run directly in
                         the browser as WebAssembly:
                     </p>
                     <CreditList items={wasmSolvers} />

@@ -21,7 +21,7 @@ const USAGE: &str = "usage: setiv-dpll [--events FILE] [--log-level N] <input.cn
 ";
 
 fn main() -> ExitCode {
-    let mut input: Option<String> = None;
+    let input: Option<String> = None;
     let mut events_path: Option<String> = None;
     let mut log_level: u8 = 1;
 

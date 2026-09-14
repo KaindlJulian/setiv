@@ -42,9 +42,9 @@ export interface ConflictEvent {
 export interface LearnEvent {
     event: "learn";
     learned_literals: number[];
-    glue: number;
     clause_id: number;
     jump_level: number;
+    glue?: number;
 }
 
 export type BacktrackKind = "conflict" | "restart" | "other";
@@ -139,12 +139,7 @@ const required: Record<EventKind, Record<string, Check>> = {
     decide: { literal: num, level: num },
     propagate: { literal: num, level: num, reason_clause_id: numOrNull },
     conflict: { clause_id: num, literals: nums, level: num, trail: nums },
-    learn: {
-        learned_literals: nums,
-        glue: num,
-        clause_id: num,
-        jump_level: num,
-    },
+    learn: { learned_literals: nums, clause_id: num, jump_level: num },
     backtrack: { from_level: num, to_level: num, kind: str },
     restart: { count: num },
     delete_clause: { clause_id: num, literals: nums },
