@@ -58,6 +58,7 @@ def main():
 
     try:
         build("setiv-dpll")
+        build("satotz")
         build("cadical")
         build("minisat")
         for name, flags in SATCH_CONFIGS.items():

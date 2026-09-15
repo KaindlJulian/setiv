@@ -2,6 +2,7 @@ import cadicalWasm from "@/solvers/wasm/cadical.wasm?url";
 import minisatWasm from "@/solvers/wasm/minisat.wasm?url";
 import satchCdclWasm from "@/solvers/wasm/satch-cdcl.wasm?url";
 import satchDpllWasm from "@/solvers/wasm/satch-dpll.wasm?url";
+import satotzWasm from "@/solvers/wasm/satotz.wasm?url";
 import setivDpllWasm from "@/solvers/wasm/setiv-dpll.wasm?url";
 
 /** Paths the runtime hands the solver on argv. */
@@ -121,6 +122,23 @@ export const solvers: SolverInfo[] = [
             argv: (flags, { cnf, log }) => [
                 "satch",
                 "--quiet",
+                `--events=${log}`,
+                ...flags,
+                cnf,
+            ],
+        },
+    },
+    {
+        id: "satotz",
+        name: "Satotz",
+        version: "0.1.0",
+        wasm: {
+            runtime: "wasi",
+            moduleUrl: satotzWasm,
+            defaultFlags: [],
+            bcpFlag: "--events-bcp",
+            argv: (flags, { cnf, log }) => [
+                "satotz",
                 `--events=${log}`,
                 ...flags,
                 cnf,
