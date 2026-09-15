@@ -29,7 +29,7 @@ export interface SolverInfo {
     wasm: WasmSolver;
 }
 
-// todo check how problematic it really is to let the user put arbitrary flags. since its all client side an a browser wasm sandbox its no big deal, but theoretically this poses an injection threat
+// todo: check how problematic it really is to let the user put arbitrary flags. since its all client side an a browser wasm sandbox its no big deal, but theoretically this poses an injection threat
 export const solvers: SolverInfo[] = [
     {
         id: "cadical",
@@ -38,10 +38,6 @@ export const solvers: SolverInfo[] = [
         wasm: {
             runtime: "wasi",
             moduleUrl: cadicalWasm,
-            /**
-             * Most optimizations off, so the trace follows the plain CDCL
-             * algorithm closely. Drop these to see what CaDiCaL actually does.
-             */
             defaultFlags: [
                 "--plain",
                 "--no-otfs",
@@ -55,16 +51,7 @@ export const solvers: SolverInfo[] = [
             ],
             bcpFlag: "--eventlog=2",
             argv: (flags: string[], { cnf, log }: SolverPaths) => {
-                return [
-                    "cadical",
-                    "--quiet",
-                    "-n",
-                    "--no-colors",
-                    ...flags,
-                    "-j",
-                    log,
-                    cnf,
-                ];
+                return ["cadical", "--quiet", ...flags, "-j", log, cnf];
             },
         },
     },
@@ -75,11 +62,6 @@ export const solvers: SolverInfo[] = [
         wasm: {
             runtime: "wasi",
             moduleUrl: minisatWasm,
-            /**
-             * Nothing to turn off. MiniSat has no inprocessing, no chronological
-             * backtracking and no on-the-fly subsumption, so the trace follows
-             * plain CDCL as it is.
-             */
             defaultFlags: [],
             bcpFlag: "-events-level=2",
             argv: (flags, { cnf, log }) => [
@@ -120,8 +102,7 @@ export const solvers: SolverInfo[] = [
             bcpFlag: "--events-level=2",
             argv: (flags, { cnf, log }) => [
                 "satch",
-                "-q",
-                "-n",
+                "--quiet",
                 `--events=${log}`,
                 ...flags,
                 cnf,
@@ -139,8 +120,7 @@ export const solvers: SolverInfo[] = [
             bcpFlag: "--events-level=2",
             argv: (flags, { cnf, log }) => [
                 "satch",
-                "-q",
-                "-n",
+                "--quiet",
                 `--events=${log}`,
                 ...flags,
                 cnf,

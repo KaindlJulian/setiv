@@ -16,7 +16,8 @@ export function StatsBar() {
 
     const displayResult = result?.result ?? "aborted";
 
-    const rows: [string, number][] = [
+    const fields: [string, string | number | undefined][] = [
+        ["solver", selectedSolver.value?.name],
         ["events", stats.events],
         ["vars", stats.variables],
         ["clauses", stats.clauses],
@@ -41,12 +42,16 @@ export function StatsBar() {
             </div>
 
             <dl class="grid grid-cols-2 gap-x-4 text-xs">
-                {rows.map(([label, value]) => (
-                    <div key={label} class="flex justify-between gap-2">
-                        <dt class="text-base-content/50 truncate">{label}</dt>
-                        <dd class="font-mono tabular-nums">{value}</dd>
-                    </div>
-                ))}
+                {fields
+                    .filter((f) => f[1] !== undefined)
+                    .map(([label, value]) => (
+                        <div key={label} class="flex justify-between gap-2">
+                            <dt class="text-base-content/50 truncate">
+                                {label}
+                            </dt>
+                            <dd class="font-mono tabular-nums">{value}</dd>
+                        </div>
+                    ))}
             </dl>
         </div>
     );
