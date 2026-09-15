@@ -46,11 +46,31 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
     return (
         <div class="border-base-300 bg-base-100 rounded-box flex flex-col gap-3 border p-3 text-xs">
             <div class="flex items-baseline justify-between gap-2">
-                <span class="text-sm font-medium">{solver.name}</span>
+                <a
+                    class="cursor-pointer text-sm font-medium hover:underline"
+                    href={solver.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {solver.name}
+                </a>
                 <span class="text-base-content/50 font-mono">
                     {solver.version}
                 </span>
             </div>
+
+            {/* solver tags information overload?
+            <div class="flex flex-wrap gap-1">
+                {solver.tags.map((tag) => (
+                    <span
+                        key={tag}
+                        class="badge badge-ghost badge-sm font-mono"
+                    >
+                        {tag}
+                    </span>
+                ))}
+            </div> 
+            */}
 
             <label class="flex flex-col gap-1.5">
                 <textarea
@@ -86,7 +106,6 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
                     )}
                 </span>
             </label>
-
             <label class="flex cursor-pointer items-start gap-2">
                 <input
                     type="checkbox"
@@ -102,7 +121,6 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
                     <span class="flex flex-col gap-0.5">BCP-level logging</span>
                 </div>
             </label>
-
             <pre class="border-base-300 bg-base-200 text-base-content/80 flex gap-2 rounded border p-2 font-mono wrap-break-word whitespace-pre-wrap">
                 <span class="text-base-content/40 select-none">$</span>
                 <code>
@@ -111,7 +129,6 @@ export function SolverCard({ solver, file, onRun }: SolverCardProps) {
                     <span class="text-base-content/40">{tail.join(" ")}</span>
                 </code>
             </pre>
-
             <div class="flex items-center justify-between gap-2">
                 <span class="text-base-content/60 min-w-0 truncate font-mono">
                     {file ? file.name : "Choose a CNF formula to run"}

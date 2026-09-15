@@ -27,6 +27,7 @@ export interface SolverInfo {
     id: string;
     name: string;
     version: string;
+    link: string;
     tags: string[];
     wasm: WasmSolver;
 }
@@ -34,10 +35,30 @@ export interface SolverInfo {
 // todo: check how problematic it really is to let the user put arbitrary flags. since its all client side an a browser wasm sandbox its no big deal, but theoretically this poses an injection threat
 export const solvers: SolverInfo[] = [
     {
+        id: "satotz",
+        name: "Setiv CDCL",
+        version: "0.1.0",
+        tags: ["CDCL", "first-unassigned", "DLIS", "Watched Literals"],
+        link: "https://github.com/kaindljulian/satotz",
+        wasm: {
+            runtime: "wasi",
+            moduleUrl: satotzWasm,
+            defaultFlags: ["--no-dlis"],
+            bcpFlag: "--events-bcp",
+            argv: (flags, { cnf, log }) => [
+                "satotz",
+                `--events=${log}`,
+                ...flags,
+                cnf,
+            ],
+        },
+    },
+    {
         id: "setiv-dpll",
-        name: "setiv-dpll",
+        name: "Setiv DPLL",
         version: "0.1.0",
         tags: ["DPLL", "first-unassigned"],
+        link: "https://github.com/kaindljulian/setiv/tree/master/solvers/setiv-dpll",
         wasm: {
             runtime: "wasi",
             moduleUrl: setivDpllWasm,
@@ -53,28 +74,11 @@ export const solvers: SolverInfo[] = [
         },
     },
     {
-        id: "satotz",
-        name: "Satotz",
-        version: "0.1.0",
-        tags: ["CDCL", "first-unassigned", "DLIS", "Watched Literals"],
-        wasm: {
-            runtime: "wasi",
-            moduleUrl: satotzWasm,
-            defaultFlags: ["--no-dlis"],
-            bcpFlag: "--events-bcp",
-            argv: (flags, { cnf, log }) => [
-                "satotz",
-                `--events=${log}`,
-                ...flags,
-                cnf,
-            ],
-        },
-    },
-    {
         id: "cadical",
         name: "CaDiCaL",
         version: "3.0.0",
         tags: ["CDCL", "VMTF", "Watched Literals"],
+        link: "https://github.com/arminbiere/cadical",
         wasm: {
             runtime: "wasi",
             moduleUrl: cadicalWasm,
@@ -100,6 +104,7 @@ export const solvers: SolverInfo[] = [
         name: "MiniSat",
         version: "2.2.0",
         tags: ["CDCL", "VSIDS", "Watched Literals"],
+        link: "https://github.com/niklasso/minisat",
         wasm: {
             runtime: "wasi",
             moduleUrl: minisatWasm,
@@ -119,6 +124,7 @@ export const solvers: SolverInfo[] = [
         name: "Satch CDCL",
         version: "0.5.5",
         tags: ["CDCL", "VMTF", "Watched Literals"],
+        link: "https://github.com/arminbiere/satch",
         wasm: {
             runtime: "wasi",
             moduleUrl: satchCdclWasm,
@@ -138,6 +144,7 @@ export const solvers: SolverInfo[] = [
         name: "Satch DPLL",
         version: "0.5.5",
         tags: ["DPLL", "DLIS"],
+        link: "https://github.com/arminbiere/satch",
         wasm: {
             runtime: "wasi",
             moduleUrl: satchDpllWasm,
