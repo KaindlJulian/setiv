@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 
-const repoUrl = "https://github.com/KaindlJulian/setiv";
+const repoUrl = "https://github.com/kaindljulian/setiv";
 
 interface Credit {
     name: string;
@@ -12,29 +12,28 @@ const wasmSolvers: Credit[] = [
     {
         name: "CaDiCaL",
         url: "https://github.com/arminbiere/cadical",
-        note: "we patched cadical with event protocol hooks",
-    },
-    {
-        name: "Satch",
-        url: "https://github.com/arminbiere/satch",
-        note: "we patched satch with event protocol hooks, built once as plain CDCL and once with '--no-cdcl' as pure DPLL",
+        note: "Patched CaDiCaL with event protocol hooks",
     },
     {
         name: "MiniSat",
         url: "https://github.com/niklasso/minisat",
-        note: "we patched minisat with event protocol hooks, the core solver without the simp preprocessor",
+        note: "Patched minisat with event protocol hooks, only /core",
+    },
+    {
+        name: "Satch",
+        url: "https://github.com/arminbiere/satch",
+        note: "Patched satch with event protocol hooks, built for CDCL and also with '--no-cdcl' for pure DPLL",
+    },
+    {
+        name: "satotz",
+        url: "https://github.com/kaindljulian/satotz",
+        note: "A simple CDCL implementation",
     },
     {
         name: "setiv-dpll",
-        url: "",
-        note: "this project's own reference DPLL implementation",
+        url: "https://github.com/KaindlJulian/setiv/tree/master/solvers/setiv-dpll",
+        note: "A simple DPLL implementation",
     },
-];
-
-const referenceSolvers: Credit[] = [
-    { name: "Kissat", url: "https://github.com/arminbiere/kissat" },
-    { name: "Glucose", url: "https://github.com/audemard/glucose" },
-    { name: "MapleSAT", url: "https://github.com/curtisbright/maplesat" },
 ];
 
 const relatedWork: Credit[] = [
@@ -162,7 +161,11 @@ export function AboutPage() {
                 </Section>
 
                 <Section title="Usage">
-                    <p class="text-base-content/70 mb-3">Todo: screenshot</p>
+                    <img
+                        src="main_screen.png"
+                        alt="Screenshot of the viewer"
+                        class="border-base-300 mb-3 rounded-lg border"
+                    />
                     <ol class="flex flex-col gap-3">
                         {usageDescriptions.map((el, i) => (
                             <li key={el.title} class="flex gap-3">
@@ -206,14 +209,9 @@ export function AboutPage() {
                         the browser as WebAssembly:
                     </p>
                     <CreditList items={wasmSolvers} />
-                    <p class="text-base-content/70 mt-4 mb-3">
-                        For the following we did not implement the protocol, but
-                        each halped to shape the protocol's design
-                    </p>
-                    <CreditList items={referenceSolvers} />
                 </Section>
 
-                <Section title="Related work">
+                <Section title="Related">
                     <CreditList items={relatedWork} />
                 </Section>
 
