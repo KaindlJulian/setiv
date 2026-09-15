@@ -5,6 +5,7 @@
     "editor.defaultFormatter": null
   },
   "rust-analyzer.linkedProjects": [
-    "${workspaceFolder}/solvers/setiv-dpll/Cargo.toml"
+    "${workspaceFolder}/solvers/setiv-dpll/Cargo.toml",
+    "${workspaceFolder}/solvers/satotz/Cargo.toml"
   ]
 }

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Build the solvers locally for dev and debugging
-Binaries stay in each solver's build directory
+Build all solvers in /solvers locally for dev
 """
 
 import os
@@ -13,7 +12,7 @@ from pathlib import Path
 SOLVERS = Path(__file__).resolve().parent
 JOBS = str(os.cpu_count())
 
-# satch picks its feature set at compile time, these are two builds of one source
+# two builds from one source
 SATCH_CONFIGS = {
     "satch-cdcl": [
         "--events",
@@ -74,8 +73,6 @@ def build_minisat():
     build = crate.joinpath("build-native")
     build.mkdir(exist_ok=True)
 
-    # minisat's cmake build pulls in the simp solver and a shared library.
-    # The event log only needs the core solver, so compile it directly.
     sources = [
         "minisat/core/Main.cc",
         "minisat/core/Solver.cc",
@@ -86,10 +83,15 @@ def build_minisat():
     binary = build.joinpath("minisat")
     subprocess.run(
         [
-            "g++", "-O2", "-std=c++11",
-            "-D__STDC_LIMIT_MACROS", "-D__STDC_FORMAT_MACROS",
-            "-I", str(crate),
-            "-o", str(binary),
+            "g++",
+            "-O2",
+            "-std=c++11",
+            "-D__STDC_LIMIT_MACROS",
+            "-D__STDC_FORMAT_MACROS",
+            "-I",
+            str(crate),
+            "-o",
+            str(binary),
             *[str(crate.joinpath(s)) for s in sources],
             "-lz",
         ],
@@ -116,11 +118,29 @@ def build_setiv_dpll():
     return crate.joinpath("target", "release", "setiv-dpll")
 
 
+def build_satotz():
+    crate = SOLVERS.joinpath("satotz")
+
+    subprocess.run(
+        [
+            "cargo",
+            "build",
+            "--release",
+            "--manifest-path",
+            str(crate.joinpath("Cargo.toml")),
+        ],
+        check=True,
+    )
+
+    return crate.joinpath("target", "release", "satotz")
+
+
 def main():
     try:
         build_cadical()
         build_minisat()
         build_setiv_dpll()
+        build_satotz()
         build_satch()
     except Exception as e:
         sys.exit(f"failed: {e}")

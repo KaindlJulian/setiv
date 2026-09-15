@@ -3,9 +3,9 @@
 Generate log to event_protocol/out/.
 
 python run_eventlog.py cadical php_4_3.cnf
-python run_eventlog.py cadical php_4_3.cnf --bcp   # adds BCP inspect events
+python run_eventlog.py cadical php_4_3.cnf --bcp   # add BCP inspect events
 
-Solvers: cadical, minisat, setiv-dpll, satch-cdcl, satch-dpll
+Solvers: cadical, minisat, setiv-dpll, satotz, satch-cdcl, satch-dpll
 """
 
 import subprocess
@@ -17,6 +17,7 @@ OUT = ROOT.joinpath("event_protocol", "out")
 CADICAL = ROOT.joinpath("solvers", "cadical", "build-opt", "cadical")
 MINISAT = ROOT.joinpath("solvers", "minisat", "build-native", "minisat")
 SETIV_DPLL = ROOT.joinpath("solvers", "setiv-dpll", "target", "release", "setiv-dpll")
+SATOTZ = ROOT.joinpath("solvers", "satotz", "target", "release", "satotz")
 SATCH = ROOT.joinpath("solvers", "satch")
 
 # Keeps the search as close to pure CDCL as cadical allows.
@@ -44,9 +45,10 @@ def command(solver, cnf, log, bcp):
     if solver == "setiv-dpll":
         level = ["--log-level=2"] if bcp else []
         return [str(SETIV_DPLL), "--events", log, *level, cnf]
+    if solver == "satotz":
+        level = ["--events-bcp"] if bcp else []
+        return [str(SATOTZ), "--events", log, *level, cnf]
     if solver in ("satch-cdcl", "satch-dpll"):
-        # satch has no runtime search flags to pass, its feature set is fixed
-        # when the binary is configured, see solvers/build.py.
         level = ["--events-level=2"] if bcp else []
         return [str(SATCH.joinpath(solver)), "-q", f"--events={log}", *level, cnf]
     sys.exit(f"unknown solver: {solver}")
