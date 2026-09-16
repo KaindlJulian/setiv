@@ -1,8 +1,8 @@
 import {
     backtrackKinds,
     eventProblem,
-    SUPPORTED_PROTOCOL_VERSIONS,
     inspectOutcomes,
+    SUPPORTED_PROTOCOL_VERSIONS,
     type SolverEvent,
 } from "./events";
 
@@ -81,7 +81,7 @@ export function createEventParser(): EventParser {
             if (!SUPPORTED_PROTOCOL_VERSIONS.includes(protocolVersion)) {
                 fail(
                     `protocol version ${JSON.stringify(protocolVersion)},` +
-                        ` expected one of ${SUPPORTED_PROTOCOL_VERSIONS.join("/")}`,
+                        ` expected ${SUPPORTED_PROTOCOL_VERSIONS}`,
                     line,
                 );
             }

@@ -3,7 +3,7 @@
 use crate::dimacs::Clause;
 use std::io::{self, Write};
 
-pub const PROTOCOL_VERSION: &str = "3";
+pub const PROTOCOL_VERSION: &str = "1";
 
 #[allow(dead_code)]
 pub enum BacktrackKind {

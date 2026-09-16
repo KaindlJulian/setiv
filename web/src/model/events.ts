@@ -1,5 +1,4 @@
-/** v3 only adds optional events and fields, so v2 logs still replay. */
-export const SUPPORTED_PROTOCOL_VERSIONS: readonly string[] = ["2", "3"];
+export const SUPPORTED_PROTOCOL_VERSIONS: readonly string[] = ["1"];
 
 export interface ClauseListEntry {
     id: number;

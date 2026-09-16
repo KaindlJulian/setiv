@@ -1,5 +1,5 @@
 # Solver Event Protocol
-Version: 3
+Version: 1
 
 A solver agnostic NDJSON event stream for CDCL event extraction.
 
@@ -42,7 +42,7 @@ Fire once, before the CDCL loop begins. This event establishes the variable and
 clause universe that later events refer to.
 
 ```json
-{"event":"init","protocol_version":"3","variables":N,"clauses":M,"variable_ids":[1,...,N],"clause_list":[{"id":CID,"literals":[...]}, ...]}
+{"event":"init","protocol_version":"1","variables":N,"clauses":M,"variable_ids":[1,...,N],"clause_list":[{"id":CID,"literals":[...]}, ...]}
 ```
 
 | Field              | Type     | Description                                        |

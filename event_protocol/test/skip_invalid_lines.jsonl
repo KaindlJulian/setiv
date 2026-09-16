@@ -1,4 +1,4 @@
-{"event":"init","protocol_version":"2","variables":2,"clauses":4,"variable_ids":[1,2],"clause_list":[{"id":1,"literals":[1,2]},{"id":2,"literals":[-1,2]},{"id":3,"literals":[1,-2]},{"id":4,"literals":[-1,-2]}]}
+{"event":"init","protocol_version":"1","variables":2,"clauses":4,"variable_ids":[1,2],"clause_list":[{"id":1,"literals":[1,2]},{"id":2,"literals":[-1,2]},{"id":3,"literals":[1,-2]},{"id":4,"literals":[-1,-2]}]}
 
 {"event":"decide","literal":2,"level":1,"heuristic":"vmtf"}
 NotEmpty
