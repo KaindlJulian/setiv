@@ -52,47 +52,47 @@ const relatedWork: Credit[] = [
 const usageDescriptions: { title: string; body: string }[] = [
     {
         title: "Run status",
-        body: "Idle, running, or aborted state of the solver.",
+        body: "Whether the solver is idle, running, or aborted.",
     },
     {
         title: "Open menu",
-        body: "Load a run. Either a CNF formula plus a solver to run it live as WASM, a pre-recorded .jsonl/.ndjson event log.",
+        body: "Load a run, either a CNF formula plus a solver to run live as WASM, or a pre-recorded .jsonl/.ndjson event log.",
     },
     {
         title: "Event Log Statistics",
-        body: "Counters for the run. Total number of events, clauses, conflicts, etc.",
+        body: "Counters for the run in total: events, clauses, conflicts, etc.",
     },
     {
         title: "Trail",
-        body: "The current assignment trail. Every assigned literal in order, its decision level, and whether it was a decision or a propagation, with the reason clause.",
+        body: "Every assigned literal in assignment order, with its decision level and reason clause.",
     },
     {
         title: "Clause database",
-        body: "Original, learned, and deleted clauses. Showing only the clauses alive in the respective category at the cursors step with color coded literals.",
+        body: "Original, learned, and deleted clauses.",
     },
     {
         title: "Implication graph",
-        body: "The graph of decisions and unit propagations building up to the conflict at the current decision level: nodes are assigned literals, edges are implications labeled with their reason clause. Hover a node or edge for details, click an edge's clause to reveal it in the sidebar.",
+        body: "The decisions and unit propagations that build up to the conflict. Literals as nodes and implications as edges.",
     },
     {
         title: "Decision tree",
-        body: "The search tree across the whole run: one path per decision level, branching at each decision, collapsing on backtrack. Conflicts and restarts are marked on the path that produced them.",
+        body: "The search tree across the whole run. One path per decision level, branching at each decision and collapsing on backtrack.",
     },
     {
         title: "Formula view",
-        body: "The static CNF formula from the log's init event, rendered either one clause per line or as continuous flowing text. Each clause and literal colored by its current status (satisfied, falsified, unit, open) under the assignment at the cursor.",
+        body: 'A CNF formula built from the event log init event. One clause per line or as "flowing text".',
     },
     {
         title: "Event log",
-        body: "The raw underlying event stream, one row per event, scrollable and searchable, with the cursor's current event highlighted.",
+        body: "The raw ndjson solver event log.",
     },
     {
-        title: "Conflict selector",
-        body: "Jump directly to a specific conflict by index.",
+        title: "Conflict selector dropdown",
+        body: "Jump directly to a specific conflict",
     },
     {
         title: "Step bar",
-        body: "Scrub through the run. Navigation buttons and the range slider move the cursor by one event or jump to the previous/next conflict.",
+        body: "Step through the solver run.",
     },
 ];
 
@@ -106,13 +106,16 @@ export function AboutPage() {
 
                 <Section title="Background">
                     <p>
-                        A SAT solver decides whether a given propositional
-                        formula in conjunctive normal form has a satisfying
-                        assignment. Modern solvers utilize CDCL: decide a
-                        literal, propagate its consequences, and on conflict
-                        analyze the implication graph to learn a new clause and
-                        backtrack. Repeated over the run, this produces a search
-                        tree of decisions and a growing clause database.
+                        A SAT solver decides whether a CNF formula has a
+                        satisfying assignment. Modern solvers use CDCL. Pick a
+                        literal, propagate what that forces, and when
+                        propagation runs into a conflict, walk the implication
+                        graph to learn a clause that rules out the cause, then
+                        backtrack. <br />
+                        This tool visualizes such a solver search step by step,
+                        and allows to jump to any conflict and see the trail,
+                        the clause database, the implication graph, and the
+                        decision tree as they stood at that point.
                     </p>
                 </Section>
 
@@ -121,11 +124,11 @@ export function AboutPage() {
                         <div class="border-base-300 bg-base-100 rounded-box border p-4">
                             <h3 class="mb-2 font-semibold">Event protocol</h3>
                             <p>
-                                A solver agnostic NDJSON stream of the events
-                                that make up a CDCL search, specified
-                                independently of any particular solver's
-                                implementation. A solver then implements this by
-                                emitting the specified json events. See the{" "}
+                                An NDJSON stream of the events a search
+                                produces, specified without reference to any
+                                specific solver's internals. A solver implements
+                                the protocol by emitting these events as it
+                                runs. See the{" "}
                                 <a
                                     href={`${repoUrl}/blob/master/event_protocol/solver_event_protocol.md`}
                                     target="_blank"
@@ -149,13 +152,14 @@ export function AboutPage() {
                         <div class="border-base-300 bg-base-100 rounded-box border p-4">
                             <h3 class="mb-2 font-semibold">Web-based viewer</h3>
                             <p>
-                                The webapp depends on the specification of the
-                                protocol and replays a log of events step by
-                                step. Reconstructing and visualizing the
-                                implication graph, the decision tree, the clause
-                                database, and the trail at every point in the
-                                event stream.
+                                The webapp reads an event log and replays it to
+                                create visualizations. At any step we can
+                                inspect the trail, the clause database, the
+                                implication graph, and the decision tree.
                             </p>
+                            <a class="link" href="/">
+                                Load an example
+                            </a>
                         </div>
                     </div>
                 </Section>
@@ -204,10 +208,6 @@ export function AboutPage() {
                 </Section>
 
                 <Section title="Solvers">
-                    <p class="text-base-content/70 mb-3">
-                        These solvers implement the protocol and run directly in
-                        the browser as WebAssembly:
-                    </p>
                     <CreditList items={wasmSolvers} />
                 </Section>
 
