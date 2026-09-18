@@ -40,6 +40,28 @@ function legendFor(folded: boolean): LegendItem[] {
         : [decisionEdge, propagationEdge];
 }
 
+const enterMs = 260;
+
+function enteringNode(
+    nodes: TreeLayoutNode[],
+    drawn: ReadonlySet<string> | null,
+): TreeLayoutNode | null {
+    if (!drawn) {
+        return null;
+    }
+
+    const keys = new Set(nodes.map((n) => n.node.key));
+
+    for (const key of drawn) {
+        if (!keys.has(key)) {
+            return null;
+        }
+    }
+
+    const fresh = nodes.filter((n) => !drawn.has(n.node.key));
+    return fresh.length === 1 ? fresh[0] : null;
+}
+
 interface Hover {
     node: TreeNode;
     x: number;
@@ -56,6 +78,8 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
     const ref = useRef<SVGSVGElement>(null);
     const [box, size, boxEl] = useElementSize<HTMLDivElement>();
     const [hover, setHover] = useState<Hover | null>(null);
+    // node keys of the previous draw
+    const drawn = useRef<Set<string> | null>(null);
 
     const expand = useRef(onExpand);
     expand.current = onExpand;
@@ -71,6 +95,12 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
 
         const { nodes, edges, width, height } = layoutDecisionTree(tree);
 
+        // animate newNode
+        const newNode = enteringNode(nodes, drawn.current);
+        drawn.current = new Set(nodes.map((n) => n.node.key));
+        const animateEnter = (s: any) =>
+            s.transition("enter").duration(enterMs).ease(d3.easeCubicOut);
+
         const layer = createSvgCanvas(svgEl, width, height, {
             scaleExtent: treeChart.scaleExtent,
         });
@@ -80,7 +110,7 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
             d.target.node.kind === "conflict" ||
             d.target.node.kind === "collapsed";
 
-        layer
+        const link = layer
             .append("g")
             .attr("class", "fill-none")
             .selectAll("path")
@@ -99,7 +129,10 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
             .attr("d", (d: TreeLayoutEdge) => {
                 const mx = (d.source.x + d.target.x) / 2;
                 return `M${d.source.x},${d.source.y} C${mx},${d.source.y} ${mx},${d.target.y} ${d.target.x},${d.target.y}`;
-            });
+            })
+            .attr("opacity", (d: TreeLayoutEdge) =>
+                d.target.node.key === newNode?.node.key ? 0 : null,
+            );
 
         const g = layer
             .append("g")
@@ -136,7 +169,7 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
             function (this: SVGGElement, _: PointerEvent, d: TreeLayoutNode) {
                 const rect = this.getBoundingClientRect();
                 const container = boxEl.getBoundingClientRect();
-                
+
                 setHover({
                     node: d.node,
                     x: rect.left + rect.width / 2 - container.left,
@@ -179,6 +212,27 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
                 .attr("r", r)
                 .attr("class", cn(colors.node, "stroke-setiv-surface"));
         });
+
+        const newMaterializedNode = g
+            .filter((d: TreeLayoutNode) => d.node.key === newNode?.node.key)
+            .attr("opacity", 0)
+            .attr(
+                "transform",
+                (d: TreeLayoutNode) => `translate(${d.x},${d.y}) scale(0.5)`,
+            );
+        animateEnter(newMaterializedNode)
+            .attr("opacity", (d: TreeLayoutNode) =>
+                d.node.isBacktracked ? 0.5 : 1,
+            )
+            .attr(
+                "transform",
+                (d: TreeLayoutNode) => `translate(${d.x},${d.y}) scale(1)`,
+            );
+        animateEnter(
+            link.filter(
+                (d: TreeLayoutEdge) => d.target.node.key === newNode?.node.key,
+            ),
+        ).attr("opacity", 1);
 
         g.append("text")
             .attr("x", -treeChart.nodeRadius)

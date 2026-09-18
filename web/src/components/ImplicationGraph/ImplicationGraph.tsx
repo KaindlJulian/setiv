@@ -4,7 +4,7 @@ import { useElementSize } from "@/hooks/useElementSize";
 import { cn } from "@/lib/cn";
 import type { ImplicationGraph as Graph } from "@/model/implicationGraph";
 import type { SolverState } from "@/model/trail";
-import { useView } from "@/state/context";
+import { useGraphs, useView } from "@/state/context";
 import { drawImplicationNode, implicationLegend } from "@/view/implicationNode";
 import {
     layoutImplicationGraph,
@@ -30,6 +30,8 @@ const edgeOpacity = 0.5;
 const edgeLabelOpacity = 0.75;
 const fadeMs = 150;
 
+const enterMs = 260;
+
 interface Props {
     graph: Graph | null;
     state: SolverState;
@@ -39,11 +41,35 @@ interface Props {
 /** the conflict node is not an assignment, so there is nothing to select */
 const clickable = (d: PositionedNode) => !d.isConflict;
 
+function enteringNode(
+    nodes: PositionedNode[],
+    drawn: ReadonlySet<string> | null,
+): PositionedNode | null {
+    if (!drawn) {
+        return null;
+    }
+
+    const ids = new Set(nodes.map((n) => n.id));
+
+    for (const id of drawn) {
+        if (!ids.has(id)) {
+            return null;
+        }
+    }
+
+    const fresh = nodes.filter((n) => !drawn.has(n.id));
+    return fresh.length === 1 ? fresh[0] : null;
+}
+
 export function ImplicationGraph({ graph, state, onSelect }: Props) {
     const [box, size, boxEl] = useElementSize<HTMLDivElement>();
     const svgRef = useRef<SVGSVGElement>(null);
     const [hover, setHover] = useState<Hover | null>(null);
     const view = useView();
+    const isLive = useGraphs().live.value;
+
+    // node ids of the previous draw
+    const drawn = useRef<Set<string> | null>(null);
 
     const select = useRef(onSelect);
     select.current = onSelect;
@@ -56,6 +82,15 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
         }
 
         const { nodes, edges, width, height } = layoutImplicationGraph(graph);
+
+        // animate newNode
+        const newNode = isLive ? enteringNode(nodes, drawn.current) : null;
+        drawn.current = new Set(nodes.map((n) => n.id));
+        const isNewEdge = (d: RoutedEdge) =>
+            newNode != null &&
+            (d.target === newNode.id || d.source === newNode.id);
+        const animateEnter = (s: any) =>
+            s.transition("enter").duration(enterMs).ease(d3.easeCubicOut);
 
         const layer = createSvgCanvas(svgEl, width, height, {
             arrowMarker: true,
@@ -77,7 +112,9 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             .data(edges)
             .join("path")
             .attr("stroke-width", 1.5)
-            .attr("opacity", edgeOpacity)
+            .attr("opacity", (d: RoutedEdge) =>
+                isNewEdge(d) ? 0 : edgeOpacity,
+            )
             .attr("marker-end", "url(#arrow)")
             .attr("d", (d: RoutedEdge) => lineGen(d.points));
 
@@ -89,7 +126,9 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             .join("text")
             .attr("font-size", 9)
             .attr("text-anchor", "middle")
-            .attr("opacity", edgeLabelOpacity)
+            .attr("opacity", (d: RoutedEdge) =>
+                isNewEdge(d) ? 0 : edgeLabelOpacity,
+            )
             .attr("x", (d: RoutedEdge) => midOf(d).x)
             .attr("y", (d: RoutedEdge) => midOf(d).y - 1)
             .text(
@@ -130,6 +169,25 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
         node.each(function (this: SVGGElement, d: PositionedNode) {
             drawImplicationNode(d3.select(this), d);
         });
+
+        const newMaterializedNode = node
+            .filter((d: PositionedNode) => d.id === newNode?.id)
+            .attr("opacity", 0)
+            .attr(
+                "transform",
+                (d: PositionedNode) => `translate(${d.x},${d.y}) scale(0.75)`,
+            );
+        animateEnter(newMaterializedNode)
+            .attr("opacity", 1)
+            .attr(
+                "transform",
+                (d: PositionedNode) => `translate(${d.x},${d.y}) scale(1)`,
+            );
+        animateEnter(edge.filter(isNewEdge)).attr("opacity", edgeOpacity);
+        animateEnter(edgeLabel.filter(isNewEdge)).attr(
+            "opacity",
+            edgeLabelOpacity,
+        );
 
         const neighbourhood = (id: string) => {
             const near = new Set([id]);
@@ -190,7 +248,7 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             setHover(null);
         });
         return () => setHover(null);
-    }, [graph, boxEl]);
+    }, [graph, isLive, boxEl]);
 
     if (!graph) {
         return null;
