@@ -55,6 +55,10 @@ const sampleFormulas = [
         description:
             "Tseitin parity formula on a random 4-regular graph of 16 vertices with odd total charge.",
     },
+    {
+        name: "sudoku.cnf",
+        description: "A 9x9 sudoku puzzle.",
+    },
 ];
 
 export function FileInput({ onSettled }: { onSettled?: () => void }) {
