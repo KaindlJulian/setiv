@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { formatBytes } from "@/lib/format";
 import { useSource } from "@/state/context";
 import { selectedSolver } from "@/state/solverSelection";
 import { colors } from "@/view/theme";
@@ -88,7 +89,7 @@ function DownloadLog() {
             type="button"
             onClick={save}
             class="btn btn-ghost btn-xs shrink-0 px-1"
-            title={`Download ${fileName}`}
+            title={`Download ${fileName} (${formatBytes(log.size)})`}
         >
             <Download size={13} />
         </button>

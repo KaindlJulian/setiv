@@ -82,20 +82,18 @@ export const solvers: SolverInfo[] = [
         wasm: {
             runtime: "wasi",
             moduleUrl: cadicalWasm,
-            defaultFlags: [
-                "--plain",
-                "--no-otfs",
-                "--no-restartreusetrail",
-                "--no-stabilize",
-                "--no-rephase",
-                "--no-walk",
-                "--lucky=false",
-                "--chrono=0",
-                "--shrink=0",
-            ],
+            defaultFlags: ["--plain"],
             bcpFlag: "--eventlog=2",
             argv: (flags: string[], { cnf, log }: SolverPaths) => {
-                return ["cadical", "--quiet", ...flags, "-j", log, cnf];
+                return [
+                    "cadical",
+                    "--quiet",
+                    "--lucky=false",
+                    ...flags,
+                    "-j",
+                    log,
+                    cnf,
+                ];
             },
         },
     },
