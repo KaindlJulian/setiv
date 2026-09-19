@@ -128,7 +128,6 @@ export function overbarLabel(
     }
 
     const width = text.node().getComputedTextLength();
-
     const top = options.dy - options.fontSize * 0.71 - 2.5; // 0.71 feels right. todo: maybe theres a better way
 
     sel.append("line")

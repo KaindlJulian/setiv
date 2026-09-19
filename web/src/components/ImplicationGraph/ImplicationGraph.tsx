@@ -8,9 +8,11 @@ import { useGraphs, useView } from "@/state/context";
 import { drawImplicationNode, implicationLegend } from "@/view/implicationNode";
 import {
     layoutImplicationGraph,
+    type GraphLayout,
     type PositionedNode,
     type RoutedEdge,
 } from "@/view/layout/implicationLayout";
+import LayoutWorker from "@/view/layout/implicationLayoutWorker?worker";
 import { createSvgCanvas } from "@/view/svgCanvas";
 import { colors, implicationChart } from "@/view/theme";
 import type { Point } from "@dagrejs/dagre";
@@ -37,6 +39,12 @@ interface Props {
     state: SolverState;
     onSelect(eventIndex: number): void;
 }
+
+const requestLayoutFromWorker = (worker: Worker, graph: Graph) =>
+    new Promise<GraphLayout>((resolve) => {
+        worker.onmessage = (e: MessageEvent<GraphLayout>) => resolve(e.data);
+        worker.postMessage(graph);
+    });
 
 /** the conflict node is not an assignment, so there is nothing to select */
 const clickable = (d: PositionedNode) => !d.isConflict;
@@ -65,11 +73,16 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
     const [box, size, boxEl] = useElementSize<HTMLDivElement>();
     const svgRef = useRef<SVGSVGElement>(null);
     const [hover, setHover] = useState<Hover | null>(null);
+    const [drawing, setDrawing] = useState(false);
     const view = useView();
     const isLive = useGraphs().live.value;
 
     // node ids of the previous draw
     const drawn = useRef<Set<string> | null>(null);
+    const layoutWorker = useRef<Worker | null>(null);
+
+    // the worker outlives a single draw, a jump mid layout throws it away
+    useEffect(() => () => layoutWorker.current?.terminate(), []);
 
     const select = useRef(onSelect);
     select.current = onSelect;
@@ -81,173 +94,216 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             return;
         }
 
-        const { nodes, edges, width, height } = layoutImplicationGraph(graph);
+        const draw = ({ nodes, edges, width, height }: GraphLayout) => {
+            // animate newNode
+            const newNode = isLive ? enteringNode(nodes, drawn.current) : null;
+            drawn.current = new Set(nodes.map((n) => n.id));
+            const isNewEdge = (d: RoutedEdge) =>
+                newNode != null &&
+                (d.target === newNode.id || d.source === newNode.id);
 
-        // animate newNode
-        const newNode = isLive ? enteringNode(nodes, drawn.current) : null;
-        drawn.current = new Set(nodes.map((n) => n.id));
-        const isNewEdge = (d: RoutedEdge) =>
-            newNode != null &&
-            (d.target === newNode.id || d.source === newNode.id);
-        const animateEnter = (s: any) =>
-            s.transition("enter").duration(enterMs).ease(d3.easeCubicOut);
+            const isDeferredGraph = nodes.length >= implicationChart.deferNodes;
 
-        const layer = createSvgCanvas(svgEl, width, height, {
-            arrowMarker: true,
-            scaleExtent: implicationChart.scaleExtent,
-        });
+            const animateEnter = (s: any) =>
+                s.transition("enter").duration(enterMs).ease(d3.easeCubicOut);
 
-        const lineGen = d3
-            .line()
-            .x((p: Point) => p.x)
-            .y((p: Point) => p.y)
-            .curve(d3.curveBasis);
-
-        const midOf = (e: RoutedEdge) => e.points[e.points.length >> 1];
-
-        const edge = layer
-            .append("g")
-            .attr("class", cn("fill-none", colors.implicationEdge))
-            .selectAll("path")
-            .data(edges)
-            .join("path")
-            .attr("stroke-width", 1.5)
-            .attr("opacity", (d: RoutedEdge) =>
-                isNewEdge(d) ? 0 : edgeOpacity,
-            )
-            .attr("marker-end", "url(#arrow)")
-            .attr("d", (d: RoutedEdge) => lineGen(d.points));
-
-        const edgeLabel = layer
-            .append("g")
-            .attr("class", cn(colors.edgeLabel, "font-mono cursor-pointer"))
-            .selectAll("text")
-            .data(edges)
-            .join("text")
-            .attr("font-size", 9)
-            .attr("text-anchor", "middle")
-            .attr("opacity", (d: RoutedEdge) =>
-                isNewEdge(d) ? 0 : edgeLabelOpacity,
-            )
-            .attr("x", (d: RoutedEdge) => midOf(d).x)
-            .attr("y", (d: RoutedEdge) => midOf(d).y - 1)
-            .text(
-                (d: RoutedEdge) =>
-                    d.clauseId != null && d.clauseId >= 0
-                        ? `c${d.clauseId}`
-                        : "", // an edge with no permanent clause behind it is unlabelled, this should not happen
-            )
-            .on("click", (event: Event, d: RoutedEdge) => {
-                if (d.clauseId == null || d.clauseId < 0) {
-                    return;
-                }
-                event.stopPropagation();
-                view.revealClause(d.clauseId);
+            const layer = createSvgCanvas(svgEl, width, height, {
+                arrowMarker: !isDeferredGraph,
+                scaleExtent: implicationChart.scaleExtent,
             });
 
-        const node = layer
-            .append("g")
-            .selectAll("g")
-            .data(nodes)
-            .join("g")
-            .attr("class", (d: PositionedNode) =>
-                clickable(d) ? "cursor-pointer" : null,
-            )
-            .attr(
-                "transform",
-                (d: PositionedNode) => `translate(${d.x},${d.y})`,
-            )
-            .on("click", (event: Event, d: PositionedNode) => {
-                if (!clickable(d)) {
-                    return;
-                }
+            const lineGen = d3
+                .line()
+                .x((p: Point) => p.x)
+                .y((p: Point) => p.y)
+                .curve(d3.curveBasis);
 
-                event.stopPropagation();
-                select.current(d.eventIndex);
-            });
+            const midOf = (e: RoutedEdge) => e.points[e.points.length >> 1];
 
-        node.each(function (this: SVGGElement, d: PositionedNode) {
-            drawImplicationNode(d3.select(this), d);
-        });
+            const edge = layer
+                .append("g")
+                .attr("class", cn("fill-none", colors.implicationEdge))
+                .selectAll("path")
+                .data(edges)
+                .join("path")
+                .attr("stroke-width", 1.5)
+                .attr("opacity", (d: RoutedEdge) =>
+                    isNewEdge(d) ? 0 : edgeOpacity,
+                )
+                .attr("marker-end", isDeferredGraph ? null : "url(#arrow)")
+                .attr("d", (d: RoutedEdge) => lineGen(d.points));
 
-        const newMaterializedNode = node
-            .filter((d: PositionedNode) => d.id === newNode?.id)
-            .attr("opacity", 0)
-            .attr(
-                "transform",
-                (d: PositionedNode) => `translate(${d.x},${d.y}) scale(0.75)`,
-            );
-        animateEnter(newMaterializedNode)
-            .attr("opacity", 1)
-            .attr(
-                "transform",
-                (d: PositionedNode) => `translate(${d.x},${d.y}) scale(1)`,
-            );
-        animateEnter(edge.filter(isNewEdge)).attr("opacity", edgeOpacity);
-        animateEnter(edgeLabel.filter(isNewEdge)).attr(
-            "opacity",
-            edgeLabelOpacity,
-        );
-
-        const neighbourhood = (id: string) => {
-            const near = new Set([id]);
-
-            for (const e of edges) {
-                if (e.source === id) {
-                    near.add(e.target);
-                } else if (e.target === id) {
-                    near.add(e.source);
-                }
-            }
-
-            return near;
-        };
-
-        const fade = (s: any) =>
-            s.transition("focus").duration(fadeMs).ease(d3.easeCubicInOut);
-
-        const focus = (d: PositionedNode | null) => {
-            if (!d) {
-                fade(node).attr("opacity", 1);
-                fade(edge).attr("opacity", edgeOpacity);
-                fade(edgeLabel).attr("opacity", edgeLabelOpacity);
-                return;
-            }
-
-            const near = neighbourhood(d.id);
-            const incident = (e: RoutedEdge) =>
-                e.source === d.id || e.target === d.id;
-
-            fade(node).attr("opacity", (n: PositionedNode) =>
-                near.has(n.id) ? 1 : dimmed,
-            );
-            fade(edge).attr("opacity", (e: RoutedEdge) =>
-                incident(e) ? 1 : dimmed,
-            );
-            fade(edgeLabel).attr("opacity", (e: RoutedEdge) =>
-                incident(e) ? 1 : dimmed,
-            );
-        };
-
-        // hover
-        node.on(
-            "pointerenter",
-            function (this: SVGGElement, _: PointerEvent, d: PositionedNode) {
-                const rect = this.getBoundingClientRect();
-                const container = boxEl.getBoundingClientRect();
-
-                focus(d);
-                setHover({
-                    node: d,
-                    x: rect.left + rect.width / 2 - container.left,
-                    y: rect.top + rect.height / 2 - container.top,
+            const edgeLabel = layer
+                .append("g")
+                .attr("class", cn(colors.edgeLabel, "font-mono cursor-pointer"))
+                .selectAll("text")
+                .data(isDeferredGraph ? [] : edges)
+                .join("text")
+                .attr("font-size", 9)
+                .attr("text-anchor", "middle")
+                .attr("opacity", (d: RoutedEdge) =>
+                    isNewEdge(d) ? 0 : edgeLabelOpacity,
+                )
+                .attr("x", (d: RoutedEdge) => midOf(d).x)
+                .attr("y", (d: RoutedEdge) => midOf(d).y - 1)
+                .text(
+                    (d: RoutedEdge) =>
+                        d.clauseId != null && d.clauseId >= 0
+                            ? `c${d.clauseId}`
+                            : "", // an edge with no permanent clause behind it is unlabelled, this should not happen
+                )
+                .on("click", (event: Event, d: RoutedEdge) => {
+                    if (d.clauseId == null || d.clauseId < 0) {
+                        return;
+                    }
+                    event.stopPropagation();
+                    view.revealClause(d.clauseId);
                 });
-            },
-        ).on("pointerleave", () => {
-            focus(null);
-            setHover(null);
+
+            const node = layer
+                .append("g")
+                .selectAll("g")
+                .data(nodes)
+                .join("g")
+                .attr("class", (d: PositionedNode) =>
+                    clickable(d) ? "cursor-pointer" : null,
+                )
+                .attr(
+                    "transform",
+                    (d: PositionedNode) => `translate(${d.x},${d.y})`,
+                )
+                .on("click", (event: Event, d: PositionedNode) => {
+                    if (!clickable(d)) {
+                        return;
+                    }
+
+                    event.stopPropagation();
+                    select.current(d.eventIndex);
+                });
+
+            node.each(function (this: SVGGElement, d: PositionedNode) {
+                drawImplicationNode(d3.select(this), d);
+            });
+
+            const newMaterializedNode = node
+                .filter((d: PositionedNode) => d.id === newNode?.id)
+                .attr("opacity", 0)
+                .attr(
+                    "transform",
+                    (d: PositionedNode) =>
+                        `translate(${d.x},${d.y}) scale(0.75)`,
+                );
+            animateEnter(newMaterializedNode)
+                .attr("opacity", 1)
+                .attr(
+                    "transform",
+                    (d: PositionedNode) => `translate(${d.x},${d.y}) scale(1)`,
+                );
+            animateEnter(edge.filter(isNewEdge)).attr("opacity", edgeOpacity);
+            animateEnter(edgeLabel.filter(isNewEdge)).attr(
+                "opacity",
+                edgeLabelOpacity,
+            );
+
+            const neighbourhood = (id: string) => {
+                const near = new Set([id]);
+
+                for (const e of edges) {
+                    if (e.source === id) {
+                        near.add(e.target);
+                    } else if (e.target === id) {
+                        near.add(e.source);
+                    }
+                }
+
+                return near;
+            };
+
+            // a transition over thousands of elements janks on every hover
+            const fade = (s: any) =>
+                isDeferredGraph
+                    ? s
+                    : s
+                          .transition("focus")
+                          .duration(fadeMs)
+                          .ease(d3.easeCubicInOut);
+
+            const focus = (d: PositionedNode | null) => {
+                if (!d) {
+                    fade(node).attr("opacity", 1);
+                    fade(edge).attr("opacity", edgeOpacity);
+                    fade(edgeLabel).attr("opacity", edgeLabelOpacity);
+                    return;
+                }
+
+                const near = neighbourhood(d.id);
+                const incident = (e: RoutedEdge) =>
+                    e.source === d.id || e.target === d.id;
+
+                fade(node).attr("opacity", (n: PositionedNode) =>
+                    near.has(n.id) ? 1 : dimmed,
+                );
+                fade(edge).attr("opacity", (e: RoutedEdge) =>
+                    incident(e) ? 1 : dimmed,
+                );
+                fade(edgeLabel).attr("opacity", (e: RoutedEdge) =>
+                    incident(e) ? 1 : dimmed,
+                );
+            };
+
+            // hover
+            node.on(
+                "pointerenter",
+                function (
+                    this: SVGGElement,
+                    _: PointerEvent,
+                    d: PositionedNode,
+                ) {
+                    const rect = this.getBoundingClientRect();
+                    const container = boxEl.getBoundingClientRect();
+
+                    focus(d);
+                    setHover({
+                        node: d,
+                        x: rect.left + rect.width / 2 - container.left,
+                        y: rect.top + rect.height / 2 - container.top,
+                    });
+                },
+            ).on("pointerleave", () => {
+                focus(null);
+                setHover(null);
+            });
+        };
+
+        // only spinner if drawin is async
+        if (graph.nodes.length < implicationChart.deferNodes) {
+            setDrawing(false);
+            draw(layoutImplicationGraph(graph));
+            return () => setHover(null);
+        }
+
+        d3.select(svgEl).selectAll("*").remove();
+        setHover(null);
+        setDrawing(true);
+
+        const worker = (layoutWorker.current ??= new LayoutWorker());
+
+        let pending = true;
+
+        requestLayoutFromWorker(worker, graph).then((layout) => {
+            pending = false;
+            draw(layout);
+            setDrawing(false);
         });
-        return () => setHover(null);
+
+        return () => {
+            // stop worker
+            if (pending) {
+                worker.terminate();
+                layoutWorker.current = null;
+            }
+            setHover(null);
+        };
     }, [graph, isLive, boxEl]);
 
     if (!graph) {
@@ -261,6 +317,12 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
                     ref={svgRef}
                     class="setiv-canvas bg-setiv-surface absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
                 />
+
+                {drawing && (
+                    <div class="absolute inset-0 grid place-items-center">
+                        <div class="border-base-content/15 border-t-base-content/50 loading loading-spinner loading-md size-8 border-4" />
+                    </div>
+                )}
 
                 {hover && (
                     <HoverCard

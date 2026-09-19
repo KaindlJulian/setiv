@@ -49,6 +49,7 @@ export const implicationChart = {
     ranksep: 74,
     margin: 20,
     scaleExtent: [0.1, 100] as [number, number],
+    deferNodes: 150,
 } as const;
 
 export const treeChart = {
