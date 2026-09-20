@@ -1,10 +1,19 @@
 import type { LegendItem } from "@/components/Legend";
 import { cn } from "@/lib/cn";
+import { assignmentLabel, ellipsize } from "@/lib/format";
+import { varLabel } from "@/lib/naming";
 import type { ImplicationNode } from "@/model/implicationGraph";
 import type { Selection } from "@/view/svgCanvas";
 import { colors, implicationChart } from "@/view/theme";
 
-const { nodeWidth, nodeHeight, nodeDivider, nodeRadius } = implicationChart;
+const {
+    nodeWidth,
+    nodeHeight,
+    nodeDivider,
+    nodeRadius,
+    labelFontSize,
+    monoRatio,
+} = implicationChart;
 
 export const implicationLegend: LegendItem[] = [
     { shape: "chip", label: "propagated", fill: colors.node },
@@ -18,17 +27,26 @@ export const implicationLegend: LegendItem[] = [
     { shape: "chip", label: "κ conflict", fill: colors.conflict },
 ];
 
-export const kindOf = (d: ImplicationNode): string =>
-    d.isConflict ? "conflict" : d.isDecision ? "decision" : "propagated";
+export const kindOf = (d: ImplicationNode): string => {
+    return d.isConflict ? "conflict" : d.isDecision ? "decision" : "propagated";
+};
 
-export const magnitude = (d: ImplicationNode): string =>
-    d.isConflict ? "κ" : String(Math.abs(d.lit!));
+export const shortLabel = (d: ImplicationNode): string => {
+    return d.isConflict ? "κ" : ellipsize(varLabel(Math.abs(d.lit!)));
+};
+
+export function chipWidthFor(nodes: readonly ImplicationNode[]): number {
+    const widest = nodes.reduce((w, n) => Math.max(w, shortLabel(n).length), 1);
+    const cell = widest * labelFontSize * monoRatio + 12;
+    // the literal cell spans [-width/2, nodeDivider]
+    return Math.max(nodeWidth, Math.ceil(2 * (cell - nodeDivider)));
+}
 
 export const isNegative = (d: ImplicationNode): boolean =>
     !d.isConflict && d.lit! < 0;
 
 export const assignmentText = (d: ImplicationNode): string =>
-    d.isConflict ? "" : `x${Math.abs(d.lit!)} = ${d.lit! > 0}`;
+    d.isConflict ? "" : assignmentLabel(d.lit!);
 
 export const fillOf = (d: ImplicationNode): string =>
     d.isConflict
@@ -55,11 +73,15 @@ const barStroke: Record<string, string> = {
 export const strokeFor = (fillClass: string): string =>
     barStroke[fillClass] ?? "stroke-setiv-ink";
 
-export function drawImplicationNode(sel: Selection, d: ImplicationNode): void {
+export function drawImplicationNode(
+    sel: Selection,
+    d: ImplicationNode,
+    width: number = nodeWidth,
+): void {
     sel.append("rect")
-        .attr("x", -nodeWidth / 2)
+        .attr("x", -width / 2)
         .attr("y", -nodeHeight / 2)
-        .attr("width", nodeWidth)
+        .attr("width", width)
         .attr("height", nodeHeight)
         .attr("rx", nodeRadius)
         .attr("class", fillOf(d));
@@ -74,7 +96,7 @@ export function drawImplicationNode(sel: Selection, d: ImplicationNode): void {
 
     if (d.isDecision) {
         sel.append("rect")
-            .attr("x", -nodeWidth / 2 + 2)
+            .attr("x", -width / 2 + 2)
             .attr("y", -nodeHeight / 2 + 2)
             .attr("width", 3.5)
             .attr("height", nodeHeight - 4)
@@ -83,14 +105,14 @@ export function drawImplicationNode(sel: Selection, d: ImplicationNode): void {
     }
 
     overbarLabel(sel, d, {
-        fontSize: 12,
+        fontSize: labelFontSize,
         dy: 4,
-        x: -10,
+        x: (nodeDivider - width / 2) / 2,
         class: labelFillOf(d),
     });
 
     sel.append("text")
-        .attr("x", (nodeDivider + nodeWidth / 2) / 2 + 2)
+        .attr("x", (nodeDivider + width / 2) / 2 + 2)
         .attr("text-anchor", "middle")
         .attr("dy", 3.5)
         .attr("font-size", 9)
@@ -121,7 +143,7 @@ export function overbarLabel(
         .attr("font-weight", options.weight ?? 600)
         .attr("pointer-events", "none")
         .attr("class", options.class)
-        .text(magnitude(d));
+        .text(shortLabel(d));
 
     if (!isNegative(d)) {
         return;

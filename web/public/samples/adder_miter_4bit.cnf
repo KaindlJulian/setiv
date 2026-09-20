@@ -1,4 +1,4 @@
-c adder_miter_4bit -- equivalence check of two 4-bit adders
+c adder_miter_4bit: equivalence check of two 4-bit adders
 p cnf 60 191
 -10 1 5 0
 -10 -1 -5 0

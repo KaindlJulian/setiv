@@ -1,6 +1,6 @@
 import { Panel } from "@/components/Panel";
 import { ScopeToggle, type ScopeOption } from "@/components/ScopeToggle";
-import { clauseRef } from "@/lib/format";
+import { clauseRef, litLabel } from "@/lib/format";
 import type { GraphScope } from "@/model/implicationGraph";
 import { useCursor, useGraphs, useView } from "@/state/context";
 import { ConflictSelector } from "./ConflictSelector";
@@ -108,9 +108,11 @@ export function ImplicationPanel() {
                             </span>
 
                             {conflict.learnedLiterals && (
-                                <span class="badge badge-warning badge-sm font-mono">
+                                <span class="badge badge-warning badge-sm font-mono break-all">
                                     learned:{" "}
-                                    {conflict.learnedLiterals.join(", ")}
+                                    {conflict.learnedLiterals
+                                        .map(litLabel)
+                                        .join(", ")}
                                 </span>
                             )}
                         </div>

@@ -1,3 +1,5 @@
+import type { VarNames } from "@/lib/compile";
+import { varNames } from "@/lib/naming";
 import type { SolverEvent } from "@/model/events";
 import { createEventParser, EventLogError } from "@/model/parseStream";
 import { createRunBuilder, type SolverRun } from "@/model/run";
@@ -27,7 +29,12 @@ export interface SourceStore {
     /** Read an event log from string */
     loadLog(text: string, name: string): void;
     /** Run a solver on a formula and stream its log in as it is generated */
-    loadFormula(file: File, solverId: string, flags: string[]): Promise<void>;
+    loadFormula(
+        file: File,
+        solverId: string,
+        flags: string[],
+        names: VarNames | null,
+    ): Promise<void>;
     /** Terminate a running solver. Keep the partial log in store */
     terminateSolver(): void;
     setLoadError(message: string, name?: string): void;
@@ -67,6 +74,7 @@ export function createSourceStore(): SourceStore {
             status.value = nextStatus;
             bytesRead.value = 0;
             generatedLog.value = null;
+            varNames.value = null;
         });
     };
 
@@ -219,11 +227,13 @@ export function createSourceStore(): SourceStore {
         file: File,
         solverId: string,
         flags: string[],
+        names: VarNames | null,
     ) => {
         const dimacsText = await file.text();
         const abort = claim();
 
         reset(file.name, "solving");
+        varNames.value = names;
 
         const sink = createSink();
 

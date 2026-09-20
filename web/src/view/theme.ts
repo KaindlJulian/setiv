@@ -50,6 +50,8 @@ export const implicationChart = {
     margin: 20,
     scaleExtent: [0.1, 100] as [number, number],
     deferNodes: 150,
+    labelFontSize: 12,
+    monoRatio: 0.6,
 } as const;
 
 export const treeChart = {

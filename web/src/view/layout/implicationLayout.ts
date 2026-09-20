@@ -43,26 +43,31 @@ export interface LayoutOptions {
  *  - propagation flowing right,
  *  - the conflict node on the far right
  */
-const layoutCache = new WeakMap<ImplicationGraph, GraphLayout>();
+const layoutCache = new WeakMap<ImplicationGraph, Map<string, GraphLayout>>();
+
+const sizeKey = (o: LayoutOptions) =>
+    `${o.nodeWidth ?? ""}/${o.nodeHeight ?? ""}/${o.nodesep ?? ""}/${o.ranksep ?? ""}`;
 
 export function layoutImplicationGraph(
     graph: ImplicationGraph,
-    options?: LayoutOptions,
+    options: LayoutOptions = {},
 ): GraphLayout {
-    // The cache is keyed on the graph alone, so it can only serve the default
-    // sizing. Anything with overrides is computed fresh.
-    if (options) {
-        return computeLayout(graph, options);
+    let bySize = layoutCache.get(graph);
+
+    if (!bySize) {
+        bySize = new Map();
+        layoutCache.set(graph, bySize);
     }
 
-    const cached = layoutCache.get(graph);
+    const key = sizeKey(options);
+    const cached = bySize.get(key);
 
     if (cached) {
         return cached;
     }
 
-    const layout = computeLayout(graph);
-    layoutCache.set(graph, layout);
+    const layout = computeLayout(graph, options);
+    bySize.set(key, layout);
 
     return layout;
 }

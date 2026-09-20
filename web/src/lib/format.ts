@@ -1,3 +1,4 @@
+import { activeNames, varLabel } from "@/lib/naming";
 import type { TreeNode } from "@/model/decisionTree";
 import type { SolverEvent } from "@/model/events";
 import type { TrailEntry } from "@/model/trail";
@@ -6,7 +7,32 @@ const neg = "-"; // ¬
 const lor = "∨";
 
 export function litLabel(lit: number): string {
-    return lit < 0 ? `${neg}${-lit}` : `${lit}`;
+    const name = varLabel(Math.abs(lit));
+    return lit < 0 ? `${neg}${name}` : name;
+}
+
+/** Longest label a chart draws */
+export const maxLabelLength = 12;
+
+/** shortenm but keep ends */
+export function ellipsize(text: string): string {
+    if (text.length <= maxLabelLength) {
+        return text;
+    }
+    const head = Math.ceil((maxLabelLength - 1) / 2);
+    return `${text.slice(0, head)}…${text.slice(text.length - (maxLabelLength - 1 - head))}`;
+}
+
+export function shortLitLabel(lit: number): string {
+    const name = ellipsize(varLabel(Math.abs(lit)));
+    return lit < 0 ? `${neg}${name}` : name;
+}
+
+export function assignmentLabel(lit: number): string {
+    const v = Math.abs(lit);
+    const name = activeNames.value ? varLabel(v) : `x${v}`;
+
+    return `${name} = ${lit > 0}`;
 }
 
 export function clauseText(literals: number[]): string {
@@ -83,9 +109,9 @@ export function treeNodeLabel(n: TreeNode): string {
         case "conflict":
             return `conflict (${clauseRef(n.reasonClauseId)})`;
         case "propagation":
-            return `${litLabel(n.lit!)} @${n.level} (${clauseRef(n.reasonClauseId)})`;
+            return `${shortLitLabel(n.lit!)} @${n.level}`;
         case "decision":
-            return `${litLabel(n.lit!)} @${n.level}${implied}`;
+            return `${shortLitLabel(n.lit!)} @${n.level}${implied}`;
         case "collapsed": {
             const hidden = compactCount(n.hiddenCount ?? 0);
             const branches = n.sources?.length ?? 0;

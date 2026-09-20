@@ -2,13 +2,19 @@ import { HoverCard } from "@/components/HoverCard";
 import { Legend } from "@/components/Legend";
 import { useElementSize } from "@/hooks/useElementSize";
 import { cn } from "@/lib/cn";
+import { activeNames } from "@/lib/naming";
 import type { ImplicationGraph as Graph } from "@/model/implicationGraph";
 import type { SolverState } from "@/model/trail";
 import { useGraphs, useView } from "@/state/context";
-import { drawImplicationNode, implicationLegend } from "@/view/implicationNode";
+import {
+    chipWidthFor,
+    drawImplicationNode,
+    implicationLegend,
+} from "@/view/implicationNode";
 import {
     layoutImplicationGraph,
     type GraphLayout,
+    type LayoutOptions,
     type PositionedNode,
     type RoutedEdge,
 } from "@/view/layout/implicationLayout";
@@ -40,10 +46,14 @@ interface Props {
     onSelect(eventIndex: number): void;
 }
 
-const requestLayoutFromWorker = (worker: Worker, graph: Graph) =>
+const requestLayoutFromWorker = (
+    worker: Worker,
+    graph: Graph,
+    options: LayoutOptions,
+) =>
     new Promise<GraphLayout>((resolve) => {
         worker.onmessage = (e: MessageEvent<GraphLayout>) => resolve(e.data);
-        worker.postMessage(graph);
+        worker.postMessage({ graph, options });
     });
 
 /** the conflict node is not an assignment, so there is nothing to select */
@@ -83,6 +93,17 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
 
     // the worker outlives a single draw, a jump mid layout throws it away
     useEffect(() => () => layoutWorker.current?.terminate(), []);
+
+    // rerender when changed
+    const names = activeNames.value;
+
+    const chipWidth = graph
+        ? chipWidthFor(graph.nodes)
+        : implicationChart.nodeWidth;
+    const layoutOptions: LayoutOptions = {
+        nodeWidth:
+            chipWidth + implicationChart.boxWidth - implicationChart.nodeWidth,
+    };
 
     const select = useRef(onSelect);
     select.current = onSelect;
@@ -182,7 +203,7 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
                 });
 
             node.each(function (this: SVGGElement, d: PositionedNode) {
-                drawImplicationNode(d3.select(this), d);
+                drawImplicationNode(d3.select(this), d, chipWidth);
             });
 
             const newMaterializedNode = node
@@ -278,7 +299,7 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
         // only spinner if drawin is async
         if (graph.nodes.length < implicationChart.deferNodes) {
             setDrawing(false);
-            draw(layoutImplicationGraph(graph));
+            draw(layoutImplicationGraph(graph, layoutOptions));
             return () => setHover(null);
         }
 
@@ -290,7 +311,7 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
 
         let pending = true;
 
-        requestLayoutFromWorker(worker, graph).then((layout) => {
+        requestLayoutFromWorker(worker, graph, layoutOptions).then((layout) => {
             pending = false;
             draw(layout);
             setDrawing(false);
@@ -304,7 +325,7 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
             }
             setHover(null);
         };
-    }, [graph, isLive, boxEl]);
+    }, [graph, isLive, boxEl, chipWidth, names]);
 
     if (!graph) {
         return null;

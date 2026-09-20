@@ -1,7 +1,9 @@
-import * as d3 from "d3";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { HoverCard } from "@/components/HoverCard";
+import { Legend, type LegendItem } from "@/components/Legend";
+import { useElementSize } from "@/hooks/useElementSize";
 import { cn } from "@/lib/cn";
-import { treeNodeLabel } from "@/lib/format";
+import { maxLabelLength, treeNodeLabel } from "@/lib/format";
+import { activeNames, longestName } from "@/lib/naming";
 import type { DecisionTree as Tree, TreeNode } from "@/model/decisionTree";
 import {
     layoutDecisionTree,
@@ -10,9 +12,8 @@ import {
 } from "@/view/layout/treeLayout";
 import { createSvgCanvas } from "@/view/svgCanvas";
 import { colors, treeChart } from "@/view/theme";
-import { HoverCard } from "@/components/HoverCard";
-import { Legend, type LegendItem } from "@/components/Legend";
-import { useElementSize } from "@/hooks/useElementSize";
+import * as d3 from "d3";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { TreeNodeTooltip } from "./TreeNodeTooltip";
 
 const decisionEdge: LegendItem = {
@@ -81,6 +82,16 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
     // node keys of the previous draw
     const drawn = useRef<Set<string> | null>(null);
 
+    // render when changed
+    const names = activeNames.value;
+
+    const depthSep = Math.max(
+        treeChart.nodeSize[1],
+        Math.round(
+            (Math.min(longestName.value, maxLabelLength) + 12) * 11 * 0.6 + 16,
+        ),
+    );
+
     const expand = useRef(onExpand);
     expand.current = onExpand;
     const select = useRef(onSelect);
@@ -93,7 +104,10 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
             return;
         }
 
-        const { nodes, edges, width, height } = layoutDecisionTree(tree);
+        const { nodes, edges, width, height } = layoutDecisionTree(
+            tree,
+            depthSep,
+        );
 
         // animate newNode
         const newNode = enteringNode(nodes, drawn.current);
@@ -244,7 +258,7 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
             .text((d: TreeLayoutNode) => treeNodeLabel(d.node));
 
         return () => setHover(null);
-    }, [tree, boxEl]);
+    }, [tree, boxEl, depthSep, names]);
 
     if (!tree) {
         return null;

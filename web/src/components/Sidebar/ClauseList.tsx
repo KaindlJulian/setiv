@@ -2,6 +2,7 @@ import { useRevealRow } from "@/hooks/useRevealRow";
 import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
 import { useView } from "@/state/context";
 import { cn } from "@/lib/cn";
+import { litLabel } from "@/lib/format";
 import type { ClauseRecord } from "@/model/clauseDatabase";
 import { litValue, type SolverState } from "@/model/trail";
 import { colors } from "@/view/theme";
@@ -70,7 +71,7 @@ export function ClauseList({
                             ]
                         }
                     >
-                        {lit}
+                        {litLabel(lit)}
                     </span>
                 ))}
             </div>,

@@ -1,11 +1,13 @@
-import { FileInput } from "@/components/FileInput";
+import { FileInput } from "@/components/Input/FileInput";
 import { RunStatus } from "@/components/RunStatus";
 import { useDismiss } from "@/hooks/useDismiss";
 import { cn } from "@/lib/cn";
+import { varNames } from "@/lib/naming";
 import { useSource } from "@/state/context";
 import { FolderOpen } from "lucide-preact";
 import { useLocation } from "preact-iso";
 import { useRef, useState } from "preact/hooks";
+import { SettingsMenu } from "./SettingsMenu";
 import { ThemeToggle } from "./ThemeToggle";
 
 declare const __GIT_SUBJECT__: string;
@@ -45,6 +47,7 @@ export function Navbar() {
             <div class="z-10 flex shrink-0 items-center gap-1">
                 <RunStatus />
                 <LogMenu />
+                {varNames.value && <SettingsMenu />}
                 <ThemeToggle />
             </div>
         </header>

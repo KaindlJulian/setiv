@@ -20,11 +20,14 @@ export interface TreeLayout {
     height: number;
 }
 
-export function layoutDecisionTree(tree: DecisionTree): TreeLayout {
+export function layoutDecisionTree(
+    tree: DecisionTree,
+    depthSep: number = treeChart.nodeSize[1],
+): TreeLayout {
     const { nodeSize, margin, labelPad } = treeChart;
 
     const root = d3.hierarchy(tree.root, (d: TreeNode) => d.children);
-    d3.tree().nodeSize(nodeSize)(root);
+    d3.tree().nodeSize([nodeSize[0], depthSep])(root);
 
     // d3.tree lays out top-down:
     // `x` separates siblings, `y` is the depth axis.
@@ -69,7 +72,7 @@ export function layoutDecisionTree(tree: DecisionTree): TreeLayout {
     return {
         nodes,
         edges,
-        width: maxDepth + margin + labelPad,
+        width: maxDepth + margin + Math.max(labelPad, depthSep),
         height: maxSibling - minSibling + 2 * margin,
     };
 }

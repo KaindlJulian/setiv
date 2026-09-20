@@ -1,6 +1,6 @@
 import { ClauseChips } from "@/components/ClauseChips";
 import { cn } from "@/lib/cn";
-import { clauseRef, compactCount } from "@/lib/format";
+import { assignmentLabel, clauseRef, compactCount } from "@/lib/format";
 import { clauseById } from "@/model/clauseDatabase";
 import { ROOT, type TreeNode } from "@/model/decisionTree";
 import type { DecideEvent } from "@/model/events";
@@ -18,7 +18,7 @@ function titleOf(node: TreeNode): string {
                 ? `${node.sources?.length} branches`
                 : `${compactCount(node.hiddenCount ?? 0)} nodes`;
         default:
-            return `x${Math.abs(node.lit!)} = ${node.lit! > 0}`;
+            return assignmentLabel(node.lit!);
     }
 }
 

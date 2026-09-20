@@ -1,5 +1,5 @@
 import { useLocation } from "preact-iso";
-import { FileInput } from "./FileInput";
+import { FileInput } from "./Input/FileInput";
 
 export function EmptyState() {
     const location = useLocation();
