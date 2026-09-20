@@ -1,9 +1,9 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::{i32 as int, multispace1, not_line_ending, u64 as number};
-use nom::combinator::{value, verify};
+use nom::combinator::{eof, peek, value, verify};
 use nom::multi::{many0, many_till};
-use nom::sequence::{delimited, preceded};
+use nom::sequence::{delimited, preceded, terminated};
 use nom::{IResult, Parser};
 
 pub struct Formula {
@@ -17,11 +17,13 @@ pub struct Clause {
 }
 
 fn skip(input: &str) -> IResult<&str, ()> {
-    value(
-        (),
-        many0(alt((multispace1, preceded(tag("c"), not_line_ending)))),
-    )
-    .parse(input)
+    // The comment marker has to be a token of its own, otherwise every line
+    // starting with a c word is read as a comment.
+    let comment = preceded(
+        terminated(tag("c"), peek(alt((multispace1, eof)))),
+        not_line_ending,
+    );
+    value((), many0(alt((multispace1, comment)))).parse(input)
 }
 
 fn parse_clause(id: u64, input: &str) -> IResult<&str, Clause> {

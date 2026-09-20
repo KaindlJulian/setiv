@@ -36,10 +36,6 @@ export function SolverCard({ solver, file, names, onRun }: SolverCardProps) {
             return;
         }
 
-        if (bcp) {
-            flags.push(solver.wasm.bcpFlag);
-        }
-
         onRun?.();
         location.route("/chart");
         await source.loadFormula(file, solver.id, flags, names ?? null);
