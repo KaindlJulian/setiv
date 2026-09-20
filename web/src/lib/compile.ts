@@ -263,6 +263,19 @@ function locate(src: string, at: number) {
     };
 }
 
+// kind of ugly, parser should dont even add tautologies or duplicate literals but this works for now
+function clean(clause: Clause): Clause | null {
+    const lits = new Set(clause);
+
+    for (const lit of lits) {
+        if (lits.has(-lit)) {
+            return null;
+        }
+    }
+
+    return [...lits];
+}
+
 export function compileFormula(source: string): CompileResult {
     try {
         const toks = lex(source);
@@ -279,7 +292,7 @@ export function compileFormula(source: string): CompileResult {
             ? { clauses: direct, varCount: sourceCount }
             : tseitin(ast, sourceCount);
 
-        const kept = clauses.filter((c): c is Clause => c !== null);
+        const kept = clauses.map(clean).filter((c): c is Clause => c !== null);
 
         const lines = [
             ...names.slice(1).map((name, i) => `c ${i + 1} ${name}`),
