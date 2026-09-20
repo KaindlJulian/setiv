@@ -153,7 +153,7 @@ export function FileInput({ onSettled }: { onSettled?: () => void }) {
                             onClick={() => setTab("text")}
                             class={cn("tab", tab === "text" && "tab-active")}
                         >
-                            Text
+                            Limboole Formula
                         </button>
                         <button
                             role="tab"
