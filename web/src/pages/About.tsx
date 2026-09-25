@@ -51,10 +51,6 @@ const relatedWork: Credit[] = [
 
 const usageDescriptions: { title: string; body: string }[] = [
     {
-        title: "Open menu",
-        body: "Either a CNF formula with a solver to run live as WASM, or a pre-recorded .jsonl/.ndjson event log.",
-    },
-    {
         title: "Event Log Statistics",
         body: "Counters for the run in total: events, clauses, conflicts, etc. Download the event log as .jsonl/.ndjson.",
     },
@@ -77,6 +73,10 @@ const usageDescriptions: { title: string; body: string }[] = [
     {
         title: "Formula view",
         body: 'A CNF formula built from the event log init event. One clause per line or as "flowing text".',
+    },
+    {
+        title: "BCP view",
+        body: "If BCP level logging solver option is enabled. Shows the individual clause inspections during BCP and watched literals.",
     },
     {
         title: "Event log",

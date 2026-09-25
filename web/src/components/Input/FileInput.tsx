@@ -1,61 +1,39 @@
 import { cn } from "@/lib/cn";
-import { compileFormula, type CompileResult } from "@/lib/compile";
+import { compileFormula } from "@/lib/compile";
 import { solvers } from "@/model/solvers";
 import { useSource } from "@/state/context";
 import { selectedSolver, selectedSolverId } from "@/state/solverSelection";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+
+import { ChevronDown, ChevronRight, CircleAlert, Play } from "lucide-preact";
+import { useEffect, useId, useMemo, useRef, useState } from "preact/hooks";
+
 import { FormulaEditor } from "./FormulaEditor";
-import { SolverCard } from "./SolverCard";
-import { sampleFormulas } from "./samples";
+import { SampleList } from "./SampleList";
+import { type Sample } from "./samples";
+import { SolverOptions, useSolverFlags } from "./SolverOptions";
+
+type TabId = "formula" | "dimacs" | "log";
 
 interface Uploaded {
     file: File;
     text: string;
-}
-
-interface Preview {
-    body: string;
-    variables: number;
-    clauses: number;
-}
-
-function previewOfCompiled(compiled: CompileResult | null): Preview | null {
-    if (!compiled?.ok) {
-        return null;
-    }
-
-    return {
-        body: compiled.dimacs,
-        variables: compiled.variables,
-        clauses: compiled.clauses,
-    };
-}
-
-function previewOf(uploaded: Uploaded | null): Preview | null {
-    if (!uploaded) {
-        return null;
-    }
-
-    const header = /^p\s+cnf\s+(\d+)\s+(\d+)/m.exec(uploaded.text);
-
-    return {
-        body: uploaded.text,
-        variables: Number(header?.[1] ?? 0),
-        clauses: Number(header?.[2] ?? 0),
-    };
+    note: string | null;
 }
 
 export function FileInput({ onSettled }: { onSettled?: () => void }) {
     const source = useSource();
-    const status = source.status.value;
-    const solver = selectedSolver.value;
+    const ids = useId();
 
-    const [tab, setTab] = useState<"upload" | "text">("text");
+    const busy = source.status.value !== "idle";
+    const solver = selectedSolver.value;
+    const flagState = useSolverFlags(solver);
+
+    const [tab, setTab] = useState<TabId>("formula");
     const [text, setText] = useState("");
     const [uploaded, setUploaded] = useState<Uploaded | null>(null);
-    const [configOpen, setConfigOpen] = useState(false);
+    const [showDimacs, setShowDimacs] = useState(false);
 
-    const formulaInput = useRef<HTMLInputElement>(null);
+    const dimacsInput = useRef<HTMLInputElement>(null);
     const pick = useRef(0);
 
     const compiled = useMemo(
@@ -63,7 +41,7 @@ export function FileInput({ onSettled }: { onSettled?: () => void }) {
         [text],
     );
 
-    const compiledCnfFile = useMemo(
+    const compiledFile = useMemo(
         () =>
             compiled?.ok
                 ? new File([compiled.dimacs], "formula.cnf", {
@@ -74,15 +52,63 @@ export function FileInput({ onSettled }: { onSettled?: () => void }) {
     );
 
     const formulaFile =
-        tab === "text" ? compiledCnfFile : (uploaded?.file ?? null);
+        tab === "formula" ? compiledFile : uploaded?.file || null;
 
-    const preview = useMemo(
-        () =>
-            tab === "text" ? previewOfCompiled(compiled) : previewOf(uploaded),
-        [tab, compiled, uploaded],
-    );
+    const dimacs =
+        tab === "formula"
+            ? compiled?.ok
+                ? compiled.dimacs
+                : null
+            : uploaded?.text || null;
 
-    const handleLog = async (file: File | undefined) => {
+    const loadError = source.loadError.value;
+
+    const takeFormula = async (file: File, note?: string) => {
+        const id = ++pick.current;
+        const body = await file.text();
+
+        if (pick.current !== id) {
+            return;
+        }
+
+        setUploaded({ file, text: body, note: note ?? null });
+        setTab("dimacs");
+    };
+
+    // Update file input when sample selected
+    useEffect(() => {
+        if (!dimacsInput.current || !uploaded) {
+            return;
+        }
+        const picked = new DataTransfer();
+        picked.items.add(uploaded.file);
+        dimacsInput.current.files = picked.files;
+    }, [uploaded, tab]);
+
+    const loadSample = async (sample: Sample) => {
+        const url = `${import.meta.env.BASE_URL}samples/${sample.file}`;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) {
+                source.setLoadError(
+                    `Could not load sample ${sample.file} (HTTP ${res.status}).`,
+                    sample.file,
+                );
+                return;
+            }
+            await takeFormula(
+                new File([await res.blob()], sample.file),
+                sample.note,
+            );
+        } catch (err) {
+            source.setLoadError(
+                `Could not load sample ${sample.file}: ${err}`,
+                sample.file,
+            );
+        }
+    };
+
+    const takeLog = async (file: File | undefined) => {
         if (!file) {
             return;
         }
@@ -90,97 +116,67 @@ export function FileInput({ onSettled }: { onSettled?: () => void }) {
         onSettled?.();
     };
 
-    const handleFormula = async (file: File | undefined) => {
-        if (!file) {
-            return;
+    const canRun = formulaFile !== null && !busy;
+
+    const blocked = () => {
+        if (canRun || busy) {
+            return null;
         }
-
-        const id = ++pick.current;
-        const text = await file.text();
-
-        if (pick.current !== id) {
-            return;
+        if (tab === "dimacs") {
+            return "Choose a file to run";
         }
-
-        setUploaded({ file, text });
-        setTab("upload");
-        setConfigOpen(true);
+        if (compiled && !compiled.ok) {
+            return "Invalid formula";
+        }
+        return "Input a formula to run";
     };
 
-    useEffect(() => {
-        if (!formulaInput.current || !uploaded) {
+    const run = async () => {
+        if (!formulaFile || !canRun) {
             return;
         }
-        const picked = new DataTransfer();
-        picked.items.add(uploaded.file);
-        formulaInput.current.files = picked.files;
-    }, [uploaded, tab]);
 
-    const loadSample = async (name: string) => {
-        const url = `${import.meta.env.BASE_URL}samples/${name}`;
-        try {
-            const res = await fetch(url);
-            if (res.ok) {
-                const blob = await res.blob();
-                const file = new File([blob], name);
-                handleFormula(file);
-            } else {
-                source.setLoadError(
-                    `Could not load sample ${name} (HTTP ${res.status}).`,
-                    name,
-                );
-            }
-        } catch (err) {
-            source.setLoadError(`Could not load sample ${name}: ${err}`, name);
-        }
+        onSettled?.();
+        await source.loadFormula(
+            formulaFile,
+            solver.id,
+            flagState.flags,
+            compiled?.ok ? compiled.names : null,
+        );
     };
 
     return (
         <div class="flex flex-col gap-3">
-            <div class="flex items-end gap-2">
-                <div class="flex min-w-0 flex-1 flex-col gap-1.5">
-                    <span class="text-sm font-medium">
-                        <label for="input-tabslist">Input</label>
-                    </span>
-                    <div
-                        id="input-tabslist"
-                        role="tablist"
-                        class="tabs tabs-box tabs-xs"
-                    >
-                        <button
-                            role="tab"
-                            type="button"
-                            onClick={() => setTab("text")}
-                            class={cn("tab", tab === "text" && "tab-active")}
-                        >
-                            Formula
-                        </button>
-                        <button
-                            role="tab"
-                            type="button"
-                            onClick={() => setTab("upload")}
-                            class={cn("tab", tab === "upload" && "tab-active")}
-                        >
-                            DIMACS File
-                        </button>
-                    </div>
+            <div class="flex items-center justify-between gap-2">
+                <div
+                    role="tablist"
+                    aria-label="Input"
+                    class="tabs tabs-box tabs-xs"
+                >
+                    <Tab id="formula" tab={tab} set={setTab}>
+                        Formula
+                    </Tab>
+                    <Tab id="dimacs" tab={tab} set={setTab}>
+                        DIMACS file
+                    </Tab>
+                    <Tab id="log" tab={tab} set={setTab}>
+                        Event log
+                    </Tab>
                 </div>
-                <div class="flex w-32 shrink-0 flex-col gap-1.5">
-                    <span class="text-sm font-medium">
-                        <label for="solver-select">Solver</label>
-                    </span>
+
+                <div class="flex shrink-0 items-center gap-2">
+                    <label for={`${ids}-solver`} class="text-sm font-medium">
+                        Solver
+                    </label>
                     <select
-                        id="solver-select"
-                        value={selectedSolverId.value}
+                        id={`${ids}-solver`}
+                        value={solver.id}
                         onChange={(e) => {
-                            const id = e.currentTarget.value;
-                            selectedSolverId.value = id;
-                            setConfigOpen(id !== "");
+                            selectedSolverId.value = e.currentTarget.value;
                         }}
-                        disabled={status !== "idle"}
-                        class="select select-sm w-full"
+                        disabled={busy || tab === "log"}
+                        class="select select-sm w-36"
                     >
-                        <option value="">None</option>
                         {solvers.map((s) => (
                             <option key={s.id} value={s.id}>
                                 {s.name}
@@ -190,89 +186,144 @@ export function FileInput({ onSettled }: { onSettled?: () => void }) {
                 </div>
             </div>
 
-            {tab === "text" ? (
-                <FormulaEditor
-                    text={text}
-                    setText={setText}
-                    compiled={compiled}
-                    showError={true}
-                    busy={status !== "idle"}
-                />
-            ) : (
-                <input
-                    ref={formulaInput}
-                    type="file"
-                    accept=".dimacs,.cnf,.*"
-                    aria-label="CNF formula"
-                    onChange={(e) => {
-                        const input = e.currentTarget;
-                        handleFormula(input.files?.[0]);
-                    }}
-                    class="file-input file-input-sm w-full"
-                    disabled={status !== "idle"}
-                />
+            {loadError && (
+                <div
+                    role="alert"
+                    class="alert alert-error alert-soft items-start py-1.5"
+                >
+                    <CircleAlert size={15} class="mt-0.5 shrink-0" />
+                    <p class="min-w-0 text-xs">{loadError.message}</p>
+                </div>
             )}
 
-            {preview && (
-                <>
-                    <p class="text-base-content/60 text-xs">
-                        DIMACS: {preview.variables} variables, {preview.clauses}{" "}
-                        clauses
+            {tab === "log" ? (
+                <div class="flex flex-col gap-1.5">
+                    <input
+                        type="file"
+                        accept=".jsonl,.ndjson"
+                        aria-label="Solver event log"
+                        onChange={(e) => {
+                            const input = e.currentTarget;
+                            void takeLog(input.files?.[0]);
+                            input.value = "";
+                        }}
+                        disabled={busy}
+                        class="file-input file-input-sm w-full"
+                    />
+                    <p class="text-base-content/60 ml-2 text-xs">
+                        You can export the log from a previous run and load it
+                        here.
                     </p>
+                </div>
+            ) : (
+                <>
+                    {tab === "formula" ? (
+                        <FormulaEditor
+                            text={text}
+                            setText={setText}
+                            compiled={compiled}
+                            showError={true}
+                            busy={busy}
+                        />
+                    ) : (
+                        <input
+                            ref={dimacsInput}
+                            type="file"
+                            accept=".dimacs,.cnf,.*"
+                            aria-label="CNF formula in DIMACS format"
+                            onChange={(e) => {
+                                if (e.currentTarget.files?.[0]) {
+                                    void takeFormula(e.currentTarget.files[0]);
+                                }
+                            }}
+                            disabled={busy}
+                            class="file-input file-input-sm w-full"
+                        />
+                    )}
 
-                    <pre class="border-base-300 bg-base-200 mt-1 max-h-48 overflow-auto rounded border p-2 font-mono text-xs">
-                        {preview.body}
-                    </pre>
+                    {dimacs && (
+                        <div class="flex flex-col gap-1.5">
+                            <div class="flex items-baseline justify-between gap-2">
+                                <span class="text-base-content/60 min-w-0 text-xs">
+                                    {tab === "dimacs" && uploaded?.note}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDimacs(!showDimacs)}
+                                    aria-expanded={showDimacs}
+                                    class="btn btn-ghost btn-xs gap-1 font-normal"
+                                >
+                                    <Chevron open={showDimacs} />
+                                    DIMACS
+                                </button>
+                            </div>
+
+                            {showDimacs && (
+                                <pre class="border-base-300 bg-base-200 max-h-48 overflow-auto rounded border p-2 font-mono text-xs">
+                                    {dimacs}
+                                </pre>
+                            )}
+                        </div>
+                    )}
+
+                    <SampleList busy={busy} onPick={loadSample} />
+
+                    <div class="border-base-300 flex items-start justify-between gap-3 border-t pt-3">
+                        <SolverOptions
+                            id={`${ids}-flags`}
+                            solver={solver}
+                            flagText={flagState.text}
+                            setFlagText={flagState.setText}
+                            flags={flagState.flags}
+                            cnfName={formulaFile?.name ?? "formula.cnf"}
+                            busy={busy}
+                        />
+
+                        <div class="flex shrink-0 items-center gap-2">
+                            <span class="text-base-content/50 text-xs">
+                                {blocked()}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => void run()}
+                                disabled={!canRun}
+                                class="btn btn-primary btn-sm gap-1"
+                            >
+                                <Play size={14} />
+                                Run
+                            </button>
+                        </div>
+                    </div>
                 </>
             )}
-
-            <div class={cn("flex flex-col gap-1.5")}>
-                <span class="text-sm font-medium">Example Formulas</span>
-                <div class="flex flex-wrap gap-1">
-                    {sampleFormulas.map((s) => (
-                        <button
-                            key={s}
-                            type="button"
-                            onClick={() => loadSample(s)}
-                            disabled={status !== "idle"}
-                            class="btn btn-xs font-mono font-normal"
-                        >
-                            {s}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {formulaFile !== null && solver === null && (
-                <p class="text-error text-xs">
-                    Pick a solver to configure the run.
-                </p>
-            )}
-
-            {solver && (formulaFile !== null || configOpen) && (
-                <SolverCard
-                    key={solver.id}
-                    solver={solver}
-                    file={formulaFile}
-                    names={compiled?.ok ? compiled.names : null}
-                    onRun={onSettled}
-                />
-            )}
-
-            <label class="flex flex-col gap-1.5">
-                <span class="text-sm font-medium">Load a solver event log</span>
-                <input
-                    type="file"
-                    accept=".jsonl,.ndjson"
-                    onChange={(e) => {
-                        const input = e.currentTarget as HTMLInputElement;
-                        void handleLog(input.files?.[0]);
-                        input.value = "";
-                    }}
-                    disabled={status !== "idle"}
-                    class="file-input file-input-sm w-full"
-                />
-            </label>
         </div>
     );
+}
+
+function Tab({
+    id,
+    tab,
+    set,
+    children,
+}: {
+    id: TabId;
+    tab: TabId;
+    set: (next: TabId) => void;
+    children: string;
+}) {
+    return (
+        <button
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => set(id)}
+            class={cn("tab", tab === id && "tab-active")}
+        >
+            {children}
+        </button>
+    );
+}
+
+export function Chevron({ open }: { open: boolean }) {
+    return open ? <ChevronDown size={13} /> : <ChevronRight size={13} />;
 }

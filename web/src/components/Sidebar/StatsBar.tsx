@@ -15,6 +15,8 @@ export function StatsBar() {
 
     const { stats, result } = run;
 
+    const isSolving = source.status.value === "solving";
+
     const displayResult = result?.result ?? "aborted";
 
     const fields: [string, string | number | undefined][] = [
@@ -38,7 +40,7 @@ export function StatsBar() {
                 <span
                     class={cn("badge badge-sm shrink-0", colors[displayResult])}
                 >
-                    {displayResult.toUpperCase()}
+                    {isSolving ? "SOLVING" : displayResult.toUpperCase()}
                 </span>
             </div>
 

@@ -33,11 +33,11 @@ export function FormulaEditor({
             {error && showError && (
                 <div
                     role="alert"
-                    class="alert alert-error alert-soft items-start py-1.5"
+                    class="alert alert-error alert-soft mt-1 items-start py-1.5"
                 >
                     <div class="min-w-0 font-mono text-xs">
                         <p>
-                            {error.line}:{error.column} {error.message}
+                            Line {error.line}: {error.message}
                         </p>
                         <pre class="mt-1 overflow-x-auto">
                             {error.lineText}

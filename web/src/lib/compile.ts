@@ -144,7 +144,7 @@ function parse(tokens: Token[]) {
 
         const t = tokens[p];
         if (!isVar(t.text)) {
-            const found = t.text ? `"${t.text}"` : "end of input";
+            const found = t.text ? `"${t.text}"` : "EOF";
             throw new Fail(`expected a variable or (, found ${found}`, t.at);
         }
         p++;

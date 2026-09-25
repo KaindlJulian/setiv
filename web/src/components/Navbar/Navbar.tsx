@@ -79,6 +79,7 @@ function PageNav() {
 function LogMenu() {
     const ref = useRef<HTMLDetailsElement>(null);
     const [open, setOpen] = useState(false);
+    const location = useLocation();
 
     useDismiss(ref, open, () => setOpen(false));
 
@@ -94,8 +95,13 @@ function LogMenu() {
                 <FolderOpen size={15} />
                 Open
             </summary>
-            <div class="dropdown-content rounded-box border-base-300 bg-base-100 z-20 mt-1 w-96 border p-4 shadow-lg">
-                <FileInput onSettled={() => setOpen(false)} />
+            <div class="dropdown-content rounded-box border-base-300 bg-base-100 z-20 mt-1 w-xl border p-4 shadow-lg">
+                <FileInput
+                    onSettled={() => {
+                        setOpen(false);
+                        location.route("/main");
+                    }}
+                />
             </div>
         </details>
     );
