@@ -14,7 +14,7 @@
 | `formulas/`                   | DIMACS instances used for testing              |
 | `web/`                        | The viewer, a preact+vite app                                                    |
 
-## Quick start
+## Setup
 
 To run the viewer locally:
 
@@ -24,22 +24,20 @@ npx install
 npx run dev
 ```
 
-### Produce a log
-
-Two ways. In the browser, select a dimacs file in the formula input and pick
-a solver. It runs as WebAssembly and generates the log. Or build a solver and run:
+To build solvers:
 
 ```bash
-python3 solvers/build.py
-
-python3 event_protocol/run_eventlog.py [solver] formulas/php_4_3.cnf
+# build solvers local
+solvers/build.py
+# generate log
+event_protocol/run_eventlog.py [solver] formulas/php_4_3.cnf
 ```
 
 Logs land in `event_protocol/out/`.
 
 ### The event protocol
 
-Logs are in [JSON lines format](https://ndjson.com/). One event per line:
+In NDJSON/JSONL format:
 
 ```json
 {"event":"decide","literal":11,"level":1,"heuristic":"vmtf"}
@@ -65,5 +63,5 @@ Reference implementations:
 - [`solvers/setiv-dpll`](solvers/setiv-dpll), an around 300 lines textbook DPLL solver 
 without optimizations. Does not emit all events, because either they are not relevant 
 to pure DPLL (e.g. `learn`) or the solver does not implement this behavior (e.g. `restart`). 
-- [`solvers/cadical`](solvers/cadical), a fork of CaDiCaL with the hooks in `src/hooks.cpp`
+- [`solvers/cadical`](https://github.com/KaindlJulian/cadical/tree/event_logger_hooks), a fork of CaDiCaL with the hooks in `src/hooks.cpp`
   and an abstract `SolverObserver`, to seperate the hook logic and the JSON writing.
