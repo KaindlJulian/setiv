@@ -49,7 +49,7 @@ Should be fired once as the first event. It establishes the original formulas va
 clause set that later events refer to.
 
 ```json
-{"event":"init","protocol_version":"1","variables":N,"clauses":M,"variable_ids":[1,...,N],"clause_list":[{"id":CID,"literals":[...]}, ...]}
+{"event":"init","protocol_version":"1","variables":1,"clauses":1,"variable_ids":[1],"clause_list":[{"id":1,"literals":[1]}]}
 ```
 
 | Field              | Type     | Description                                        |
@@ -107,7 +107,7 @@ Fire at the start of conflict analysis, before anything modifies the trail. Fire
 it also for a conflict at decision level 0.
 
 ```json
-{"event":"conflict","clause_id":CID,"literals":[...],"level":DL,"trail":[...]}
+{"event":"conflict","clause_id":1,"literals":[1],"level":1,"trail":[1]}
 ```
 
 | Field       | Type  | Description                                   |
@@ -125,7 +125,7 @@ Fire after conflict analysis derives a clause.
 This event reports the learned clause, not a trail change.
 
 ```json
-{"event":"learn","learned_literals":[...],"glue":G,"clause_id":CID,"jump_level":JL}
+{"event":"learn","learned_literals":[1],"glue":0,"clause_id":1,"jump_level":0}
 ```
 
 | Field              | Type  | Description                                                          |
@@ -143,7 +143,7 @@ This event reports the learned clause, not a trail change.
 Fire before every trail unwind.
 
 ```json
-{"event":"backtrack","from_level":FL,"to_level":TL,"kind":"conflict","reason":"otfs"}
+{"event":"backtrack","from_level":1,"to_level":0,"kind":"conflict","reason":"reason"}
 ```
 
 | Field        | Type   | Description                                                |
@@ -169,12 +169,12 @@ Fire before every trail unwind.
 Essentially a restart marker. Fired whenever the solver restarts.
 
 ```json
-{"event":"restart","count":N}
+{"event":"restart","count":1}
 ```
 
 | Field   | Type  | Description                               |
 | ------- | ----- | ----------------------------------------- |
-| `count` | int64 | Total restart count, already incremented  |
+| `count` | int64 | Running total restart count, already incremented  |
 
 The restart's unwind, if there is one, arrives as a separate `backtrack` with
 `kind: "restart"`. That `backtrack` is absent when the restart unwinds nothing,
@@ -186,7 +186,7 @@ for example when trail reuse leaves the decision level unchanged.
 Fire before the solver removes a clause from its clause database.
 
 ```json
-{"event":"delete_clause","clause_id":CID,"literals":[...]}
+{"event":"delete_clause","clause_id":1,"literals":[1]}
 ```
 
 | Field       | Type  | Description                             |
@@ -201,7 +201,7 @@ Fire each time a clause is inspected during unit propagation.
 Optional, since it will blow up a log significantly if emitted.
 
 ```json
-{"event":"inspect","clause_id":CID,"outcome":"unresolved","watched":[L1,L2],"next_watched":[L2,L3]}
+{"event":"inspect","clause_id":1,"outcome":"unresolved","watched":[1,2],"next_watched":[2,3]}
 ```
 
 | Field       | Type   | Description                                              |
@@ -228,7 +228,7 @@ Fire immediately after the CDCL loop returns. This is the last event of the
 search and a consumer may stop reading there.
 
 ```json
-{"event":"result","result":"sat"|"unsat"|"unknown","model":[...]}
+{"event":"result","result":"sat","model":[1,2]}
 ```
 
 | Field    | Type   | Description                                                                                       |
