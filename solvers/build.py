@@ -3,14 +3,12 @@
 Build all solvers in /solvers locally for dev
 """
 
-import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 SOLVERS = Path(__file__).resolve().parent
-JOBS = str(os.cpu_count())
 
 # two builds from one source
 SATCH_CONFIGS = {
@@ -42,12 +40,12 @@ def build_cadical():
     debug = crate.joinpath("build")
     debug.mkdir(exist_ok=True)
     subprocess.run(["../configure", "-g", "-l"], cwd=debug, check=True)
-    subprocess.run(["make", "-j", JOBS], cwd=debug, check=True)
+    subprocess.run(["make", "-j"], cwd=debug, check=True)
 
     opt = crate.joinpath("build-opt")
     opt.mkdir(exist_ok=True)
     subprocess.run(["../configure"], cwd=opt, check=True)
-    subprocess.run(["make", "-j", JOBS], cwd=opt, check=True)
+    subprocess.run(["make", "-j"], cwd=opt, check=True)
 
     return opt.joinpath("cadical")
 
@@ -59,7 +57,7 @@ def build_satch():
     for name, flags in SATCH_CONFIGS.items():
         subprocess.run(["make", "clean"], cwd=crate, check=False)
         subprocess.run(["./configure", *flags], cwd=crate, check=True)
-        subprocess.run(["make", "-j", JOBS], cwd=crate, check=True)
+        subprocess.run(["make", "-j"], cwd=crate, check=True)
 
         binary = crate.joinpath(name)
         shutil.copy2(crate.joinpath("satch"), binary)
